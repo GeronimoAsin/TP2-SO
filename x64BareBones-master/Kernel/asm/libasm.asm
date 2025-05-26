@@ -1,5 +1,4 @@
 GLOBAL cpuVendor
-
 section .text
 	
 cpuVendor:
@@ -25,3 +24,5 @@ cpuVendor:
 	mov rsp, rbp
 	pop rbp
 	ret
+
+

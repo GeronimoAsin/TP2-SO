@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <stdarg.h>
+#include <stdint.h>
 
 void * memset(void * destination, int32_t c, uint64_t length)
 {
@@ -48,3 +50,85 @@ void * memcpy(void * destination, const void * source, uint64_t length)
 
 	return destination;
 }
+
+
+//scanf,printf,putChar,getChar
+
+
+void putChar(char character)
+{
+	    char buffer[2] = {character, '\0'};
+
+    sys_write(1,buffer); 
+	return;  
+}
+
+char getChar()
+{
+	char buffer;
+	sys_read(0,buffer); 
+	return buffer; 
+}
+
+// Implementación de printf
+int printf(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    int chars_written = 0;
+
+    for (const char *ptr = format; *ptr != '\0'; ptr++) {
+        if (*ptr == '%' && *(ptr + 1) != '\0') {
+            ptr++; // Avanzar al especificador de formato
+            if (*ptr == 's') {
+                // Formato %s (cadena)
+                const char *str = va_arg(args, const char *);
+                while (*str != '\0') {
+                    sys_write(1, *str++);
+                    chars_written++;
+                }
+            } else if (*ptr == 'd') {
+                // Formato %d (entero)
+                int num = va_arg(args, int);
+                char num_buffer[20];
+                int num_len = 0;
+
+                // Convertir entero a cadena
+                if (num < 0) {
+                    sys_write(1, '-');
+                    chars_written++;
+                    num = -num;
+                }
+                do {
+                    num_buffer[num_len++] = '0' + (num % 10);
+                    num /= 10;
+                } while (num > 0);
+
+                // Imprimir número en orden inverso
+                while (num_len > 0) {
+                    sys_write(1, num_buffer[--num_len]);
+                    chars_written++;
+                }
+            } else if (*ptr == 'c') {
+                // Formato %c (carácter)
+                char c = (char)va_arg(args, int);
+                sys_write(1, c);
+                chars_written++;
+            } else {
+                // Formato desconocido, imprimir tal cual
+                sys_write(1, '%');
+                sys_write(1, *ptr);
+                chars_written += 2;
+            }
+        } else {
+            // Carácter normal
+            sys_write(1, *ptr);
+            chars_written++;
+        }
+    }
+
+    va_end(args);
+
+    return chars_written; // Retornar el número de caracteres escritos
+}
+

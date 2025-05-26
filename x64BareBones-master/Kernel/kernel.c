@@ -98,7 +98,9 @@ int main()
 	ncPrint("  Sample data module contents: ");
 	ncPrint((char*)sampleDataModuleAddress);
 	ncNewline();
-
+	putChar('b'); 
 	ncPrint("[Finished]");
+		putChar('b'); 
+
 	return 0;
 }
