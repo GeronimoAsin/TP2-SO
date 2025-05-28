@@ -1,7 +1,6 @@
-#include <lib.h>
+#include "syscallDispatcher.h"
 
-
-static uint64_t sys_read(uint64_t fd, char *buff)
+uint64_t sys_read(uint64_t fd, char *buff)
 {
     if (fd != 0)
     {
@@ -10,11 +9,11 @@ static uint64_t sys_read(uint64_t fd, char *buff)
 
 
     //falta implementar getCharFromKeyboard
-    *buff = getCharFromKeyboard();
+   // *buff = getCharFromKeyboard();
     return 0;
 }
 
-static uint64_t sys_write(uint64_t fd, char buffer)
+uint64_t sys_write(uint64_t fd, const char* buffer)
 {
     if (fd != 1)
     {

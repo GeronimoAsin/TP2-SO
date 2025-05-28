@@ -1,7 +1,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdint.h>
-
+#include "syscallDispatcher.h"
+#include "lib.h"
 void * memset(void * destination, int32_t c, uint64_t length)
 {
 	uint8_t chr = (uint8_t)c;
@@ -66,69 +67,73 @@ void putChar(char character)
 char getChar()
 {
 	char buffer;
-	sys_read(0,buffer); 
+	sys_read(0,&buffer); 
 	return buffer; 
 }
 
-// Implementación de printf
-int printf(const char *format, ...) {
+void printf(const char *format, ...) {
     va_list args;
     va_start(args, format);
 
-    int chars_written = 0;
-
-    for (const char *ptr = format; *ptr != '\0'; ptr++) {
-        if (*ptr == '%' && *(ptr + 1) != '\0') {
-            ptr++; // Avanzar al especificador de formato
-            if (*ptr == 's') {
-                // Formato %s (cadena)
-                const char *str = va_arg(args, const char *);
-                while (*str != '\0') {
-                    sys_write(1, *str++);
-                    chars_written++;
+    while (*format) {
+        if (*format == '%') {
+            format++;
+            switch (*format) {
+                case 'c': { // Caracter
+                    char c = (char)va_arg(args, int); // Los caracteres se pasan como int en argumentos variables
+                    char buffer[2] = {c, '\0'};
+                    sys_write(1, buffer);
+                    break;
                 }
-            } else if (*ptr == 'd') {
-                // Formato %d (entero)
-                int num = va_arg(args, int);
-                char num_buffer[20];
-                int num_len = 0;
-
-                // Convertir entero a cadena
-                if (num < 0) {
-                    sys_write(1, '-');
-                    chars_written++;
-                    num = -num;
+                case 's': { // Cadena
+                    const char *str = va_arg(args, const char *);
+                    while (*str) {
+                        char buffer[2] = {*str++, '\0'};
+                        sys_write(1, buffer);
+                    }
+                    break;
                 }
-                do {
-                    num_buffer[num_len++] = '0' + (num % 10);
-                    num /= 10;
-                } while (num > 0);
+                case 'd': { // Entero
+                    int num = va_arg(args, int);
+                    char num_buffer[12]; // Buffer para almacenar el número como cadena
+                    int num_len = 0;
 
-                // Imprimir número en orden inverso
-                while (num_len > 0) {
-                    sys_write(1, num_buffer[--num_len]);
-                    chars_written++;
+                    if (num < 0) {
+                        char buffer[2] = {'-', '\0'};
+                        sys_write(1, buffer);
+                        num = -num;
+                    }
+
+                    do {
+                        num_buffer[num_len++] = (num % 10) + '0';
+                        num /= 10;
+                    } while (num > 0);
+
+                    while (num_len > 0) {
+                        char buffer[2] = {num_buffer[--num_len], '\0'};
+                        sys_write(1, buffer);
+                    }
+                    break;
                 }
-            } else if (*ptr == 'c') {
-                // Formato %c (carácter)
-                char c = (char)va_arg(args, int);
-                sys_write(1, c);
-                chars_written++;
-            } else {
-                // Formato desconocido, imprimir tal cual
-                sys_write(1, '%');
-                sys_write(1, *ptr);
-                chars_written += 2;
+                case '%': { // Literal '%'
+                    char buffer[2] = {'%', '\0'};
+                    sys_write(1, buffer);
+                    break;
+                }
+                default:
+                    // Si el formato no es reconocido, lo ignoramos
+                    break;
             }
         } else {
-            // Carácter normal
-            sys_write(1, *ptr);
-            chars_written++;
+            char buffer[2] = {*format, '\0'};
+            sys_write(1, buffer);
         }
+        format++;
     }
 
     va_end(args);
-
-    return chars_written; // Retornar el número de caracteres escritos
 }
+
+
+
 
