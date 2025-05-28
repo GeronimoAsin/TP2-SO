@@ -65,21 +65,21 @@ void printChar(char c, uint32_t color) {
 		return;
 	}
 
-	uint8_t *glyph = font_bitmap[(uint8_t)c];
-
-	static const uint8_t bit_masks[8] = {
-		0x80, 0x40, 0x20, 0x10,
-		0x08, 0x04, 0x02, 0x01
-	};
+	uint8_t *glyph = font_bitmap +16 * (c -32);;
 
 	for (int cy = 0; cy < 16; cy++) {
-		uint8_t rowBits = glyph[cy];
+		uint8_t row = glyph[cy];
 		for (int cx = 0; cx < 8; cx++) {
-			if (rowBits & bit_masks[cx]) {
+			// Verificamos cada bit de la fila, empezando por el más significativo
+			if (row & (0x80 >> cx)) {
 				putPixel(color, currentX + cx, currentY + cy);
+			} else {
+				// Si el bit está en 0, dibujamos el color de fondo
+				putPixel(0x000000, currentX + cx, currentY + cy);
 			}
 		}
 	}
+
 
 	currentX += 8;
 }
