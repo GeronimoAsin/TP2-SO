@@ -1,5 +1,6 @@
 #include <stdint.h>
-#include <videoDriver.h>
+#include "videoDriver.h"
+#include "bitmap.h"
 
 struct vbe_mode_info_structure {
 	uint16_t attributes;		// deprecated, only bit 7 should be of interest to you, and it indicates the mode supports a linear frame buffer.
@@ -49,4 +50,46 @@ void putPixel(uint32_t hexColor, uint64_t x, uint64_t y) {
     framebuffer[offset]     =  (hexColor) & 0xFF;
     framebuffer[offset+1]   =  (hexColor >> 8) & 0xFF; 
     framebuffer[offset+2]   =  (hexColor >> 16) & 0xFF;
+}
+
+void printChar(char c, uint64_t x, uint64_t y, uint32_t color) {
+    if (x >= VBE_mode_info->width || y >= VBE_mode_info->height){
+        return; 
+	}
+
+    if(x + 8 > VBE_mode_info->width || y + 16 > VBE_mode_info->height){
+		return;
+	}
+    
+    uint8_t *glyph = font_bitmap[(uint8_t)c];
+
+    static const uint8_t bit_masks[8] = {
+        0x80, 0x40, 0x20, 0x10,
+        0x08, 0x04, 0x02, 0x01
+    };
+
+    for (int cy = 0; cy < 16; cy++) {
+        uint8_t rowBits = glyph[cy];
+        for (int cx = 0; cx < 8; cx++) {
+            if (rowBits & bit_masks[cx]) {
+                putPixel(color, x + cx, y + cy);
+            }
+        }
+    }
+}
+
+void printString(const char *str, uint64_t x, uint64_t y, uint32_t color) {
+    while (*str) {
+        printChar(*str, x, y, color);
+        x += 8;
+        str++;
+    }
+}
+
+void clearScreen(uint32_t backgroundColor) {
+    for (uint64_t y = 0; y < VBE_mode_info->height; y++) {
+        for (uint64_t x = 0; x < VBE_mode_info->width; x++) {
+            putPixel(backgroundColor, x, y);
+        }
+    }
 }
