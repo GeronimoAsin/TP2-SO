@@ -44,8 +44,8 @@ typedef struct vbe_mode_info_structure * VBEInfoPtr;
 
 VBEInfoPtr VBE_mode_info = (VBEInfoPtr) 0x0000000000005C00;
 
-static uint64_t currentX = 0;
-static uint64_t currentY = 0;
+uint64_t currentX = 0;
+uint64_t currentY = 0;
 
 
 void putPixel(uint32_t hexColor, uint64_t x, uint64_t y) {
@@ -125,11 +125,10 @@ void setCursor(uint64_t x, uint64_t y) {
 
 void newLine() {
 	currentX = 0;
-	currentY += 16; // Altura del carácter
+	currentY += 16;
 
-	// Si nos pasamos del límite vertical de la pantalla
 	if (currentY >= VBE_mode_info->height) {
-		currentY = 0; // Volver al inicio o implementar scroll
+		currentY = 0;
 	}
 }
 
