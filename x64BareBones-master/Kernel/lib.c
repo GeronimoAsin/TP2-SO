@@ -134,6 +134,59 @@ void printf(const char *format, ...) {
     va_end(args);
 }
 
+//caso de uso scanf("%d %s", &num, str);
+//ingreso "42 hola"
+//retorna 2 y asigna num=42 str="hola"
+int scanf(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int count = 0;
+
+    while (*format) {
+        if (*format == '%') {
+            format++;
+            switch (*format) {
+                case 'd': { // Integer
+                    int *iptr = va_arg(args, int*);
+                    int num = 0, sign = 1, read = 0;
+                    char c = getChar();
+                    while (c == ' ' || c == '\n') c = getChar();
+                    if (c == '-') { sign = -1; c = getChar(); }
+                    while (c >= '0' && c <= '9') {
+                        num = num * 10 + (c - '0');
+                        c = getChar();
+                        read = 1;
+                    }
+                    if (read) { *iptr = num * sign; count++; }
+                    break;
+                }
+                case 'c': { // Char
+                    char *cptr = va_arg(args, char*);
+                    *cptr = getChar();
+                    count++;
+                    break;
+                }
+                case 's': { // String
+                    char *sptr = va_arg(args, char*);
+                    char c = getChar();
+                    while (c == ' ' || c == '\n') c = getChar();
+                    while (c != ' ' && c != '\n' && c != '\0') {
+                        *sptr++ = c;
+                        c = getChar();
+                    }
+                    *sptr = '\0';
+                    count++;
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+        format++;
+    }
+    va_end(args);
+    return count;
+}
 
 
 
