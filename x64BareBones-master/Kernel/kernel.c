@@ -35,6 +35,8 @@ void * getStackBase()
 
 void * initializeKernelBinary()
 {
+	setCursor(0, 0);
+	printString("Hola que tal", 0xFFFFFF);
 	char buffer[10];
 
 	ncPrint("[x64BareBones]");
