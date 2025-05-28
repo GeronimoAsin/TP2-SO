@@ -3,6 +3,7 @@
 #include <lib.h>
 #include <moduleLoader.h>
 #include <naiveConsole.h>
+#include <videoDriver.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -36,7 +37,9 @@ void * getStackBase()
 void * initializeKernelBinary()
 {
 	setCursor(0, 0);
-	printString("Hola que tal", 0xFFFFFF);
+	printString("Hola que talX", 0xFFFFFF);
+	deleteLastChar(0x000000);
+	clearScreen(0x000000);
 	char buffer[10];
 
 	ncPrint("[x64BareBones]");

@@ -1,17 +1,19 @@
 #include <time.h>
 #include <stdint.h>
+#include <keyboardDriver.h>
 
 static void int_20();
+void (* functions[2])()={int_20, int_33};
 
 void irqDispatcher(uint64_t irq) {
-	switch (irq) {
-		case 0:
-			int_20();
-			break;
-	}
+	functions[irq]();
 	return;
 }
 
 void int_20() {
 	timer_handler();
+}
+
+void int_33(){
+	readAndProcess();
 }
