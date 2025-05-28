@@ -44,6 +44,10 @@ typedef struct vbe_mode_info_structure * VBEInfoPtr;
 
 VBEInfoPtr VBE_mode_info = (VBEInfoPtr) 0x0000000000005C00;
 
+static uint64_t currentX = 0;
+static uint64_t currentY = 0;
+
+
 void putPixel(uint32_t hexColor, uint64_t x, uint64_t y) {
     uint8_t * framebuffer = (uint8_t *) VBE_mode_info->framebuffer;
     uint64_t offset = (x * ((VBE_mode_info->bpp)/8)) + (y * VBE_mode_info->pitch);
@@ -52,44 +56,80 @@ void putPixel(uint32_t hexColor, uint64_t x, uint64_t y) {
     framebuffer[offset+2]   =  (hexColor >> 16) & 0xFF;
 }
 
-void printChar(char c, uint64_t x, uint64_t y, uint32_t color) {
-    if (x >= VBE_mode_info->width || y >= VBE_mode_info->height){
-        return; 
-	}
-
-    if(x + 8 > VBE_mode_info->width || y + 16 > VBE_mode_info->height){
+void printChar(char c, uint32_t color) {
+	if (currentX >= VBE_mode_info->width || currentY >= VBE_mode_info->height) {
 		return;
 	}
-    
-    uint8_t *glyph = font_bitmap[(uint8_t)c];
 
-    static const uint8_t bit_masks[8] = {
-        0x80, 0x40, 0x20, 0x10,
-        0x08, 0x04, 0x02, 0x01
-    };
+	if(currentX + 8 > VBE_mode_info->width || currentY + 16 > VBE_mode_info->height) {
+		return;
+	}
 
-    for (int cy = 0; cy < 16; cy++) {
-        uint8_t rowBits = glyph[cy];
-        for (int cx = 0; cx < 8; cx++) {
-            if (rowBits & bit_masks[cx]) {
-                putPixel(color, x + cx, y + cy);
-            }
-        }
-    }
+	uint8_t *glyph = font_bitmap[(uint8_t)c];
+
+	static const uint8_t bit_masks[8] = {
+		0x80, 0x40, 0x20, 0x10,
+		0x08, 0x04, 0x02, 0x01
+	};
+
+	for (int cy = 0; cy < 16; cy++) {
+		uint8_t rowBits = glyph[cy];
+		for (int cx = 0; cx < 8; cx++) {
+			if (rowBits & bit_masks[cx]) {
+				putPixel(color, currentX + cx, currentY + cy);
+			}
+		}
+	}
+
+	currentX += 8;
 }
 
-void printString(const char *str, uint64_t x, uint64_t y, uint32_t color) {
-    while (*str) {
-        printChar(*str, x, y, color);
-        x += 8;
-        str++;
-    }
+
+void printString(const char *str, uint32_t color) {
+	while (*str) {
+		printChar(*str, color);
+		str++;
+	}
 }
+
+void deleteLastChar(uint32_t backgroundColor) {
+	if (currentX <= 0) {
+		return;
+	}
+
+	currentX -= 8;
+
+	printChar(' ', backgroundColor);
+
+	currentX -= 8;
+}
+
+
 
 void clearScreen(uint32_t backgroundColor) {
-    for (uint64_t y = 0; y < VBE_mode_info->height; y++) {
-        for (uint64_t x = 0; x < VBE_mode_info->width; x++) {
-            putPixel(backgroundColor, x, y);
-        }
-    }
+	for (uint64_t y = 0; y < VBE_mode_info->height; y++) {
+		for (uint64_t x = 0; x < VBE_mode_info->width; x++) {
+			putPixel(backgroundColor, x, y);
+		}
+	}
+
+	currentX = 0;
+	currentY = 0;
 }
+
+
+void setCursor(uint64_t x, uint64_t y) {
+	currentX = x;
+	currentY = y;
+}
+
+void newLine() {
+	currentX = 0;
+	currentY += 16; // Altura del carácter
+
+	// Si nos pasamos del límite vertical de la pantalla
+	if (currentY >= VBE_mode_info->height) {
+		currentY = 0; // Volver al inicio o implementar scroll
+	}
+}
+
