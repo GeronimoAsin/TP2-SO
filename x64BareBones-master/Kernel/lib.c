@@ -56,6 +56,8 @@ void * memcpy(void * destination, const void * source, uint64_t length)
 //scanf,printf,putChar,getChar
 
 
+/*
+
 void putChar(char character)
 {
 	    char buffer[2] = {character, '\0'};
@@ -294,4 +296,5 @@ int strcmp(const char *s1, const char *s2)
 
 
 
+*/
 

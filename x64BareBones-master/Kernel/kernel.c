@@ -111,6 +111,7 @@ int main()
 
 	load_idt();
 
+	/*
 	putChar('H');
 	printf("test enter \n");
 	printf("%s ","imprimo string");

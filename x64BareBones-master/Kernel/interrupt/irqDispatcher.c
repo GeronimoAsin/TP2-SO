@@ -1,6 +1,7 @@
 #include "../include/time.h"
 #include <stdint.h>
 #include "../include/keyboardDriver.h"
+#include "../include/videoDriver.h"
 
 static void int_20();
 static void int_21();
