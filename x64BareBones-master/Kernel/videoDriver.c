@@ -132,3 +132,37 @@ void newLine() {
 	}
 }
 
+void drawRectangle(uint64_t topLeftX, uint64_t topLeftY, uint64_t width, uint64_t height, uint32_t color) {
+	for (uint64_t y = topLeftY; y < topLeftY + height && y < VBE_mode_info->height; y++) {
+		for (uint64_t x = topLeftX; x < topLeftX + width && x < VBE_mode_info->width; x++) {
+			putPixel(color, x, y);
+		}
+	}
+}
+
+
+void drawCircle(uint64_t centerX, uint64_t centerY, uint64_t radius, uint32_t color) {
+	int64_t x = 0;
+	int64_t y = radius;
+	int64_t d = 3 - 2 * radius;
+
+	while (y >= x) {
+		// Dibuja líneas horizontales para rellenar el círculo en cada octante
+		for (int64_t i = centerX - x; i <= centerX + x; i++) {
+			putPixel(color, i, centerY + y);
+			putPixel(color, i, centerY - y);
+		}
+		for (int64_t i = centerX - y; i <= centerX + y; i++) {
+			putPixel(color, i, centerY + x);
+			putPixel(color, i, centerY - x);
+		}
+
+		x++;
+		if (d > 0) {
+			y--;
+			d = d + 4 * (x - y) + 10;
+		} else {
+			d = d + 4 * x + 6;
+		}
+	}
+}

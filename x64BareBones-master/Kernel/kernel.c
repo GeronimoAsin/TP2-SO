@@ -41,6 +41,8 @@ void * initializeKernelBinary()
 	setCursor(0, 0);
 	printString("Hola que talX", 0xFFFFFF);
 	deleteLastChar(0x000000);
+	drawRectangle(0, 0, 100, 100, 0xD03748);
+	drawCircle(100, 100, 20, 0x390463);
 
 	load_idt();
 
