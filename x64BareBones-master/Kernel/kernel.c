@@ -107,9 +107,16 @@ int main()
 	ncPrint("  Sample data module contents: ");
 	ncPrint((char*)sampleDataModuleAddress);
 	ncNewline();
-	putChar('b'); 
 	ncPrint("[Finished]");
-		putChar('b'); 
+
+	putChar('H');
+	putChar('O');
+	putChar('L');
+	putChar('A');
+	printf(" que tal");
+	printf("%s ","imprimo string");
+	printf("test enter \n");
+	printf("imprimo numero %d",5);
 
 	return 0;
 }
