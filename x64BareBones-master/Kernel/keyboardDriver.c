@@ -23,7 +23,7 @@ void readAndProcess(){
     '2',  '3',  '0',  '.',  0,    0,    0,    0,     // 0x50 - 0x57 (F11, F12, etc.)
         0,    0,    0,    0,    0,    0,    0,    0     // 0x58 - 0x5F
     };
-    if(scancode_to_ascii[data] !=0){
+    if(data < 0x80 && scancode_to_ascii[data] !=0 ){
         ncPrintChar(scancode_to_ascii[data]);
         printChar(scancode_to_ascii[data], 0xFFFFFF);
     }
