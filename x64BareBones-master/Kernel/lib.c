@@ -269,7 +269,7 @@ void strToMayus(char *str) {
 }
 
 
-int strcmp(char *s1, char *s2)
+int strcmp(const char *s1, const char *s2)
 {
     int i, toReturn = 0, checked = 0;
     for (i = 0; s1[i] && s2[i]; i++)

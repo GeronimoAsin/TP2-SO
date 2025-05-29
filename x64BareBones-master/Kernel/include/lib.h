@@ -16,5 +16,5 @@ void strToMinus(char *str);
 void strToMayus(char *str);
 void unsigned_numtohex(unsigned int num, char *str);
 void signed_numtostr(int num, char *str);
-int strcmp(char *s1, char *s2);
+int strcmp(const char *s1, const char *s2);
 #endif
