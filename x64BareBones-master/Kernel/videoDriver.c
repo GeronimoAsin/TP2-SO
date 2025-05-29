@@ -70,12 +70,15 @@ uint32_t getAdaptiveTextColor(uint32_t backgroundColor) {
 
 // Modifica printChar para usar el color de texto adaptativo y el fondo global
 void printChar(char c) {
-    if (currentX >= VBE_mode_info->width || currentY >= VBE_mode_info->height) {
-        return;
+    // Si no hay lugar a lo ancho, baja a la siguiente línea
+    if (currentX + 8 > VBE_mode_info->width) {
+        currentX = 0;
+        currentY += 16;
     }
 
-    if(currentX + 8 > VBE_mode_info->width || currentY + 16 > VBE_mode_info->height) {
-        return;
+    // Si no hay lugar a lo alto, vuelve arriba (puedes cambiar esto por scroll si lo deseas)
+    if (currentY + 16 > VBE_mode_info->height) {
+        currentY = 0;
     }
 
     uint32_t textColor = getAdaptiveTextColor(currentBackgroundColor);
