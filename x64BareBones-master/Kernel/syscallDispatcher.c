@@ -25,7 +25,7 @@ uint64_t sys_write(uint64_t fd, const char* buffer)
       	newLine();
       }else
         {
-        printString(buffer,0xFFFFFF);
+        printString(buffer);
         }
 
     return 1;

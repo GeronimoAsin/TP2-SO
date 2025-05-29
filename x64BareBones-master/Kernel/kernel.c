@@ -39,7 +39,7 @@ void * initializeKernelBinary()
 {
 
 	setCursor(0, 0);
-	printString("Hola que talX", 0xFFFFFF);
+	printString("Hola que talX");
 	deleteLastChar(0x000000);
 	drawRectangle(0, 0, 100, 100, 0xD03748);
 	drawCircle(100, 100, 20, 0x390463);
@@ -115,7 +115,7 @@ int main()
 	printf("test enter \n");
 	printf("%s ","imprimo string");
 	printf("imprimo numero %d",5);
-
+	clearScreen(0xFFFFFF);
 	/*;
 	putChar('O');
 	putChar('L');

@@ -25,6 +25,6 @@ void readAndProcess(){
     };
     if(data < 0x80 && scancode_to_ascii[data] !=0 ){
         ncPrintChar(scancode_to_ascii[data]);
-        printChar(scancode_to_ascii[data], 0xFFFFFF);
+        printChar(scancode_to_ascii[data]);
     }
 }

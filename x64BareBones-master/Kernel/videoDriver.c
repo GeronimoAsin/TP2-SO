@@ -56,66 +56,80 @@ void putPixel(uint32_t hexColor, uint64_t x, uint64_t y) {
     framebuffer[offset+2]   =  (hexColor >> 16) & 0xFF;
 }
 
-void printChar(char c, uint32_t color) {
-	if (currentX >= VBE_mode_info->width || currentY >= VBE_mode_info->height) {
-		return;
-	}
 
-	if(currentX + 8 > VBE_mode_info->width || currentY + 16 > VBE_mode_info->height) {
-		return;
-	}
+uint32_t currentBackgroundColor = 0x000000;
 
-	uint8_t *glyph = font_bitmap +16 * (c -32);;
-
-	for (int cy = 0; cy < 16; cy++) {
-		uint8_t row = glyph[cy];
-		for (int cx = 0; cx < 8; cx++) {
-			// Verificamos cada bit de la fila, empezando por el más significativo
-			if (row & (0x80 >> cx)) {
-				putPixel(color, currentX + cx, currentY + cy);
-			} else {
-				// Si el bit está en 0, dibujamos el color de fondo
-				putPixel(0x000000, currentX + cx, currentY + cy);
-			}
-		}
-	}
-
-
-	currentX += 8;
+// Función para obtener color de texto adaptativo (blanco para fondo oscuro, negro para fondo claro)
+uint32_t getAdaptiveTextColor(uint32_t backgroundColor) {
+    uint8_t r = (backgroundColor >> 16) & 0xFF;
+    uint8_t g = (backgroundColor >> 8) & 0xFF;
+    uint8_t b = backgroundColor & 0xFF;
+    uint32_t luminance = (uint32_t)(0.299*r + 0.587*g + 0.114*b);
+    return (luminance > 128) ? 0x000000 : 0xFFFFFF;
 }
 
+// Modifica printChar para usar el color de texto adaptativo y el fondo global
+void printChar(char c) {
+    if (currentX >= VBE_mode_info->width || currentY >= VBE_mode_info->height) {
+        return;
+    }
 
-void printString(const char *str, uint32_t color) {
-	while (*str) {
-		printChar(*str, color);
-		str++;
-	}
+    if(currentX + 8 > VBE_mode_info->width || currentY + 16 > VBE_mode_info->height) {
+        return;
+    }
+
+    uint32_t textColor = getAdaptiveTextColor(currentBackgroundColor);
+    uint8_t *glyph = font_bitmap + 16 * (c - 32);
+
+    for (int cy = 0; cy < 16; cy++) {
+        uint8_t row = glyph[cy];
+        for (int cx = 0; cx < 8; cx++) {
+            if (row & (0x80 >> cx)) {
+                putPixel(textColor, currentX + cx, currentY + cy);
+            } else {
+                putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
+            }
+        }
+    }
+
+    currentX += 8;
 }
 
-void deleteLastChar(uint32_t backgroundColor) {
-	if (currentX <= 0) {
-		return;
-	}
-
-	currentX -= 8;
-
-	printChar(' ', backgroundColor);
-
-	currentX -= 8;
+// Modifica printString para no recibir color
+void printString(const char *str) {
+    while (*str) {
+        printChar(*str);
+        str++;
+    }
 }
 
+// Modifica deleteLastChar para usar el fondo global
+void deleteLastChar() {
+    if (currentX <= 0) {
+        return;
+    }
 
+    currentX -= 8;
+    // Borra el carácter anterior con el color de fondo actual
+    for (int cy = 0; cy < 16; cy++) {
+        for (int cx = 0; cx < 8; cx++) {
+            putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
+        }
+    }
+}
 
+// clearScreen actualiza el fondo global
 void clearScreen(uint32_t backgroundColor) {
-	for (uint64_t y = 0; y < VBE_mode_info->height; y++) {
-		for (uint64_t x = 0; x < VBE_mode_info->width; x++) {
-			putPixel(backgroundColor, x, y);
-		}
-	}
-
-	currentX = 0;
-	currentY = 0;
+    for (uint64_t y = 0; y < VBE_mode_info->height; y++) {
+        for (uint64_t x = 0; x < VBE_mode_info->width; x++) {
+            putPixel(backgroundColor, x, y);
+        }
+    }
+    currentX = 0;
+    currentY = 0;
+    currentBackgroundColor = backgroundColor; // Actualiza el color global
 }
+
 
 
 void setCursor(uint64_t x, uint64_t y) {
