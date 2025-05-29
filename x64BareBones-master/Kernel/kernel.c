@@ -42,7 +42,7 @@ void * initializeKernelBinary()
 	printString("Hola que talX", 0xFFFFFF);
 	deleteLastChar(0x000000);
 
-	load_idt();
+	//load_idt();
 
 	char buffer[10];
 

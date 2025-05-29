@@ -1,6 +1,9 @@
-#include <keyboardDriver.h>
+#include "include/keyboardDriver.h"
 #include <stdint.h>
-#include <videoDriver.h>
+#include "include/videoDriver.h"
+
+extern void read(uint8_t *data); // funcion asm
+
 
 void readAndProcess(){
     uint8_t  data;
