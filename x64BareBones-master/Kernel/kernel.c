@@ -5,7 +5,7 @@
 #include <naiveConsole.h>
 #include <videoDriver.h>
 #include <idtLoader.h>
-
+#include "include/lib.h"
 extern uint8_t text;
 extern uint8_t rodata;
 extern uint8_t data;
