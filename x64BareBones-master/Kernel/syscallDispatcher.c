@@ -1,5 +1,5 @@
 #include "syscallDispatcher.h"
-
+#include "videoDriver.h"
 uint64_t sys_read(uint64_t fd, char *buff)
 {
     if (fd != 0)
@@ -20,6 +20,13 @@ uint64_t sys_write(uint64_t fd, const char* buffer)
         return -1;
     }
 
-    //videoDriver imprime el buffer en pantalla  
+    if(*buffer=='\n')
+      {
+      	newLine();
+      }else
+        {
+        printString(buffer,0xFFFFFF);
+        }
+
     return 1;
 }

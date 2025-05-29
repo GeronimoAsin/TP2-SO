@@ -181,6 +181,14 @@ int scanf(const char *format, ...) {
                 default:
                     break;
             }
+        }else if (*format == '\n') {
+            char buffer[2] = {'\n', '\0'};
+            sys_write(1, buffer);
+            char cr[2] = {'\r', '\0'};
+            sys_write(1, cr);
+        } else {
+            char buffer[2] = {*format, '\0'};
+            sys_write(1, buffer);
         }
         format++;
     }
