@@ -4,6 +4,7 @@
 #include <moduleLoader.h>
 #include <naiveConsole.h>
 #include <videoDriver.h>
+#include <idtLoader.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -36,10 +37,13 @@ void * getStackBase()
 
 void * initializeKernelBinary()
 {
+
 	setCursor(0, 0);
 	printString("Hola que talX", 0xFFFFFF);
 	deleteLastChar(0x000000);
-	clearScreen(0x000000);
+
+	load_idt();
+
 	char buffer[10];
 
 	ncPrint("[x64BareBones]");

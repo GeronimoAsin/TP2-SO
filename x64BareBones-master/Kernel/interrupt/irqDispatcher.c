@@ -3,6 +3,8 @@
 #include <keyboardDriver.h>
 
 static void int_20();
+static void int_33();
+
 void (* functions[2])()={int_20, int_33};
 
 void irqDispatcher(uint64_t irq) {
