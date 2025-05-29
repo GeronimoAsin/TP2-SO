@@ -1,6 +1,7 @@
 #include "include/keyboardDriver.h"
 #include <stdint.h>
 #include "include/videoDriver.h"
+#include "include/naiveConsole.h"
 
 extern void read(uint8_t *data); // funcion asm
 
@@ -8,7 +9,6 @@ extern void read(uint8_t *data); // funcion asm
 void readAndProcess(){
     uint8_t  data;
     read(&data);
-
     char scancode_to_ascii[128] = {
         0,   27,  '1',  '2',  '3',  '4',  '5',  '6',   // 0x00 - 0x07
     '7',  '8',  '9',  '0',  '-',  '=',  '\b', '\t', // 0x08 - 0x0F
@@ -24,6 +24,7 @@ void readAndProcess(){
         0,    0,    0,    0,    0,    0,    0,    0     // 0x58 - 0x5F
     };
     if(scancode_to_ascii[data] !=0){
+        ncPrintChar(scancode_to_ascii[data]);
         printChar(scancode_to_ascii[data], 0xFFFFFF);
     }
 }

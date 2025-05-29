@@ -44,8 +44,6 @@ void * initializeKernelBinary()
 	drawRectangle(0, 0, 100, 100, 0xD03748);
 	drawCircle(100, 100, 20, 0x390463);
 
-	//load_idt();
-
 	char buffer[10];
 
 	ncPrint("[x64BareBones]");
@@ -111,14 +109,19 @@ int main()
 	ncNewline();
 	ncPrint("[Finished]");
 
+	load_idt();
+
 	putChar('H');
+	printf("test enter \n");
+	printf("%s ","imprimo string");
+	printf("imprimo numero %d",5);
+
+	/*;
 	putChar('O');
 	putChar('L');
 	putChar('A');
 	printf(" que tal");
-	printf("%s ","imprimo string");
-	printf("test enter \n");
-	printf("imprimo numero %d",5);
 
-	return 0;
+*/
+	while(1);
 }
