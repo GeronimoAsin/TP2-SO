@@ -109,8 +109,9 @@ int main()
 	ncNewline();
 	ncPrint("[Finished]");
 
+	 
 	load_idt();
-
+	//((EntryPoint)sampleCodeModuleAddress)();
 
 //test keyboardDriver y sys_read con buffer circular
     char buffer[32];
@@ -125,3 +126,6 @@ int main()
 
 	while(1);
 }
+
+
+

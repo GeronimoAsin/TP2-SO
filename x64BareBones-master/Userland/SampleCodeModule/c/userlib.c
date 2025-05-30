@@ -1,6 +1,5 @@
-#include "include/userlib.h"
-#include "include/libasm.h"
-
+#include "userlib.h"
+#include <stdint.h>
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 
 
@@ -100,8 +99,8 @@ int strcmp(const char *s1, const char *s2)
 }
 
 
-void putChar(char c)
-{
-//rax=1 id, rbx=1 fd, rdi=character, rsi=1 bufferCount
-    syscall(1,1,(uint64_t)&character, 1);
-}
+  char global_buffer[2];
+  void putChar(char c) {
+      global_buffer[0] = c;
+      syscall(1, 1, (uint64_t)global_buffer, 1);
+  }
