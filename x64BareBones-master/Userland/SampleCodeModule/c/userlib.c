@@ -1,5 +1,7 @@
 #include "include/userlib.h"
+#include "include/libasm.h"
 
+extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 
 
 void unsigned_numtostr(unsigned int num, char *str) {
@@ -95,4 +97,11 @@ int strcmp(const char *s1, const char *s2)
         toReturn = s2[i];
     }
     return toReturn;
+}
+
+
+void putChar(char c)
+{
+//rax=1 id, rbx=1 fd, rdi=character, rsi=1 bufferCount
+    syscall(1,1,(uint64_t)&character, 1);
 }
