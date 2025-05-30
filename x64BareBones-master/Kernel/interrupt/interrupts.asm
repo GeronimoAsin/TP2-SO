@@ -12,11 +12,13 @@ GLOBAL _irq02Handler
 GLOBAL _irq03Handler
 GLOBAL _irq04Handler
 GLOBAL _irq05Handler
+GLOBAL _irq80Handler
 
 GLOBAL _exception0Handler
 
 EXTERN irqDispatcher
 EXTERN exceptionDispatcher
+EXTERN syscallDispatcher
 
 SECTION .text
 
@@ -137,6 +139,29 @@ _irq04Handler:
 ;USB
 _irq05Handler:
 	irqHandlerMaster 5
+
+;System calls
+_irq80Handler: 
+
+	;backup de los valores en los registros
+  	push rbx
+	push rdi
+	push rsi
+	mov rdi, rax
+	mov rsi, rbx
+	push rdx		; swap entre
+	mov rdx, rcx	; los registros
+	pop rcx			; rcx y rdx
+
+	call syscallDispatcher
+	
+	pop rsi
+	pop rdi
+	pop rbx
+
+	;retorno de la interrupcion
+	iretq
+
 
 
 ;Zero Division Exception
