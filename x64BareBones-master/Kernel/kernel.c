@@ -111,18 +111,17 @@ int main()
 
 	load_idt();
 
-	/*
-	putChar('H');
-	printf("test enter \n");
-	printf("%s ","imprimo string");
-	printf("imprimo numero %d",5);
-	clearScreen(0xFFFFFF);
-	/*;
-	putChar('O');
-	putChar('L');
-	putChar('A');
-	printf(" que tal");
 
-*/
+//test keyboardDriver y sys_read con buffer circular
+    char buffer[32];
+    printString("Escribi una linea (max 10 caracteres): ");
+    uint64_t n = sys_read(0, buffer, 10);
+    buffer[n] = '\0'; // fin de string
+
+    printString("Leiste: ");
+    printString(buffer);
+ 
+
+
 	while(1);
 }
