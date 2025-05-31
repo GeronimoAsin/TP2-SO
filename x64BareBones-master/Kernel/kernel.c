@@ -112,6 +112,7 @@ int main()
 	 
 	load_idt();
 	//((EntryPoint)sampleCodeModuleAddress)();
+	pongisGolfMain();
 
 //test keyboardDriver y sys_read con buffer circular
     char buffer[32];
