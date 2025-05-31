@@ -98,10 +98,17 @@ int strcmp(const char *s1, const char *s2)
     return toReturn;
 }
 
-char global_buffer[2];
+
   void putChar(char c) {
-      global_buffer[0] = c;
-      syscall(1, 1, (uint64_t)global_buffer, 1);
+    char buffer[2];
+      buffer[0] = c;
+      syscall(1, 1, (uint64_t)buffer, 1);
+  }
+
+  char getChar() {
+    char c;
+    syscall(0, 0, (uint64_t)c, 1);
+    return c;
   }
 
 

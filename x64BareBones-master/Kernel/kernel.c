@@ -111,6 +111,7 @@ int main()
 
 	 
 	load_idt();
+	//entrada a la shell 
 	((EntryPoint)sampleCodeModuleAddress)();
 	
 	//pongisGolfMain();

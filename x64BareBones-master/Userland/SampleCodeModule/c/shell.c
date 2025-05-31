@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "userlib.h" 
-
+extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 #define CMD_MAX_CHARS 100
 #define PROMPT "Shell $> "
 
@@ -51,6 +51,7 @@ static int interpret(const char *cmd) {
 
 void startShell() {
     char buffer[CMD_MAX_CHARS];
+    print("Bienvenido a la shell! \n");
     while (1) {
         print(PROMPT);
         readLine(buffer, CMD_MAX_CHARS);
@@ -65,7 +66,8 @@ void startShell() {
                 // pongisGolfMain();
                 break;
             case 2: // clear screen
-                //llama sys_clear (falta syscall)
+                //llama sys_clear
+                syscall(2, 0, 0, 0);
                 break;
             case 3: { // echo
                 // Imprime lo que sigue después de "echo "

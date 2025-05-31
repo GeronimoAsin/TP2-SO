@@ -22,6 +22,10 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 1:
             //printChar('1'); // debug int80h.  La syscall de sys_read llega al caso 1
             return sys_write(rbx, (const char *)rdi, rsi);
+        case 2:
+            //sys_clear
+            clearScreen(0x00000000); 
+            return 1; 
         default:
             return -1;
     }   

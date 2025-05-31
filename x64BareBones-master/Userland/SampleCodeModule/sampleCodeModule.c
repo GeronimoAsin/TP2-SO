@@ -8,8 +8,17 @@ static int var2 = 0;
 
 
 int main() {
+	/* debug getChar (sys_read desde Userland)
+	char c;
+	c = getChar();
+	
+		putChar(c);
+
+	*/
+
 	startShell();
-	//
+		
+		//
 	/*
 	//All the following code may be removed 
 	*v = 'X';
