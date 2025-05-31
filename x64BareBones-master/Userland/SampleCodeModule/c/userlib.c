@@ -98,9 +98,23 @@ int strcmp(const char *s1, const char *s2)
     return toReturn;
 }
 
-
-  char global_buffer[2];
+char global_buffer[2];
   void putChar(char c) {
       global_buffer[0] = c;
       syscall(1, 1, (uint64_t)global_buffer, 1);
   }
+
+
+int strncmp(const char *s1, const char *s2, unsigned int n) {
+    unsigned int i = 0;
+    while (i < n && s1[i] && s2[i]) {
+        if (s1[i] != s2[i])
+            return (unsigned char)s1[i] - (unsigned char)s2[i];
+        i++;
+    }
+    if (i == n)
+        return 0;
+    return (unsigned char)s1[i] - (unsigned char)s2[i];
+}
+
+

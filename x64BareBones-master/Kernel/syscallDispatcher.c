@@ -20,6 +20,7 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 0:
             return sys_read(rbx, (char *)rdi, rsi);
         case 1:
+            //printChar('1'); // debug int80h.  La syscall de sys_read llega al caso 1
             return sys_write(rbx, (const char *)rdi, rsi);
         default:
             return -1;
@@ -56,5 +57,7 @@ uint64_t sys_write(uint64_t fd, const char *buffer, uint64_t count)
         else
             printChar(buffer[i]);
     }
+
     return i; // Retorna la cantidad de caracteres escritos
+
 }

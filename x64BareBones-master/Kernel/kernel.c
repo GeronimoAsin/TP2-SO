@@ -97,7 +97,7 @@ int main()
 	ncPrintHex((uint64_t)sampleCodeModuleAddress);
 	ncNewline();
 	ncPrint("  Calling the sample code module returned: ");
-	ncPrintHex(((EntryPoint)sampleCodeModuleAddress)());
+	//ncPrintHex(((EntryPoint)sampleCodeModuleAddress)());
 	ncNewline();
 	ncNewline();
 
@@ -111,10 +111,12 @@ int main()
 
 	 
 	load_idt();
-	//((EntryPoint)sampleCodeModuleAddress)();
-	pongisGolfMain();
+	((EntryPoint)sampleCodeModuleAddress)();
+	
+	//pongisGolfMain();
 
 //test keyboardDriver y sys_read con buffer circular
+/*
     char buffer[32];
     printString("Escribi una linea (max 10 caracteres): ");
     uint64_t n = sys_read(0, buffer, 10);
@@ -123,7 +125,7 @@ int main()
     printString("Leiste: ");
     printString(buffer);
  
-
+*/
 
 	while(1);
 }

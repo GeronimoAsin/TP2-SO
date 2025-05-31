@@ -151,7 +151,7 @@ _irq80Handler:
 	mov rsi, rbx
 	push rdx		; swap entre
 	mov rdx, rcx	; los registros
-	pop rcx			; rcx y rdx
+	pop rdx			; rcx y rdx
 
 	call syscallDispatcher
 	
