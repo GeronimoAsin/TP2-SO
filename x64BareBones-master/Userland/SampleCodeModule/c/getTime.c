@@ -14,5 +14,5 @@ void printTime() {
     uint64_t seconds = time % 60;
     uint64_t minutes = (time / 60) % 60;
     uint64_t hours = time / 3600;
-   // printf("%02d:%02d:%02d\n", hours, minutes, seconds);
+   printf("%d:%d:%d\n", hours, minutes, seconds);
 }
