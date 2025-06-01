@@ -1,5 +1,6 @@
 #include <stdint.h>
-#include "userlib.h" 
+#include "userlib.h"
+#include "getTime.h"
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 #define CMD_MAX_CHARS 100
 #define PROMPT "Shell $> "
@@ -50,6 +51,7 @@ static int interpret(const char *cmd) {
 }
 
 void startShell() {
+    printTime();
     char buffer[CMD_MAX_CHARS];
     print("Bienvenido a la shell! \n");
     while (1) {

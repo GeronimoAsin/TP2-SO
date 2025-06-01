@@ -90,7 +90,7 @@ void * initializeKernelBinary()
 }
 
 int main()
-{	
+{
 	ncPrint("[Kernel Main]");
 	ncNewline();
 	ncPrint("  Sample code module at 0x");
@@ -109,7 +109,7 @@ int main()
 	ncNewline();
 	ncPrint("[Finished]");
 
-	 
+
 	load_idt();
 	//entrada a la shell 
 	((EntryPoint)sampleCodeModuleAddress)();

@@ -106,8 +106,8 @@ int strcmp(const char *s1, const char *s2)
   }
 
   char getChar() {
-    char c;
-    syscall(0, 0, (uint64_t)c, 1);
+    char c = 0;
+    syscall(0, 0, (uint64_t)&c, 1);
     return c;
   }
 

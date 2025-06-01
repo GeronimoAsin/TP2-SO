@@ -25,7 +25,9 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 2:
             //sys_clear
             clearScreen(0x00000000); 
-            return 1; 
+            return 1;
+        case 3:
+            return sys_getTime();
         default:
             return -1;
     }   
@@ -64,4 +66,10 @@ uint64_t sys_write(uint64_t fd, const char *buffer, uint64_t count)
 
     return i; // Retorna la cantidad de caracteres escritos
 
+}
+
+//Devuelve el tiempo actual en segundos
+int sys_getTime()
+{
+    return getTimeAsm();
 }
