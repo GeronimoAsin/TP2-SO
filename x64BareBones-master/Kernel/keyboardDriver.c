@@ -44,7 +44,9 @@ char nextFromBuffer() {
 void readAndProcess() {
     uint8_t data;
     read(&data);
-    if (data < 0x80 && scancode_to_ascii[data] != 0) {
+    if(data == 0x01){
+        saveRegisters();
+    }else if (data < 0x80 && scancode_to_ascii[data] != 0) {
         keyboard_buffer_push(scancode_to_ascii[data]);
         printChar(scancode_to_ascii[data]); // eco en pantalla
     }

@@ -2,6 +2,9 @@
 #include "videoDriver.h"
 #include <stdarg.h>
 
+extern uint64_t getTime;
+extern uint8_t * getRegisters;
+
 uint64_t syscallDispatcher(uint64_t id, ...)
 {
     uint64_t rbx, rdi, rsi, rdx, rcx;
@@ -28,6 +31,8 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             return 1;
         case 3:
             return sys_getTime();
+        case 4:
+            return sys_getRegisters();
         default:
             return -1;
     }   
@@ -69,7 +74,13 @@ uint64_t sys_write(uint64_t fd, const char *buffer, uint64_t count)
 }
 
 //Devuelve el tiempo actual en segundos
-int sys_getTime()
+uint64_t sys_getTime()
 {
     return getTimeAsm();
+}
+
+
+//Devuelve una direccion de memoria donde estan cargados los registros
+uint64_t * sys_getRegisters(){
+    return getRegisters();
 }
