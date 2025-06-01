@@ -1,5 +1,6 @@
 #include "userlib.h"
 #include <stdint.h>
+#include <stdarg.h>
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 
 
@@ -124,4 +125,67 @@ int strncmp(const char *s1, const char *s2, unsigned int n) {
     return (unsigned char)s1[i] - (unsigned char)s2[i];
 }
 
+
+void printf(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    while (*format) {
+        if (*format == '%') {
+            format++;
+            switch (*format) {
+                case 'c': { // Caracter
+                    char c = (char)va_arg(args, int); // Los caracteres se pasan como int en argumentos variables
+                    char buffer[2] = {c, '\0'};
+                    syscall(1, 1, (uint64_t)buffer, 1);
+                    break;
+                }
+                case 's': { // Cadena
+                    const char *str = va_arg(args, const char *);
+                    while (*str) {
+                        char buffer[2] = {*str++, '\0'};
+                        syscall(1, 1, (uint64_t)buffer, 1);
+                    }
+                    break;
+                }
+                case 'd': { // Entero
+                    int num = va_arg(args, int);
+                    char num_buffer[12]; // Buffer para almacenar el número como cadena
+                    int num_len = 0;
+
+                    if (num < 0) {
+                        char buffer[2] = {'-', '\0'};
+                        syscall(1, 1, (uint64_t)buffer, 1);
+                        num = -num;
+                    }
+
+                    do {
+                        num_buffer[num_len++] = (num % 10) + '0';
+                        num /= 10;
+                    } while (num > 0);
+
+                    while (num_len > 0) {
+                        char buffer[2] = {num_buffer[--num_len], '\0'};
+                        syscall(1, 1, (uint64_t)buffer, 1);
+                    }
+                    break;
+                }
+                case '%': { // Literal '%'
+                    char buffer[2] = {'%', '\0'};
+                    syscall(1, 1, (uint64_t)buffer, 1);
+                    break;
+                }
+                default:
+                    // Si el formato no es reconocido, lo ignoramos
+                    break;
+            }
+        } else {
+            char buffer[2] = {*format, '\0'};
+            syscall(1, 1, (uint64_t)buffer, 1);
+        }
+        format++;
+    }
+
+    va_end(args);
+}
 
