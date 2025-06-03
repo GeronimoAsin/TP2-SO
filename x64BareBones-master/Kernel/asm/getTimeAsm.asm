@@ -59,6 +59,5 @@ getHours:
     out 0x70, al
     in al, 0x71
     movzx rax, al
-
     pop rbp
     ret

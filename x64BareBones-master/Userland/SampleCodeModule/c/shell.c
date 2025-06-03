@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "userlib.h"
 #include "getTime.h"
+#include "printRegisters.h"
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 #define CMD_MAX_CHARS 100
 #define PROMPT "Shell $> "
@@ -10,7 +11,9 @@ static char *help_text =
     "- help: Muestra esta ayuda\n"
     "- pongisGolf: Inicia el juego PongisGolf\n"
     "- clear: Limpia la pantalla\n"
-    "- echo + [texto]: Imprime el texto en pantalla\n";
+    "- echo + [texto]: Imprime el texto en pantalla\n"
+    "- time: Muestra la hora actual\n"
+    "- registers: Muestra los registros\n";
 
 static void print(const char *str) {
     while (*str) {
@@ -73,6 +76,8 @@ static int interpret(const char *cmd) {
     if (strcmp(cmd, "pongisGolf\n") == 0) return 1;
     if (strcmp(cmd, "clear\n") == 0) return 2;
     if (strncmp(cmd, "echo\n", 4) == 0 && (cmd[4] == ' ' || cmd[4] == '\t' || cmd[4] == 0)) return 3;
+    if (strcmp(cmd, "time\n") == 0) return 4;
+    if (strcmp(cmd, "registers\n") == 0) return 5;
     return -1;
 }
 
@@ -103,6 +108,14 @@ void startShell() {
                 while (*toPrint == ' ' || *toPrint == '\t')
                 toPrint++;
                 printf(toPrint);
+                break;
+            }
+            case 4: { // time
+                printTime();
+                break;
+            }
+            case 5: { // registers
+                //print_registers();
                 break;
             }
             default:
