@@ -5,6 +5,9 @@
 typedef struct Player;
 typedef struct Ball;
 typedef struct Hole;
+typedef struct ObstacleRect;
+typedef struct ObstacleCircle;
+typedef struct Level;
 
 
 void drawPlayer(struct Player *p);
@@ -21,5 +24,9 @@ void writeString(const char *str);
 void selectPlayers();
 void updateKeyStates();
 void processPlayersInput();
+void drawObstacles();
+void initLevels();
+int nextLevel();
+void showWinner(); 
 
 #endif 

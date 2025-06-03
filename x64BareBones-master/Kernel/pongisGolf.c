@@ -10,6 +10,8 @@
 #define PLAYER_SPEED 10
 #define BALL_RADIUS 5
 #define HOLE_RADIUS 10
+#define MAX_OBSTACLES 10
+#define MAX_LEVELS 5
 
 #define COLOR_PLAYER1 0xFF0000 // rojo
 #define COLOR_PLAYER2 0x0000FF // azul
@@ -38,6 +40,25 @@ typedef struct Hole{
     int radius;
     uint32_t color;
 } Hole;
+
+typedef struct ObstacleRect {
+    int x, y, width, height, color;
+} ObstacleRect;
+
+typedef struct ObstacleCircle {
+    int x, y, radius, color;
+} ObstacleCircle;
+
+typedef struct Level{
+    int hole_x, hole_y;
+    int numRects;
+    ObstacleRect rects[MAX_OBSTACLES];
+    int numCircles;
+    ObstacleCircle circles[MAX_OBSTACLES];
+} Level;
+
+Level levels[MAX_LEVELS];
+int currentLevel = 0;
 
 // Jugadores y pelota globales
 Player p1 = {100, 300, COLOR_PLAYER1, 0, 'w', 's', 'a', 'd'};
@@ -236,10 +257,93 @@ void selectPlayers() {
     numPlayers = (c == '1') ? 1 : 2;
 }
 
+void drawObstacles() {
+    Level *lvl = &levels[currentLevel];
+    for (int i = 0; i < lvl->numRects; i++) {
+        ObstacleRect *r = &lvl->rects[i];
+        drawRectangle(r->x, r->y, r->width, r->height, r->color);
+    }
+    for (int i = 0; i < lvl->numCircles; i++) {
+        ObstacleCircle *c = &lvl->circles[i];
+        drawCircle(c->x, c->y, c->radius, c->color);
+    }
+}
+
+void initLevels() {
+    // Nivel 1
+    levels[0].hole_x = SCREEN_WIDTH / 2;
+    levels[0].hole_y = 100;
+    levels[0].numRects = 0;
+    levels[0].numCircles = 0;
+
+    // Nivel 2
+    levels[1].hole_x = SCREEN_WIDTH / 4;
+    levels[1].hole_y = 150;
+    levels[1].numRects = 1;
+    levels[1].rects[0] = (ObstacleRect){SCREEN_WIDTH/2 - 50, SCREEN_HEIGHT/2 - 20, 100, 40, 0x964B00};
+    levels[1].numCircles = 0;
+
+    // Nivel 3
+    levels[2].hole_x = SCREEN_WIDTH * 3 / 4;
+    levels[2].hole_y = 200;
+    levels[2].numRects = 0;
+    levels[2].numCircles = 1;
+    levels[2].circles[0] = (ObstacleCircle){SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 30, 0x228B22};
+
+    // Nivel 4
+    levels[3].hole_x = SCREEN_WIDTH / 2;
+    levels[3].hole_y = SCREEN_HEIGHT - 100;
+    levels[3].numRects = 2;
+    levels[3].rects[0] = (ObstacleRect){200, 300, 80, 30, 0x964B00};
+    levels[3].rects[1] = (ObstacleRect){700, 400, 60, 60, 0x964B00};
+    levels[3].numCircles = 1;
+    levels[3].circles[0] = (ObstacleCircle){SCREEN_WIDTH/2, 500, 40, 0x228B22};
+
+    // Nivel 5
+    levels[4].hole_x = 100;
+    levels[4].hole_y = 100;
+    levels[4].numRects = 2;
+    levels[4].rects[0] = (ObstacleRect){400, 200, 120, 30, 0x964B00};
+    levels[4].rects[1] = (ObstacleRect){600, 600, 80, 80, 0x964B00};
+    levels[4].numCircles = 2;
+    levels[4].circles[0] = (ObstacleCircle){300, 400, 30, 0x228B22};
+    levels[4].circles[1] = (ObstacleCircle){800, 300, 50, 0x228B22};
+}
+
+int nextLevel() {
+    currentLevel++;
+    if (currentLevel >= MAX_LEVELS) {
+        return 0; // No hay más niveles
+    }
+    hole.x = levels[currentLevel].hole_x;
+    hole.y = levels[currentLevel].hole_y;
+    resetBall();
+    return 1;
+}
+
+void showWinner() {
+    clearScreen(COLOR_BG);
+    setCursor(400, 300);
+    if (p1.score > p2.score) {
+        printString("Winner: player 1");
+    } else if (p2.score > p1.score) {
+        printString("Winner: player 2");
+    } else {
+        printString("Empate!");
+    }
+    for (int i = 0; i < 500000000; i++);
+}
+
 void pongisGolfMain() {
+    initLevels();
+    currentLevel = 0;
+    hole.x = levels[currentLevel].hole_x;
+    hole.y = levels[currentLevel].hole_y;
     selectPlayers(); 
     clear();
     drawScores();
+    setCursor(100, 250);
+    printString("Presiona cualquier tecla para comenzar");
 
     while (1) {
         char key = getCharFromKeyboard();
@@ -254,16 +358,20 @@ void pongisGolfMain() {
         moveBall();
 
         if (isInHole(&ball, &hole)) {
-            //sys_beep(300, 400);
             if (lastHitter != NULL) {
-                lastHitter->score++;
+                lastHitter->score++; // Solo cuenta niveles ganados
             }
-            resetBall();
             lastHitter = NULL; 
+            if (!nextLevel()) {
+                showWinner();
+                clearScreen(0x000000);
+                break; // Sale del juego
+            }
         }
 
         clear();
         drawHole(&hole);
+        drawObstacles();
         drawPlayer(&p1);
         if (numPlayers == 2) {
             drawPlayer(&p2);

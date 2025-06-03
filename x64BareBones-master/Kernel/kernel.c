@@ -111,10 +111,11 @@ int main()
 
 
 	load_idt();
+	pongisGolfMain();
 	//entrada a la shell 
 	((EntryPoint)sampleCodeModuleAddress)();
 	
-	//pongisGolfMain();
+	
 
 //test keyboardDriver y sys_read con buffer circular
 /*
