@@ -51,7 +51,9 @@ void readAndProcess() {
         char ascii = scancode_to_ascii[data];
         if ((ascii >= 32 && ascii <= 126) || ascii == '\n') {
             keyboard_buffer_push(ascii);
-            printChar(ascii);
+            if(ascii != '\n'){
+                printChar(ascii);
+            }
         }
     }
 }

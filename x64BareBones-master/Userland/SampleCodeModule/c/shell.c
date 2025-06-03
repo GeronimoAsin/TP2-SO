@@ -10,7 +10,7 @@ static char *help_text =
     "- help: Muestra esta ayuda\n"
     "- pongisGolf: Inicia el juego PongisGolf\n"
     "- clear: Limpia la pantalla\n"
-    "- echo [texto]: Imprime el texto\n";
+    "- echo + [texto]: Imprime el texto en pantalla\n";
 
 static void print(const char *str) {
     while (*str) {
@@ -30,7 +30,7 @@ static int readLine(char *buffer, int max) {
         if (c == '\b' || c == 127) { // Maneja backspace
             if (i > 0) {
                 i--;
-                print("\b \b");
+                printf("\b \b");
             }
         } else if ((c >= 32 && c <= 126) || c == '\n') { // Solo caracteres imprimibles y salto de línea
             buffer[i++] = c;
