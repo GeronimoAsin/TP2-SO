@@ -18,53 +18,79 @@ static void print(const char *str) {
     }
 }
 
+
 static int readLine(char *buffer, int max) {
     int i = 0;
     char c = 0;
     while (i < max - 1 && c != '\n') {
-        // syscall 0 = read, fd=0, buffer, count=1
-        char temp[1];
-        syscall(0, 0, (uint64_t)temp, 1);
-        c = temp[0];
+        char temp=0;
+        syscall(0, 0, (uint64_t)&temp, 1); // Lee un carácter del teclado
+        c = temp;
+        if (c == '\r') continue; // Ignora carriage return
+        if (c == '\b' || c == 127) { // Maneja backspace
+            if (i > 0) {
+                i--;
+                print("\b \b");
+            }
+        } else if ((c >= 32 && c <= 126) || c == '\n') { // Solo caracteres imprimibles y salto de línea
+            buffer[i++] = c;
+        }
+        // Si no es imprimible ni salto de línea, lo ignora
+    }
+    buffer[i] = 0;
+    if (c != '\n') putChar('\n');
+    return i;
+}
+/*
+static int readLine(char *buffer, int max) {
+    int i = 0;
+    char c = 0;
+    while (i < max - 1 && c != '\n') {
+        char temp;
+        syscall(0, 0, (uint64_t)&temp, 1);
+        c = temp;
         if (c == '\r') continue; // ignore carriage return
         if (c == '\b' || c == 127) { // backspace
             if (i > 0) {
                 i--;
                 print("\b \b");
             }
-        } else if (c != '\n') {
+        } else if ((c >= 32 && c <= 126) || c == '\n') { // Solo caracteres imprimibles y salto de línea
             buffer[i++] = c;
             putChar(c);
         }
+        // Si no es imprimible ni salto de línea, lo ignora
     }
     buffer[i] = 0;
     putChar('\n');
     return i;
 }
 
+*/
+
 static int interpret(const char *cmd) {
-    if (strcmp(cmd, "help") == 0) return 0;
-    if (strcmp(cmd, "pongisGolf") == 0) return 1;
-    if (strcmp(cmd, "clear") == 0) return 2;
-    if (strncmp(cmd, "echo", 4) == 0 && (cmd[4] == ' ' || cmd[4] == '\t' || cmd[4] == 0)) return 3;
+    if (strcmp(cmd, "help\n") == 0) return 0;
+    if (strcmp(cmd, "pongisGolf\n") == 0) return 1;
+    if (strcmp(cmd, "clear\n") == 0) return 2;
+    if (strncmp(cmd, "echo\n", 4) == 0 && (cmd[4] == ' ' || cmd[4] == '\t' || cmd[4] == 0)) return 3;
     return -1;
 }
 
 void startShell() {
     printTime();
     char buffer[CMD_MAX_CHARS];
-    print("Bienvenido a la shell! \n");
+    printf("Bienvenido a la shell! \n");
     while (1) {
-        print(PROMPT);
+        printf(PROMPT);
         readLine(buffer, CMD_MAX_CHARS);
-
+        printf("\n");
         int cmd = interpret(buffer);
         switch (cmd) {
             case 0: // help
-                print(help_text);
+                printf(help_text);
                 break;
             case 1: // pongisGolf
-                print("Iniciando PongisGolf...\n");
+                printf("Iniciando PongisGolf...\n");
                 // pongisGolfMain();
                 break;
             case 2: // clear screen
@@ -76,12 +102,12 @@ void startShell() {
                 const char *toPrint = buffer + 4;
                 while (*toPrint == ' ' || *toPrint == '\t')
                 toPrint++;
-                print(toPrint);
+                printf(toPrint);
                 break;
             }
             default:
-                print("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");
+                printf("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");
         }
-        print("\n");
+        printf("\n");
     }
 }

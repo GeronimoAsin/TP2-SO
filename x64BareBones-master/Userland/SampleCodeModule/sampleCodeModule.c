@@ -8,19 +8,15 @@ static int var2 = 0;
 
 
 int main() {
-
-	printf("Hola mundo\n");
-	printf("%s\n", "Hola mundo");
-	printf("%d\n", 123);
-	printf("%c\n", 'A');
-	/* debug getChar (sys_read desde Userland)
-	char c;
-	c = getChar();
-	
-		putChar(c);
-
-	*/
-
+/*
+	//debug getChar (sys_read desde Userland)
+while(1){
+    char c = getChar();
+    if (c >= 32 && c <= 126) {
+        putChar(c);
+    }
+}
+*/
 	startShell();
 		
 		//

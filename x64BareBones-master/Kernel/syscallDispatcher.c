@@ -21,7 +21,7 @@ uint64_t syscallDispatcher(uint64_t id, ...)
     switch (id)
     {
         case 0:
-            return sys_read(rbx, (char *)rdi, rsi);
+            return sys_read(rbx, (char*) rdi, rsi);
         case 1:
             //printChar('1'); // debug int80h.  La syscall de sys_read llega al caso 1
             return sys_write(rbx, (const char *)rdi, rsi);
@@ -47,9 +47,9 @@ uint64_t sys_read(uint64_t fd, char *buff, uint64_t count)
     uint64_t i = 0;
     char character;
 
-    while (i < count) {
+    while (i < count && (character = nextFromBuffer()) != 0) {
         // Espera hasta que haya un caracter disponible
-        while ((character = nextFromBuffer()) == 0);
+        //while ((character = nextFromBuffer()) == 0);
         buff[i++] = character;
     }
     return i;

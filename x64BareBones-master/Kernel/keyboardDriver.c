@@ -28,6 +28,7 @@ void keyboard_buffer_push(char c) {
     if (next != kb_tail) { // buffer no lleno
         keyboard_buffer[kb_head] = c;
         kb_head = next;
+       // printChar('*'); // DEBUG: imprime un asterisco cada vez que se guarda algo
     }
 }
 
@@ -46,9 +47,12 @@ void readAndProcess() {
     read(&data);
     if(data == 0x01){
         saveRegisters();
-    }else if (data < 0x80 && scancode_to_ascii[data] != 0) {
-        keyboard_buffer_push(scancode_to_ascii[data]);
-        printChar(scancode_to_ascii[data]); // eco en pantalla
+    }else if (data < 0x80) {
+        char ascii = scancode_to_ascii[data];
+        if ((ascii >= 32 && ascii <= 126) || ascii == '\n') {
+            keyboard_buffer_push(ascii);
+            printChar(ascii);
+        }
     }
 }
 
