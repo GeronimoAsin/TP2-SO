@@ -10,7 +10,6 @@
 #define PLAYER_SPEED 10
 #define BALL_RADIUS 5
 #define HOLE_RADIUS 10
-#define MAX_OBSTACLES 10
 #define MAX_LEVELS 5
 
 #define COLOR_PLAYER1 0xFF0000 // rojo
@@ -21,41 +20,7 @@
 
 extern uint64_t syscallDispatcher(uint64_t id, ...);
 
-typedef struct Player{
-    int x, y;
-    uint32_t color;
-    int score;
-    char up, down, left, right;
-} Player;
 
-typedef struct Ball{
-    int x, y;
-    int dx, dy;
-    int inMotion;
-    uint32_t color;
-} Ball;
-
-typedef struct Hole{
-    int x, y;
-    int radius;
-    uint32_t color;
-} Hole;
-
-typedef struct ObstacleRect {
-    int x, y, width, height, color;
-} ObstacleRect;
-
-typedef struct ObstacleCircle {
-    int x, y, radius, color;
-} ObstacleCircle;
-
-typedef struct Level{
-    int hole_x, hole_y;
-    int numRects;
-    ObstacleRect rects[MAX_OBSTACLES];
-    int numCircles;
-    ObstacleCircle circles[MAX_OBSTACLES];
-} Level;
 
 Level levels[MAX_LEVELS];
 int currentLevel = 0;
@@ -116,11 +81,57 @@ void drawScores() {
 }
 
 void resetBall() {
-    ball.x = SCREEN_WIDTH / 2;
-    ball.y = SCREEN_HEIGHT / 2;
+    Level *lvl = &levels[currentLevel];
+    int found = 0;
+    int try_x = SCREEN_WIDTH / 2;
+    int try_y = SCREEN_HEIGHT / 2;
+
+    for (int offset = 0; offset < SCREEN_WIDTH && !found; offset += 20) {
+        for (int dx = -offset; dx <= offset && !found; dx += 20) {
+            for (int dy = -offset; dy <= offset && !found; dy += 20) {
+                int x = SCREEN_WIDTH / 2 + dx;
+                int y = SCREEN_HEIGHT / 2 + dy;
+                // Limita a los bordes
+                if (x < BALL_RADIUS) x = BALL_RADIUS;
+                if (x > SCREEN_WIDTH - BALL_RADIUS) x = SCREEN_WIDTH - BALL_RADIUS;
+                if (y < BALL_RADIUS) y = BALL_RADIUS;
+                if (y > SCREEN_HEIGHT - BALL_RADIUS) y = SCREEN_HEIGHT - BALL_RADIUS;
+
+                Ball temp = {x, y, 0, 0, 0, COLOR_BALL};
+                found = 1;
+                for (int i = 0; i < lvl->numRects; i++)
+                    if (ballHitsRect(&temp, &lvl->rects[i])) found = 0;
+                for (int i = 0; i < lvl->numCircles; i++)
+                    if (ballHitsCircle(&temp, &lvl->circles[i])) found = 0;
+                if (found) {
+                    try_x = x;
+                    try_y = y;
+                }
+            }
+        }
+    }
+
+    ball.x = try_x;
+    ball.y = try_y;
     ball.dx = 0;
     ball.dy = 0;
     ball.inMotion = 0;
+}
+
+void resetPlayer(Player *p, int start_x, int start_y) {
+    Level *lvl = &levels[currentLevel];
+    int found = 0, try_x, try_y;
+    for (int tries = 0; tries < 100 && !found; tries++) {
+        try_x = start_x;
+        try_y = start_y;
+        found = 1;
+        for (int i = 0; i < lvl->numRects; i++)
+            if (playerHitsRect(p, &lvl->rects[i])) found = 0;
+        for (int i = 0; i < lvl->numCircles; i++)
+            if (playerHitsCircle(p, &lvl->circles[i])) found = 0;
+    }
+    p->x = try_x;
+    p->y = try_y;
 }
 
 int isInHole(Ball *b, Hole *h) {
@@ -151,16 +162,26 @@ void movePlayer(Player *p, char key) {
     int new_x = p->x;
     int new_y = p->y;
 
-    if (key == p->up && p->y > 0){
+    if (key == p->up && p->y > 0)
         new_y -= PLAYER_SPEED;
-    }else if (key == p->down && p->y + PLAYER_SIZE < SCREEN_HEIGHT){
+    else if (key == p->down && p->y + PLAYER_SIZE < SCREEN_HEIGHT)
         new_y += PLAYER_SPEED;
-    }else if (key == p->left && p->x > 0){
+    else if (key == p->left && p->x > 0)
         new_x -= PLAYER_SPEED;
-    }else if (key == p->right && p->x + PLAYER_SIZE < SCREEN_WIDTH){
+    else if (key == p->right && p->x + PLAYER_SIZE < SCREEN_WIDTH)
         new_x += PLAYER_SPEED;
-    }
 
+    // Chequeo colisión con obstáculos
+    Level *lvl = &levels[currentLevel];
+    Player temp = *p;
+    temp.x = new_x;
+    temp.y = new_y;
+    for (int i = 0; i < lvl->numRects; i++){
+        if (playerHitsRect(&temp, &lvl->rects[i])) return;
+    }
+    for (int i = 0; i < lvl->numCircles; i++){
+        if (playerHitsCircle(&temp, &lvl->circles[i])) return;
+    }
     if (ball.inMotion) {
         int player_cx = new_x + PLAYER_SIZE / 2;
         int player_cy = new_y + PLAYER_SIZE / 2;
@@ -169,7 +190,6 @@ void movePlayer(Player *p, char key) {
         int distance2 = dx * dx + dy * dy;
         int minDist = (PLAYER_SIZE / 2) + BALL_RADIUS;
         if (distance2 <= (minDist * minDist)) {
-            // Si colisiona, no actualiza la posición
             return;
         }
     }
@@ -177,6 +197,7 @@ void movePlayer(Player *p, char key) {
     p->x = new_x;
     p->y = new_y;
 
+    // HIT siempre activo
     if (!ball.inMotion && playerHitsBall(p, &ball)) {
         int player_cx = p->x + PLAYER_SIZE / 2;
         int player_cy = p->y + PLAYER_SIZE / 2;
@@ -199,16 +220,43 @@ void movePlayer(Player *p, char key) {
         ball.dy = dy * speed / max_abs;
         ball.inMotion = 1;
         lastHitter = p;
-        //sys_beep(900, 150);
     }
 }
 
 
 void moveBall() {
     if (!ball.inMotion) return;
-    ball.x += ball.dx;
-    ball.y += ball.dy;
+    int next_x = ball.x + ball.dx;
+    int next_y = ball.y + ball.dy;
+    Level *lvl = &levels[currentLevel];
 
+    // Rectángulos
+    for (int i = 0; i < lvl->numRects; i++) {
+        Ball temp = {next_x, next_y, 0, 0, 0, COLOR_BALL};
+        if (ballHitsRect(&temp, &lvl->rects[i])) {
+            // Rebote simple
+            if (ballHitsRect(&(Ball){ball.x, next_y, 0, 0, 0, COLOR_BALL}, &lvl->rects[i]))
+                ball.dy = -ball.dy;
+            if (ballHitsRect(&(Ball){next_x, ball.y, 0, 0, 0, COLOR_BALL}, &lvl->rects[i]))
+                ball.dx = -ball.dx;
+            return;
+        }
+    }
+    // Círculos
+    for (int i = 0; i < lvl->numCircles; i++) {
+        Ball temp = {next_x, next_y, 0, 0, 0, COLOR_BALL};
+        if (ballHitsCircle(&temp, &lvl->circles[i])) {
+            ball.dx = -ball.dx;
+            ball.dy = -ball.dy;
+            return;
+        }
+    }
+
+    // Movimiento normal si no hay colisión
+    ball.x = next_x;
+    ball.y = next_y;
+
+    // Bordes de pantalla
     if (ball.x - BALL_RADIUS < 0) {
         ball.x = BALL_RADIUS;
         ball.dx = -ball.dx;
@@ -269,6 +317,38 @@ void drawObstacles() {
     }
 }
 
+int ballHitsRect(Ball *b, ObstacleRect *r) {
+    int closestX = b->x < r->x ? r->x : (b->x > r->x + r->width ? r->x + r->width : b->x);
+    int closestY = b->y < r->y ? r->y : (b->y > r->y + r->height ? r->y + r->height : b->y);
+    int dx = b->x - closestX;
+    int dy = b->y - closestY;
+    return (dx * dx + dy * dy) <= (BALL_RADIUS * BALL_RADIUS);
+}
+
+int ballHitsCircle(Ball *b, ObstacleCircle *c) {
+    int dx = b->x - c->x;
+    int dy = b->y - c->y;
+    int minDist = BALL_RADIUS + c->radius;
+    return (dx * dx + dy * dy) <= (minDist * minDist);
+}
+
+int playerHitsRect(Player *p, ObstacleRect *r) {
+    int px1 = p->x, px2 = p->x + PLAYER_SIZE;
+    int py1 = p->y, py2 = p->y + PLAYER_SIZE;
+    int rx1 = r->x, rx2 = r->x + r->width;
+    int ry1 = r->y, ry2 = r->y + r->height;
+    return !(px2 < rx1 || px1 > rx2 || py2 < ry1 || py1 > ry2);
+}
+
+int playerHitsCircle(Player *p, ObstacleCircle *c) {
+    int cx = p->x + PLAYER_SIZE / 2;
+    int cy = p->y + PLAYER_SIZE / 2;
+    int dx = cx - c->x;
+    int dy = cy - c->y;
+    int minDist = PLAYER_SIZE / 2 + c->radius;
+    return (dx * dx + dy * dy) <= (minDist * minDist);
+}
+
 void initLevels() {
     // Nivel 1
     levels[0].hole_x = SCREEN_WIDTH / 2;
@@ -317,6 +397,11 @@ int nextLevel() {
     }
     hole.x = levels[currentLevel].hole_x;
     hole.y = levels[currentLevel].hole_y;
+    resetBall();
+    resetPlayer(&p1, 100, 300);
+    if (numPlayers == 2){
+        resetPlayer(&p2, 900, 300);
+    } 
     resetBall();
     return 1;
 }
