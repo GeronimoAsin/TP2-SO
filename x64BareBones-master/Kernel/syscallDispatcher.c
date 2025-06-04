@@ -36,6 +36,10 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 5:
             deleteLastChar();
             return 1;
+		case 6:
+			//sys_beep
+			beep();
+			return 1;
         default:
             return -1;
     }   

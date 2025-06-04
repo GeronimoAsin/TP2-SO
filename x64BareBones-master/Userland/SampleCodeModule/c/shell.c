@@ -80,6 +80,7 @@ static int interpret(const char *cmd) {
 }
 
 void startShell() {
+    syscall(6,0,0,0);
     printTime();
     char buffer[CMD_MAX_CHARS];
     printf("Bienvenido a la shell! \n");
