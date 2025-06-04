@@ -33,6 +33,9 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             return sys_getTime();
         case 4:
            // return sys_getRegisters(); Arreglar xq esto devuelve dir de mem
+        case 5:
+            deleteLastChar();
+            return 1;
         default:
             return -1;
     }   
@@ -84,3 +87,4 @@ int sys_getTime()
 /*uint64_t * sys_getRegisters(){
     return getRegisters();
 }*/
+

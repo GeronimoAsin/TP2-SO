@@ -21,7 +21,6 @@ static void print(const char *str) {
     }
 }
 
-
 static int readLine(char *buffer, int max) {
     int i = 0;
     char c = 0;
@@ -33,7 +32,6 @@ static int readLine(char *buffer, int max) {
         if (c == '\b' || c == 127) { // Maneja backspace
             if (i > 0) {
                 i--;
-                printf("\b \b");
             }
         } else if ((c >= 32 && c <= 126) || c == '\n') { // Solo caracteres imprimibles y salto de línea
             buffer[i++] = c;
@@ -56,7 +54,7 @@ static int readLine(char *buffer, int max) {
         if (c == '\b' || c == 127) { // backspace
             if (i > 0) {
                 i--;
-                print("\b \b");
+                deleteLastChar();
             }
         } else if ((c >= 32 && c <= 126) || c == '\n') { // Solo caracteres imprimibles y salto de línea
             buffer[i++] = c;

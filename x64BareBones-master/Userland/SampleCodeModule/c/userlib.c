@@ -189,3 +189,6 @@ void printf(const char *format, ...) {
     va_end(args);
 }
 
+void deleteLastChar() {
+    syscall(5, 0, 0, 0);
+}

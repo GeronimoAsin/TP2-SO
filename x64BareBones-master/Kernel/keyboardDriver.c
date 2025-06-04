@@ -49,9 +49,12 @@ void readAndProcess() {
         saveRegisters();
     }else if (data < 0x80) {
         char ascii = scancode_to_ascii[data];
-        if ((ascii >= 32 && ascii <= 126) || ascii == '\n') {
+        if ((ascii >= 32 && ascii <= 126) || ascii == '\n' || ascii == '\b') {
             keyboard_buffer_push(ascii);
-            if(ascii != '\n'){
+            if(ascii == '\b')
+              {
+              	deleteLastChar();
+              }else if(ascii != '\n'){
                 printChar(ascii);
             }
         }
