@@ -9,6 +9,8 @@
 //guardo 2 indices para saber donde guardar y donde leer el proximo caracter
 static char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
 static int kb_head = 0, kb_tail = 0;
+static int shift = 0;
+
 
 extern void read(uint8_t *data); // función asm
 
@@ -18,6 +20,15 @@ static const char scancode_to_ascii[128] = {
     'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', 0, 'a', 's',
     'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0, '\\', 'z', 'x', 'c', 'v',
     'b', 'n', 'm', ',', '.', '/', 0, '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, '7',
+    '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.', 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+static const char scancode_to_ascii_shift[128] = {
+    0, 27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b', '\t',
+    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n', 0, 'A', 'S',
+    'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', 0, '|', 'Z', 'X', 'C', 'V',
+    'B', 'N', 'M', '<', '>', '?', 0, '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, '7',
     '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.', 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
@@ -45,10 +56,21 @@ char nextFromBuffer() {
 void readAndProcess() {
     uint8_t data;
     read(&data);
+    if (data == 0x2A || data == 0x36) {
+        shift = 1;
+        return;
+    }
+    if (data == 0xAA || data == 0xB6) {
+        shift = 0;
+        return;
+    }
     if(data == 0x01){
         saveRegisters();
     }else if (data < 0x80) {
         char ascii = scancode_to_ascii[data];
+		if(shift) {
+            ascii = scancode_to_ascii_shift[data];
+        }
         if ((ascii >= 32 && ascii <= 126) || ascii == '\n' || ascii == '\b') {
             keyboard_buffer_push(ascii);
             if(ascii == '\b')
@@ -61,38 +83,3 @@ void readAndProcess() {
     }
 }
 
-
-/*
-Implementación inicial sin buffer: 
-#include "include/keyboardDriver.h"
-#include <stdint.h>
-#include "include/videoDriver.h"
-#include "include/naiveConsole.h"
-
-extern void read(uint8_t *data); // funcion asm
-
-
-void readAndProcess(){
-    uint8_t  data;
-    read(&data);
-    char scancode_to_ascii[128] = {
-        0,   27,  '1',  '2',  '3',  '4',  '5',  '6',   // 0x00 - 0x07
-    '7',  '8',  '9',  '0',  '-',  '=',  '\b', '\t', // 0x08 - 0x0F
-    'q',  'w',  'e',  'r',  't',  'y',  'u',  'i',   // 0x10 - 0x17
-    'o',  'p',  '[',  ']',  '\n',  0,   'a',  's',   // 0x18 - 0x1F (0 = Ctrl)
-    'd',  'f',  'g',  'h',  'j',  'k',  'l',  ';',   // 0x20 - 0x27
-    '\'',  '`',  0,  '\\',  'z',  'x',  'c',  'v',    // 0x28 - 0x2F (0 = LShift)
-    'b',  'n',  'm',  ',',  '.',  '/',  0,   '*',    // 0x30 - 0x37 (0 = RShift)
-        0,   ' ',  0,    0,    0,    0,    0,    0,     // 0x38 - 0x3F (0s = Alt, Caps, F1–F4)
-        0,    0,    0,    0,    0,    0,    0,    '7',  // 0x40 - 0x47
-    '8',  '9',  '-',  '4',  '5',  '6',  '+',  '1',   // 0x48 - 0x4F
-    '2',  '3',  '0',  '.',  0,    0,    0,    0,     // 0x50 - 0x57 (F11, F12, etc.)
-        0,    0,    0,    0,    0,    0,    0,    0     // 0x58 - 0x5F
-    };
-    if(data < 0x80 && scancode_to_ascii[data] !=0 ){
-        ncPrintChar(scancode_to_ascii[data]);
-        printChar(scancode_to_ascii[data]);
-    }
-}
-
-*/
