@@ -15,10 +15,12 @@ GLOBAL _irq05Handler
 GLOBAL _irq80Handler
 
 GLOBAL _exception0Handler
+GLOBAL _exception6Handler
 
 EXTERN irqDispatcher
 EXTERN exceptionDispatcher
 EXTERN syscallDispatcher
+EXTERN saveRegisters
 
 SECTION .text
 
@@ -78,6 +80,16 @@ SECTION .text
 	pushState
 
 	mov rdi, %1 ; pasaje de parametro
+	call exceptionDispatcher
+
+	popState
+	iretq
+%endmacro
+
+%macro exceptionHandler 6
+	pushState
+
+	mov rdi, %6 ; pasaje de parametro
 	call exceptionDispatcher
 
 	popState
@@ -166,7 +178,12 @@ _irq80Handler:
 
 ;Zero Division Exception
 _exception0Handler:
+    call saveRegisters
 	exceptionHandler 0
+
+_exception6Handler:
+    call saveRegisters
+    exceptionHandler 6
 
 haltcpu:
 	cli
