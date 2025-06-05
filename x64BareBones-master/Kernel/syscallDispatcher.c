@@ -46,6 +46,10 @@ uint64_t syscallDispatcher(uint64_t id, ...)
 		case 8:
 			decreaseFontSize();
 			return 1;
+        case 9:
+          	drawCursor();
+        case 10:
+          	clearCursor();
         default:
             return -1;
     }   

@@ -9,5 +9,6 @@ void deleteLastChar();
 void clearScreen(uint32_t backgroundColor);
 void setCursor(uint64_t x, uint64_t y);
 void newLine();
-
+void drawCursor();
+void deleteCursor();
 #endif

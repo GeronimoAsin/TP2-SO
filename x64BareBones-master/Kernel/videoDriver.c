@@ -292,3 +292,21 @@ void decreaseFontSize() {
 	}
 }
 
+// Dibuja un cursor visible como bloque en la posición actual del cursor
+void drawCursor() {
+    uint32_t cursorColor = 0xFFFFFF ^ currentBackgroundColor; // Inverso del fondo
+    for (int cy = 0; cy < fontHeight; cy++) {
+        for (int cx = 0; cx < fontWidth; cx++) {
+            putPixel(cursorColor, currentX + cx, currentY + cy);
+        }
+    }
+}
+
+// Borra el cursor visible en la posición actual
+void clearCursor() {
+    for (int cy = 0; cy < fontHeight; cy++) {
+        for (int cx = 0; cx < fontWidth; cx++) {
+            putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
+        }
+    }
+}
