@@ -51,6 +51,31 @@ uint64_t syscallDispatcher(uint64_t id, ...)
           	drawCursor();
         case 10:
           	clearCursor();
+        case 11: 
+            drawCircle((int)rbx, (int)rdi, (int)rsi, (uint32_t)rdx);
+            return 1;
+        case 12: 
+            drawRectangle((int)rbx, (int)rdi, (int)rsi, (int)rdx, (uint32_t)rcx);
+            return 1;
+        case 13: 
+            clearScreen((uint32_t)rbx);
+            return 1;
+        case 14: 
+            setCursor((int)rbx, (int)rdi);
+            return 1;
+        case 15: 
+            return sys_write(rbx, (const char *)rdi, rsi);
+        case 16: 
+            return sys_read(rbx, (char*) rdi, rsi);
+        case 17: 
+            deleteLastChar();
+            return 1;
+        case 18: 
+            hideCursor();
+            return 1;
+        case 19:
+            showCursor();
+            return 1;
         default:
             return -1;
     }   
