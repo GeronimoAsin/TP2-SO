@@ -40,6 +40,12 @@ uint64_t syscallDispatcher(uint64_t id, ...)
 			//sys_beep
 			beep();
 			return 1;
+		case 7:
+			increaseFontSize();
+			return 1;
+		case 8:
+			decreaseFontSize();
+			return 1;
         default:
             return -1;
     }   

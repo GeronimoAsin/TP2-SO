@@ -13,7 +13,10 @@ static char *help_text =
     "- clear: Limpia la pantalla\n"
     "- echo + [texto]: Imprime el texto en pantalla\n"
     "- time: Muestra la hora actual\n"
-    "- registers: Muestra los registros\n";
+    "- registers: Muestra los registros\n"
+	"- increase: Aumenta el tamano de la fuente\n"
+	"- decrease: Disminuye el tamano de la fuente\n";
+
 
 static void print(const char *str) {
     while (*str) {
@@ -76,6 +79,8 @@ static int interpret(const char *cmd) {
     if (strncmp(cmd, "echo\n", 4) == 0 && (cmd[4] == ' ' || cmd[4] == '\t' || cmd[4] == 0)) return 3;
     if (strcmp(cmd, "time\n") == 0) return 4;
     if (strcmp(cmd, "registers\n") == 0) return 5;
+	if (strcmp(cmd, "increase\n") == 0) return 6;
+	if (strcmp(cmd, "decrease\n") == 0) return 7;
     return -1;
 }
 
@@ -117,6 +122,12 @@ void startShell() {
                 //print_registers();
                 break;
             }
+			case 6:
+				syscall(7, 0, 0, 0); // increase font size
+				break;
+			case 7:
+				syscall(8, 0, 0, 0); // decrease font size
+				break;
             default:
                 printf("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");
         }

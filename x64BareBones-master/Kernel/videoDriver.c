@@ -2,6 +2,17 @@
 #include "include/videoDriver.h"
 #include "include/bitmap.h"
 
+#define MAX_ROWS 100
+#define MAX_COLS 200
+char screenBuffer[MAX_ROWS][MAX_COLS];
+int bufferRows = 0, bufferCols[MAX_ROWS] = {0};
+uint8_t fontWidth = 8;
+uint8_t fontHeight = 16;
+const uint8_t FONT_WIDTH_MIN = 4;
+const uint8_t FONT_HEIGHT_MIN = 8;
+const uint8_t FONT_WIDTH_MAX = 32;
+const uint8_t FONT_HEIGHT_MAX = 64;
+
 struct vbe_mode_info_structure {
 	uint16_t attributes;		// deprecated, only bit 7 should be of interest to you, and it indicates the mode supports a linear frame buffer.
 	uint8_t window_a;			// deprecated
@@ -68,36 +79,32 @@ uint32_t getAdaptiveTextColor(uint32_t backgroundColor) {
     return (luminance > 128) ? 0x000000 : 0xFFFFFF;
 }
 
-// Modifica printChar para usar el color de texto adaptativo y el fondo global
 void printChar(char c) {
-    // Si no hay lugar a lo ancho, baja a la siguiente línea
-    if (currentX + 8 > VBE_mode_info->width) {
-        currentX = 0;
-        currentY += 16;
-    }
-
-    // Si no hay lugar a lo alto, vuelve arriba (puedes cambiar esto por scroll si lo deseas)
-    if (currentY + 16 > VBE_mode_info->height) {
-        currentY = 0;
-    }
-
-    uint32_t textColor = getAdaptiveTextColor(currentBackgroundColor);
-    uint8_t *glyph = font_bitmap + 16 * (c - 32);
-
-    for (int cy = 0; cy < 16; cy++) {
-        uint8_t row = glyph[cy];
-        for (int cx = 0; cx < 8; cx++) {
-            if (row & (0x80 >> cx)) {
-                putPixel(textColor, currentX + cx, currentY + cy);
-            } else {
-                putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
-            }
-        }
-    }
-
-    currentX += 8;
+	if (currentX + fontWidth > VBE_mode_info->width) {
+		newLine();
+	}
+	if (currentY + fontHeight > VBE_mode_info->height) {
+		currentY = 0;
+	}
+	// Guarda en el buffer
+	if (bufferCols[bufferRows] < MAX_COLS) {
+		screenBuffer[bufferRows][bufferCols[bufferRows]++] = c;
+	}
+	// Dibuja el carácter como antes
+	uint32_t textColor = getAdaptiveTextColor(currentBackgroundColor);
+	uint8_t *glyph = font_bitmap + 16 * (c - 32);
+	for (int cy = 0; cy < fontHeight; cy++) {
+		uint8_t row = glyph[cy * 16 / fontHeight];
+		for (int cx = 0; cx < fontWidth; cx++) {
+			if (row & (0x80 >> (cx * 8 / fontWidth))) {
+				putPixel(textColor, currentX + cx, currentY + cy);
+			} else {
+				putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
+			}
+		}
+	}
+	currentX += fontWidth;
 }
-
 // Modifica printString para no recibir color
 void printString(const char *str) {
     while (*str) {
@@ -108,29 +115,49 @@ void printString(const char *str) {
 
 // Modifica deleteLastChar para usar el fondo global
 void deleteLastChar() {
-    if (currentX <= 0) {
-        return;
-    }
+	if (bufferCols[bufferRows] == 0 && bufferRows == 0) {
+		return; // Nada que borrar
+	}
 
-    currentX -= 8;
-    // Borra el carácter anterior con el color de fondo actual
-    for (int cy = 0; cy < 16; cy++) {
-        for (int cx = 0; cx < 8; cx++) {
-            putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
-        }
-    }
+	if (bufferCols[bufferRows] == 0 && bufferRows > 0) {
+		bufferRows--;
+	}
+	if (bufferCols[bufferRows] > 0) {
+		bufferCols[bufferRows]--;
+	}
+
+	// Actualiza la posición del cursor
+	if (currentX >= fontWidth) {
+		currentX -= fontWidth;
+	} else if (currentY >= fontHeight) {
+		currentY -= fontHeight;
+		// Busca la longitud de la línea anterior
+		currentX = bufferCols[bufferRows] * fontWidth;
+	} else {
+		currentX = 0;
+		currentY = 0;
+	}
+
+	// Borra el área del carácter
+	for (int cy = 0; cy < fontHeight; cy++) {
+		for (int cx = 0; cx < fontWidth; cx++) {
+			putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
+		}
+	}
 }
 
 // clearScreen actualiza el fondo global
 void clearScreen(uint32_t backgroundColor) {
-    for (uint64_t y = 0; y < VBE_mode_info->height; y++) {
-        for (uint64_t x = 0; x < VBE_mode_info->width; x++) {
-            putPixel(backgroundColor, x, y);
-        }
-    }
-    currentX = 0;
-    currentY = 0;
-    currentBackgroundColor = backgroundColor; // Actualiza el color global
+	for (uint64_t y = 0; y < VBE_mode_info->height; y++) {
+		for (uint64_t x = 0; x < VBE_mode_info->width; x++) {
+			putPixel(backgroundColor, x, y);
+		}
+	}
+	currentX = 0;
+	currentY = 0;
+	currentBackgroundColor = backgroundColor;
+	bufferRows = 0;
+	bufferCols[0] = 0;
 }
 
 
@@ -142,10 +169,12 @@ void setCursor(uint64_t x, uint64_t y) {
 
 void newLine() {
 	currentX = 0;
-	currentY += 16;
-
-	if (currentY >= VBE_mode_info->height) {
-		currentY = 0;
+	currentY += fontHeight;
+	if (currentY + fontHeight > VBE_mode_info->height) {
+		clearScreen(currentBackgroundColor);
+	} else {
+		bufferRows++;
+		bufferCols[bufferRows] = 0;
 	}
 }
 
@@ -181,5 +210,78 @@ void drawCircle(uint64_t centerX, uint64_t centerY, uint64_t radius, uint32_t co
 		} else {
 			d = d + 4 * x + 6;
 		}
+	}
+}
+
+// Dibuja un carácter en pantalla en la posición actual, sin modificar el buffer
+void drawChar(char c) {
+	if (currentX + fontWidth > VBE_mode_info->width) {
+		currentX = 0;
+		currentY += fontHeight;
+	}
+	if (currentY + fontHeight > VBE_mode_info->height) {
+		// Si se llena la pantalla, no dibuja más
+		return;
+	}
+	uint32_t textColor = getAdaptiveTextColor(currentBackgroundColor);
+	uint8_t *glyph = font_bitmap + 16 * (c - 32);
+	for (int cy = 0; cy < fontHeight; cy++) {
+		uint8_t row = glyph[cy * 16 / fontHeight];
+		for (int cx = 0; cx < fontWidth; cx++) {
+			if (row & (0x80 >> (cx * 8 / fontWidth))) {
+				putPixel(textColor, currentX + cx, currentY + cy);
+			} else {
+				putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
+			}
+		}
+	}
+	currentX += fontWidth;
+}
+
+// Modifica redrawScreenFromBuffer para usar drawChar
+void redrawScreenFromBuffer() {
+	currentX = 0;
+	currentY = 0;
+	for (int row = 0; row <= bufferRows; row++) {
+		for (int col = 0; col < bufferCols[row]; col++) {
+			if (currentY + fontHeight > VBE_mode_info->height) {
+				// Si se llena la pantalla, detiene el redibujado
+				return;
+			}
+			drawChar(screenBuffer[row][col]);
+		}
+		if (row != bufferRows) {
+			currentX = 0;
+			currentY += fontHeight;
+		}
+	}
+}
+
+void clearScreenPixels(uint32_t backgroundColor) {
+	for (uint64_t y = 0; y < VBE_mode_info->height; y++) {
+		for (uint64_t x = 0; x < VBE_mode_info->width; x++) {
+			putPixel(backgroundColor, x, y);
+		}
+	}
+	currentX = 0;
+	currentY = 0;
+	currentBackgroundColor = backgroundColor;
+}
+
+void increaseFontSize() {
+	if (fontWidth < FONT_WIDTH_MAX && fontHeight < FONT_HEIGHT_MAX) {
+		fontWidth *= 2;
+		fontHeight *= 2;
+		clearScreenPixels(currentBackgroundColor);
+		redrawScreenFromBuffer();
+	}
+}
+
+void decreaseFontSize() {
+	if (fontWidth > FONT_WIDTH_MIN && fontHeight > FONT_HEIGHT_MIN) {
+		fontWidth /= 2;
+		fontHeight /= 2;
+		clearScreenPixels(currentBackgroundColor);
+		redrawScreenFromBuffer();
 	}
 }
