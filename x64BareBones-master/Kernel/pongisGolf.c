@@ -387,8 +387,12 @@ void writeString(const char *str) {
 
 void selectPlayers() {
     clearScreen(COLOR_BG);
-    setCursor(100, 200);
+    setCursor(300, 300);
     printString("Presione '1' para 1 jugador o '2' para 2 jugadores:");
+    setCursor(350, 320);
+    printString("1. Jugador 1 (WASD)");
+    setCursor(350, 340);
+    printString("2. Jugador 2 (IJKL)");
     char c = 0;
     while (c != '1' && c != '2') {
         c = getCharFromKeyboard();
@@ -579,6 +583,7 @@ void pongisGolfMain() {
         moveBallOptimized();
 
         if (isInHole(&ball, &hole)) {
+            syscallDispatcher(6);
             if (lastHitter != NULL) {
                 lastHitter->score++;
             }
