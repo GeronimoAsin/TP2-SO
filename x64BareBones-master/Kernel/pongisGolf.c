@@ -18,6 +18,13 @@
 #define COLOR_HOLE 0x000000    // negro
 #define COLOR_BG 0x7FFFD4      // verde agua
 
+#define SCORE_AREA_X 0
+#define SCORE_AREA_Y 0
+#define SCORE_AREA_WIDTH_1P 140
+#define SCORE_AREA_WIDTH_2P 300
+#define SCORE_AREA_HEIGHT 70
+#define SCORE_AREA_COLOR 0x7FFFD4
+
 extern uint64_t syscallDispatcher(uint64_t id, ...);
 
 
@@ -56,6 +63,32 @@ void drawPlayer(Player *p) {
     drawRectangle(mouth_x, mouth_y, mouth_width, mouth_height, 0x000000);
 }
 
+ObstacleRect scoreArea = {SCORE_AREA_X, SCORE_AREA_Y, SCORE_AREA_WIDTH_2P, SCORE_AREA_HEIGHT, SCORE_AREA_COLOR};
+
+void drawScoreArea() {
+    if(numPlayers == 1){
+        scoreArea.width = SCORE_AREA_WIDTH_1P;
+    }
+    drawRectangle(scoreArea.x, scoreArea.y, scoreArea.width, scoreArea.height, scoreArea.color);
+    
+}
+
+void drawScores() {
+    drawScoreArea();
+    setCursor(10, 10);
+    printString("P1: ");
+    printChar('0' + p1.score);
+    setCursor(10, 40);
+    printString("Rojo (WASD)");
+    if(numPlayers == 2){
+        setCursor(200, 10);
+        printString("P2: ");
+        printChar('0' + p2.score); 
+        setCursor(200, 40);
+        printString("Azul (IJKL)");
+    }
+}
+
 void clearPlayer(int x, int y) {
     // Cabeza
     drawCircle(x + PLAYER_SIZE / 2, y + PLAYER_SIZE / 2, PLAYER_SIZE / 2, COLOR_BG);
@@ -81,20 +114,6 @@ void clear() {
     clearScreen(COLOR_BG);
 }
 
-void drawScores() {
-    setCursor(10, 10);
-    printString("P1: ");
-    printChar('0' + p1.score);
-    setCursor(10, 40);
-    printString("Rojo (WASD)");
-    if(numPlayers == 2){
-        setCursor(200, 10);
-        printString("P2: ");
-        printChar('0' + p2.score); 
-        setCursor(200, 40);
-        printString("Azul (IJKL)");
-    }
-}
 
 void resetBall() {
     Level *lvl = &levels[currentLevel];
@@ -172,6 +191,14 @@ int playerHitsBall(Player *p, Ball *b) {
     return distance2 <= (minDist * minDist);
 }
 
+int playersCollide(Player *p1, Player *p2) {
+    int px1 = p1->x, px2 = p1->x + PLAYER_SIZE;
+    int py1 = p1->y, py2 = p1->y + PLAYER_SIZE;
+    int qx1 = p2->x, qx2 = p2->x + PLAYER_SIZE;
+    int qy1 = p2->y, qy2 = p2->y + PLAYER_SIZE;
+    return !(px2 < qx1 || px1 > qx2 || py2 < qy1 || py1 > qy2);
+}
+
 Player *lastHitter = NULL;
 
 
@@ -194,10 +221,18 @@ void movePlayerOptimized(Player *p, char key, int *prev_x, int *prev_y) {
     Player temp = *p;
     temp.x = new_x;
     temp.y = new_y;
+
     for (int i = 0; i < lvl->numRects; i++)
         if (playerHitsRect(&temp, &lvl->rects[i])) return;
     for (int i = 0; i < lvl->numCircles; i++)
         if (playerHitsCircle(&temp, &lvl->circles[i])) return;
+    if (playerHitsRect(&temp, &scoreArea)) return;
+
+    if (numPlayers == 2) {
+        Player *other = (p == &p1) ? &p2 : &p1;
+        if (playersCollide(&temp, other)) return;
+    }
+
     if (ball.inMotion) {
         int player_cx = new_x + PLAYER_SIZE / 2;
         int player_cy = new_y + PLAYER_SIZE / 2;
@@ -260,6 +295,17 @@ void moveBallOptimized() {
             return;
         }
     }
+
+    if (ballHitsRect(&(Ball){next_x, next_y, 0, 0, 0, COLOR_BALL}, &scoreArea)) {
+        if (ballHitsRect(&(Ball){ball.x, next_y, 0, 0, 0, COLOR_BALL}, &scoreArea)){
+            ball.dy = -ball.dy;
+        }
+        if (ballHitsRect(&(Ball){next_x, ball.y, 0, 0, 0, COLOR_BALL}, &scoreArea)){
+            ball.dx = -ball.dx;
+        }
+        return;
+    }
+    
     for (int i = 0; i < lvl->numCircles; i++) {
         Ball temp = {next_x, next_y, 0, 0, 0, COLOR_BALL};
         if (ballHitsCircle(&temp, &lvl->circles[i])) {
@@ -351,6 +397,7 @@ void selectPlayers() {
 }
 
 void drawObstacles() {
+    drawRectangle(scoreArea.x, scoreArea.y, scoreArea.width, scoreArea.height, scoreArea.color);
     Level *lvl = &levels[currentLevel];
     for (int i = 0; i < lvl->numRects; i++) {
         ObstacleRect *r = &lvl->rects[i];
@@ -372,7 +419,10 @@ void redrawObstaclesInArea(int x, int y, int width, int height) {
             drawRectangle(r->x, r->y, r->width, r->height, r->color);
         }
     }
-    
+
+    if (!(x > scoreArea.x + scoreArea.width || x + width < scoreArea.x || y > scoreArea.y + scoreArea.height || y + height < scoreArea.y)) {
+        drawRectangle(scoreArea.x, scoreArea.y, scoreArea.width, scoreArea.height, scoreArea.color);
+    }
     for (int i = 0; i < lvl->numCircles; i++) {
         ObstacleCircle *c = &lvl->circles[i];
         int dx = (x + width/2) - c->x;
@@ -384,8 +434,7 @@ void redrawObstaclesInArea(int x, int y, int width, int height) {
     }
     
     int hx = hole.x, hy = hole.y;
-    if (!(x > hx + HOLE_RADIUS || x + width < hx - HOLE_RADIUS || 
-          y > hy + HOLE_RADIUS || y + height < hy - HOLE_RADIUS)) {
+    if (!(x > hx + HOLE_RADIUS || x + width < hx - HOLE_RADIUS || y > hy + HOLE_RADIUS || y + height < hy - HOLE_RADIUS)) {
         drawHole(&hole);
     }
 }

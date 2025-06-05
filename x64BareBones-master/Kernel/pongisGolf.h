@@ -48,6 +48,8 @@ void drawScores();
 void resetBall();
 void resetPlayer(Player *p, int start_x, int start_y);
 int isInHole(struct Ball *b, struct Hole *h);
+int playerHitsBall(Player *p, Ball *b);
+int playersCollide(Player *p1, Player *p2); 
 void movePlayerOptimized(Player *p, char key, int *prev_x, int *prev_y);
 void moveBallOptimized();
 char getCharFromKeyboard();
