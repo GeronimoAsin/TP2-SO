@@ -24,11 +24,9 @@
   <component name="ChangeListManager">
     <list default="true" id="d7dcde8b-6295-4451-bb2f-5e1c3f2c6a67" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Kernel/kernel.c" beforeDir="false" afterPath="$PROJECT_DIR$/Kernel/kernel.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Kernel/keyboardDriver.c" beforeDir="false" afterPath="$PROJECT_DIR$/Kernel/keyboardDriver.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Kernel/syscallDispatcher.c" beforeDir="false" afterPath="$PROJECT_DIR$/Kernel/syscallDispatcher.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Kernel/videoDriver.c" beforeDir="false" afterPath="$PROJECT_DIR$/Kernel/videoDriver.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Userland/SampleCodeModule/c/shell.c" beforeDir="false" afterPath="$PROJECT_DIR$/Userland/SampleCodeModule/c/shell.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Userland/SampleCodeModule/c/userlib.c" beforeDir="false" afterPath="$PROJECT_DIR$/Userland/SampleCodeModule/c/userlib.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -160,7 +158,8 @@
       <workItem from="1748711617967" duration="22000" />
       <workItem from="1748711656907" duration="1733000" />
       <workItem from="1748960526509" duration="2840000" />
-      <workItem from="1749063130000" duration="4133000" />
+      <workItem from="1749063130000" duration="7627000" />
+      <workItem from="1749081648693" duration="981000" />
     </task>
     <servers />
   </component>

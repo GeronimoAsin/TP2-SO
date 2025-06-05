@@ -73,7 +73,7 @@ void readAndProcess() {
         }
         if ((ascii >= 32 && ascii <= 126) || ascii == '\n' || ascii == '\b') {
             keyboard_buffer_push(ascii);
-            if(ascii == '\b')
+            if(ascii == '\b' )
               {
               	deleteLastChar();
               }else if(ascii != '\n'){

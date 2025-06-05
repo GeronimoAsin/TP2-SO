@@ -1,7 +1,8 @@
 #include <stdint.h>
 #include "include/videoDriver.h"
 #include "include/bitmap.h"
-
+#define PROMPT_LENGTH 8// "Shell > " son 8 caracteres
+#define PROMPT_X_MIN (PROMPT_LENGTH * 8) // cada carácter ocupa 8 píxeles
 #define MAX_ROWS 100
 #define MAX_COLS 200
 char screenBuffer[MAX_ROWS][MAX_COLS];
@@ -115,6 +116,11 @@ void printString(const char *str) {
 
 // Modifica deleteLastChar para usar el fondo global
 void deleteLastChar() {
+    int promptXMin = PROMPT_LENGTH * fontWidth;
+    if (currentX <= promptXMin) {
+        return;
+    }
+
 	if (bufferCols[bufferRows] == 0 && bufferRows == 0) {
 		return; // Nada que borrar
 	}
@@ -285,3 +291,4 @@ void decreaseFontSize() {
 		redrawScreenFromBuffer();
 	}
 }
+
