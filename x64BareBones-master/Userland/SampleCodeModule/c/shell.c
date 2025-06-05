@@ -31,6 +31,7 @@ static int readLine(char *buffer, int max) {
         char temp=0;
         syscall(0, 0, (uint64_t)&temp, 1); // Lee un carácter del teclado
         c = temp;
+
         if (c == '\r') continue; // Ignora carriage return
         if (c == '\b' || c == 127) { // Maneja backspace
             if (i > 0) {
@@ -39,38 +40,14 @@ static int readLine(char *buffer, int max) {
         } else if ((c >= 32 && c <= 126) || c == '\n') { // Solo caracteres imprimibles y salto de línea
             buffer[i++] = c;
         }
-        // Si no es imprimible ni salto de línea, lo ignora
+          if (i == max - 1) {
+            syscall(10, 0, 0, 0); // clearCursor syscall cuando el buffer está lleno
+        }
     }
     buffer[i] = 0;
     if (c != '\n') putChar('\n');
     return i;
 }
-/*
-static int readLine(char *buffer, int max) {
-    int i = 0;
-    char c = 0;
-    while (i < max - 1 && c != '\n') {
-        char temp;
-        syscall(0, 0, (uint64_t)&temp, 1);
-        c = temp;
-        if (c == '\r') continue; // ignore carriage return
-        if (c == '\b' || c == 127) { // backspace
-            if (i > 0) {
-                i--;
-                deleteLastChar();
-            }
-        } else if ((c >= 32 && c <= 126) || c == '\n') { // Solo caracteres imprimibles y salto de línea
-            buffer[i++] = c;
-            putChar(c);
-        }
-        // Si no es imprimible ni salto de línea, lo ignora
-    }
-    buffer[i] = 0;
-    putChar('\n');
-    return i;
-}
-
-*/
 
 static int interpret(const char *cmd) {
     if (strcmp(cmd, "help\n") == 0) return 0;
@@ -91,6 +68,7 @@ void startShell() {
     printf("Bienvenido a la shell! \n");
     while (1) {
         printf(PROMPT);
+        syscall(9, 0, 0, 0); // drawCursor DESPUÉS de imprimir el prompt
         readLine(buffer, CMD_MAX_CHARS);
         printf("\n");
         int cmd = interpret(buffer);

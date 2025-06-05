@@ -1,7 +1,8 @@
 #include <stdint.h>
 #include "include/videoDriver.h"
 #include "include/bitmap.h"
-
+#define PROMPT_LENGTH 8// "Shell > " son 8 caracteres
+#define PROMPT_X_MIN (PROMPT_LENGTH * 8) // cada carácter ocupa 8 píxeles
 #define MAX_ROWS 100
 #define MAX_COLS 200
 char screenBuffer[MAX_ROWS][MAX_COLS];
@@ -115,6 +116,11 @@ void printString(const char *str) {
 
 // Modifica deleteLastChar para usar el fondo global
 void deleteLastChar() {
+    int promptXMin = PROMPT_LENGTH * fontWidth;
+    if (currentX <= promptXMin) {
+        return;
+    }
+
 	if (bufferCols[bufferRows] == 0 && bufferRows == 0) {
 		return; // Nada que borrar
 	}
@@ -284,4 +290,23 @@ void decreaseFontSize() {
 		clearScreenPixels(currentBackgroundColor);
 		redrawScreenFromBuffer();
 	}
+}
+
+// Dibuja un cursor visible como bloque en la posición actual del cursor
+void drawCursor() {
+    uint32_t cursorColor = 0xFFFFFF ^ currentBackgroundColor; // Inverso del fondo
+    for (int cy = 0; cy < fontHeight; cy++) {
+        for (int cx = 0; cx < fontWidth; cx++) {
+            putPixel(cursorColor, currentX + cx, currentY + cy);
+        }
+    }
+}
+
+// Borra el cursor visible en la posición actual
+void clearCursor() {
+    for (int cy = 0; cy < fontHeight; cy++) {
+        for (int cx = 0; cx < fontWidth; cx++) {
+            putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
+        }
+    }
 }
