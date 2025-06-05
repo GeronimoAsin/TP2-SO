@@ -2,8 +2,9 @@
 #include "videoDriver.h"
 #include <stdarg.h>
 
-extern uint64_t getTime;
-extern uint64_t * getRegisters;
+uint64_t sys_getRegisters(uint64_t *dest);
+extern uint64_t getTime();
+extern uint64_t * getRegisters(uint64_t *dest);
 
 uint64_t syscallDispatcher(uint64_t id, ...)
 {
@@ -32,7 +33,7 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 3:
             return sys_getTime();
         case 4:
-           // return sys_getRegisters(); Arreglar xq esto devuelve dir de mem
+            return sys_getRegisters((uint64_t *) rdi);
         case 5:
             deleteLastChar();
             return 1;
@@ -94,7 +95,9 @@ int sys_getTime()
 
 
 //Devuelve una direccion de memoria donde estan cargados los registros
-/*uint64_t * sys_getRegisters(){
-    return getRegisters();
-}*/
-
+uint64_t sys_getRegisters(uint64_t *dest) {
+    if (dest == 0)
+        return -1;
+    getRegisters(dest); // Copia los registros al buffer destino
+    return 1;
+}

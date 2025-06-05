@@ -64,9 +64,7 @@ void readAndProcess() {
         shift = 0;
         return;
     }
-    if(data == 0x01){
-        saveRegisters();
-    }else if (data < 0x80) {
+    else if (data < 0x80) {
         char ascii = scancode_to_ascii[data];
 		if(shift) {
             ascii = scancode_to_ascii_shift[data];

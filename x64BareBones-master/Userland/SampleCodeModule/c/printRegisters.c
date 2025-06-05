@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include "userlib.h"
-extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 
 void print_registers() {
-    uint64_t* regs = syscalls(4,0,0,0);
+    uint64_t regs[16];
+    syscall(4, (uint64_t)regs, 0, 0);
 
     const char* reg_names[16] = {
         "RAX", "RBX", "RCX", "RDX",
@@ -13,6 +13,6 @@ void print_registers() {
     };
 
     for (int i = 0; i < 16; i++) {
-        printf("%s = %s\n", reg_names[i], numToHex(regs[i]));
+        printf("%s = %d\n", reg_names[i], regs[i]);
     }
 }

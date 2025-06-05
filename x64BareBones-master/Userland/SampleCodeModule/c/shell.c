@@ -119,7 +119,7 @@ void startShell() {
                 break;
             }
             case 5: { // registers
-                //print_registers();
+                print_registers();
                 break;
             }
 			case 6:
