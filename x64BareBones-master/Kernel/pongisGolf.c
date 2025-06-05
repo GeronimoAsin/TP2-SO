@@ -32,6 +32,9 @@ Ball ball = {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0, 0, 0, COLOR_BALL};
 Hole hole = {SCREEN_WIDTH / 2, 100, HOLE_RADIUS, COLOR_HOLE};
 
 int numPlayers = 2;
+int prev_ball_x = 0, prev_ball_y = 0;
+int prev_p1_x = 0, prev_p1_y = 0;
+int prev_p2_x = 0, prev_p2_y = 0;
 
 // Utilidades
 void drawPlayer(Player *p) {
@@ -53,12 +56,25 @@ void drawPlayer(Player *p) {
     drawRectangle(mouth_x, mouth_y, mouth_width, mouth_height, 0x000000);
 }
 
+void clearPlayer(int x, int y) {
+    // Cabeza
+    drawCircle(x + PLAYER_SIZE / 2, y + PLAYER_SIZE / 2, PLAYER_SIZE / 2, COLOR_BG);
+}
+
 void drawBall(Ball *b) {
     drawCircle(b->x, b->y, BALL_RADIUS, b->color);
 }
 
+void clearBall(int x, int y) {
+    drawCircle(x, y, BALL_RADIUS, COLOR_BG);
+}
+
 void drawHole(Hole *h) {
     drawCircle(h->x, h->y, h->radius, h->color);
+}
+
+void clearHole(int x, int y) {
+    drawCircle(x, y, HOLE_RADIUS, COLOR_BG);
 }
 
 void clear() {
@@ -158,7 +174,8 @@ int playerHitsBall(Player *p, Ball *b) {
 
 Player *lastHitter = NULL;
 
-void movePlayer(Player *p, char key) {
+
+void movePlayerOptimized(Player *p, char key, int *prev_x, int *prev_y) {
     int new_x = p->x;
     int new_y = p->y;
 
@@ -171,17 +188,16 @@ void movePlayer(Player *p, char key) {
     else if (key == p->right && p->x + PLAYER_SIZE < SCREEN_WIDTH)
         new_x += PLAYER_SPEED;
 
-    // Chequeo colisión con obstáculos
+    if (new_x == p->x && new_y == p->y) return;
+
     Level *lvl = &levels[currentLevel];
     Player temp = *p;
     temp.x = new_x;
     temp.y = new_y;
-    for (int i = 0; i < lvl->numRects; i++){
+    for (int i = 0; i < lvl->numRects; i++)
         if (playerHitsRect(&temp, &lvl->rects[i])) return;
-    }
-    for (int i = 0; i < lvl->numCircles; i++){
+    for (int i = 0; i < lvl->numCircles; i++)
         if (playerHitsCircle(&temp, &lvl->circles[i])) return;
-    }
     if (ball.inMotion) {
         int player_cx = new_x + PLAYER_SIZE / 2;
         int player_cy = new_y + PLAYER_SIZE / 2;
@@ -189,21 +205,25 @@ void movePlayer(Player *p, char key) {
         int dy = ball.y - player_cy;
         int distance2 = dx * dx + dy * dy;
         int minDist = (PLAYER_SIZE / 2) + BALL_RADIUS;
-        if (distance2 <= (minDist * minDist)) {
-            return;
-        }
+        if (distance2 <= (minDist * minDist)) return;
     }
+
+    clearPlayer(*prev_x, *prev_y);
+    redrawObstaclesInArea(*prev_x, *prev_y, PLAYER_SIZE, PLAYER_SIZE);
 
     p->x = new_x;
     p->y = new_y;
 
-    // HIT siempre activo
+    drawPlayer(p);
+
+    *prev_x = new_x;
+    *prev_y = new_y;
+
     if (!ball.inMotion && playerHitsBall(p, &ball)) {
         int player_cx = p->x + PLAYER_SIZE / 2;
         int player_cy = p->y + PLAYER_SIZE / 2;
         int dx = ball.x - player_cx;
         int dy = ball.y - player_cy;
-
         int mag2 = dx*dx + dy*dy;
         if (mag2 == 0) {
             dx = 0;
@@ -212,9 +232,7 @@ void movePlayer(Player *p, char key) {
         int abs_dx = my_abs(dx);
         int abs_dy = my_abs(dy);
         int max_abs = abs_dx > abs_dy ? abs_dx : abs_dy;
-        if (max_abs == 0){
-            max_abs = 1;
-        }
+        if (max_abs == 0) max_abs = 1;
         int speed = 6;
         ball.dx = dx * speed / max_abs;
         ball.dy = dy * speed / max_abs;
@@ -224,17 +242,17 @@ void movePlayer(Player *p, char key) {
 }
 
 
-void moveBall() {
+
+void moveBallOptimized() {
     if (!ball.inMotion) return;
+
     int next_x = ball.x + ball.dx;
     int next_y = ball.y + ball.dy;
     Level *lvl = &levels[currentLevel];
 
-    // Rectángulos
     for (int i = 0; i < lvl->numRects; i++) {
         Ball temp = {next_x, next_y, 0, 0, 0, COLOR_BALL};
         if (ballHitsRect(&temp, &lvl->rects[i])) {
-            // Rebote simple
             if (ballHitsRect(&(Ball){ball.x, next_y, 0, 0, 0, COLOR_BALL}, &lvl->rects[i]))
                 ball.dy = -ball.dy;
             if (ballHitsRect(&(Ball){next_x, ball.y, 0, 0, 0, COLOR_BALL}, &lvl->rects[i]))
@@ -242,7 +260,6 @@ void moveBall() {
             return;
         }
     }
-    // Círculos
     for (int i = 0; i < lvl->numCircles; i++) {
         Ball temp = {next_x, next_y, 0, 0, 0, COLOR_BALL};
         if (ballHitsCircle(&temp, &lvl->circles[i])) {
@@ -252,11 +269,12 @@ void moveBall() {
         }
     }
 
-    // Movimiento normal si no hay colisión
+    clearBall(prev_ball_x, prev_ball_y);
+    redrawObstaclesInArea(prev_ball_x - BALL_RADIUS, prev_ball_y - BALL_RADIUS, BALL_RADIUS * 2, BALL_RADIUS * 2);
+
     ball.x = next_x;
     ball.y = next_y;
 
-    // Bordes de pantalla
     if (ball.x - BALL_RADIUS < 0) {
         ball.x = BALL_RADIUS;
         ball.dx = -ball.dx;
@@ -274,6 +292,27 @@ void moveBall() {
         ball.dy = -ball.dy;
     }
 
+    drawBall(&ball);
+
+    int ball_area_x = prev_ball_x - BALL_RADIUS;
+    int ball_area_y = prev_ball_y - BALL_RADIUS;
+    int ball_area_size = BALL_RADIUS * 2;
+    
+    if (!(ball_area_x > p1.x + PLAYER_SIZE || ball_area_x + ball_area_size < p1.x || 
+          ball_area_y > p1.y + PLAYER_SIZE || ball_area_y + ball_area_size < p1.y)) {
+        drawPlayer(&p1);
+    }
+    
+    if (numPlayers == 2) {
+        if (!(ball_area_x > p2.x + PLAYER_SIZE || ball_area_x + ball_area_size < p2.x || 
+              ball_area_y > p2.y + PLAYER_SIZE || ball_area_y + ball_area_size < p2.y)) {
+            drawPlayer(&p2);
+        }
+    }
+
+    prev_ball_x = ball.x;
+    prev_ball_y = ball.y;
+
     ball.dx *= 0.95;
     ball.dy *= 0.95;
 
@@ -281,17 +320,23 @@ void moveBall() {
         ball.inMotion = 0;
     }
 }
-
+    
 char getCharFromKeyboard() {
     char c;
-    syscallDispatcher(0, 0, &c, 1, 0);
-    return c;
+    int result = syscallDispatcher(0, 0, &c, 1, 0); 
+    
+    if (result > 0) {
+        deleteLastChar();
+        hideCursor();
+        return c;
+    }
+    return 0;
 }
 
 void writeString(const char *str) {
     uint64_t len = 0;
     while (str[len]) len++;
-    syscallDispatcher(1, 1, str, len, 0); // sys_write(1, str, len)
+    syscallDispatcher(1, 1, str, len, 0); 
 }
 
 void selectPlayers() {
@@ -314,6 +359,34 @@ void drawObstacles() {
     for (int i = 0; i < lvl->numCircles; i++) {
         ObstacleCircle *c = &lvl->circles[i];
         drawCircle(c->x, c->y, c->radius, c->color);
+    }
+}
+
+void redrawObstaclesInArea(int x, int y, int width, int height) {
+    Level *lvl = &levels[currentLevel];
+    
+    for (int i = 0; i < lvl->numRects; i++) {
+        ObstacleRect *r = &lvl->rects[i];
+        if (!(x > r->x + r->width || x + width < r->x || 
+              y > r->y + r->height || y + height < r->y)) {
+            drawRectangle(r->x, r->y, r->width, r->height, r->color);
+        }
+    }
+    
+    for (int i = 0; i < lvl->numCircles; i++) {
+        ObstacleCircle *c = &lvl->circles[i];
+        int dx = (x + width/2) - c->x;
+        int dy = (y + height/2) - c->y;
+        int maxDist = width/2 + height/2 + c->radius;
+        if (dx*dx + dy*dy <= maxDist*maxDist) {
+            drawCircle(c->x, c->y, c->radius, c->color);
+        }
+    }
+    
+    int hx = hole.x, hy = hole.y;
+    if (!(x > hx + HOLE_RADIUS || x + width < hx - HOLE_RADIUS || 
+          y > hy + HOLE_RADIUS || y + height < hy - HOLE_RADIUS)) {
+        drawHole(&hole);
     }
 }
 
@@ -425,45 +498,64 @@ void pongisGolfMain() {
     hole.x = levels[currentLevel].hole_x;
     hole.y = levels[currentLevel].hole_y;
     selectPlayers(); 
+    
+    // Dibujo inicial completo
     clear();
+    drawHole(&hole);
+    drawObstacles();
+    drawPlayer(&p1);
+    if (numPlayers == 2) {
+        drawPlayer(&p2);
+    }
+    drawBall(&ball);
     drawScores();
-    setCursor(100, 250);
-    printString("Presiona cualquier tecla para comenzar");
-
-    while (1) {
+    
+    // Inicializar posiciones anteriores
+    prev_ball_x = ball.x;
+    prev_ball_y = ball.y;
+    prev_p1_x = p1.x;
+    prev_p1_y = p1.y;
+    prev_p2_x = p2.x;
+    prev_p2_y = p2.y;
+     while (1) {
         char key = getCharFromKeyboard();
 
         if (key) {
-            movePlayer(&p1, key);
+            movePlayerOptimized(&p1, key, &prev_p1_x, &prev_p1_y);
             if (numPlayers == 2) {
-                movePlayer(&p2, key);
+                movePlayerOptimized(&p2, key, &prev_p2_x, &prev_p2_y);
             }
         }
 
-        moveBall();
+        moveBallOptimized();
 
         if (isInHole(&ball, &hole)) {
             if (lastHitter != NULL) {
-                lastHitter->score++; // Solo cuenta niveles ganados
+                lastHitter->score++;
             }
             lastHitter = NULL; 
             if (!nextLevel()) {
                 showWinner();
                 clearScreen(0x000000);
-                break; // Sale del juego
+                break;
             }
+            // Redibujo completo después de cambiar nivel
+            clear();
+            drawHole(&hole);
+            drawObstacles();
+            drawPlayer(&p1);
+            if (numPlayers == 2) {
+                drawPlayer(&p2);
+            }
+            drawBall(&ball);
+            drawScores();
+            
+            prev_ball_x = ball.x;
+            prev_ball_y = ball.y;
+            prev_p1_x = p1.x;
+            prev_p1_y = p1.y;
+            prev_p2_x = p2.x;
+            prev_p2_y = p2.y;
         }
-
-        clear();
-        drawHole(&hole);
-        drawObstacles();
-        drawPlayer(&p1);
-        if (numPlayers == 2) {
-            drawPlayer(&p2);
-        }
-        drawBall(&ball);
-        drawScores();
-
-        //sys_sleep(15);
     }
 }

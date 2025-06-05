@@ -48,8 +48,8 @@ void drawScores();
 void resetBall();
 void resetPlayer(Player *p, int start_x, int start_y);
 int isInHole(struct Ball *b, struct Hole *h);
-void movePlayer(struct Player *p, char key);
-void moveBall();
+void movePlayerOptimized(Player *p, char key, int *prev_x, int *prev_y);
+void moveBallOptimized();
 char getCharFromKeyboard();
 void writeString(const char *str);
 void selectPlayers();
@@ -63,5 +63,9 @@ int ballHitsRect(Ball *b, ObstacleRect *r);
 int ballHitsCircle(Ball *b, ObstacleCircle *c);
 int playerHitsRect(Player *p, ObstacleRect *r);
 int playerHitsCircle(Player *p, ObstacleCircle *c);
+void redrawObstaclesInArea(int x, int y, int width, int height);
+void clearHole(int x, int y);
+void clearBall(int x, int y) ;
+void clearPlayer(int x, int y);
 
 #endif 

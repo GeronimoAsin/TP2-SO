@@ -59,7 +59,6 @@ VBEInfoPtr VBE_mode_info = (VBEInfoPtr) 0x0000000000005C00;
 uint64_t currentX = 0;
 uint64_t currentY = 0;
 
-
 void putPixel(uint32_t hexColor, uint64_t x, uint64_t y) {
     uint8_t * framebuffer = (uint8_t *) VBE_mode_info->framebuffer;
     uint64_t offset = (x * ((VBE_mode_info->bpp)/8)) + (y * VBE_mode_info->pitch);
@@ -292,9 +291,11 @@ void decreaseFontSize() {
 	}
 }
 
-// Dibuja un cursor visible como bloque en la posición actual del cursor
+static int cursorVisible = 1;
+
 void drawCursor() {
-    uint32_t cursorColor = 0xFFFFFF ^ currentBackgroundColor; // Inverso del fondo
+    if (!cursorVisible) return;
+    uint32_t cursorColor = 0xFFFFFF ^ currentBackgroundColor; 
     for (int cy = 0; cy < fontHeight; cy++) {
         for (int cx = 0; cx < fontWidth; cx++) {
             putPixel(cursorColor, currentX + cx, currentY + cy);
@@ -302,7 +303,6 @@ void drawCursor() {
     }
 }
 
-// Borra el cursor visible en la posición actual
 void clearCursor() {
     for (int cy = 0; cy < fontHeight; cy++) {
         for (int cx = 0; cx < fontWidth; cx++) {
@@ -310,3 +310,15 @@ void clearCursor() {
         }
     }
 }
+
+
+void hideCursor() {
+    cursorVisible = 0;
+    clearCursor();
+}
+
+void showCursor() {
+    cursorVisible = 1;
+    drawCursor();
+}
+
