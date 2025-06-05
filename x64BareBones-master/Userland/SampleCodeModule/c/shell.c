@@ -31,6 +31,7 @@ static int readLine(char *buffer, int max) {
         char temp=0;
         syscall(0, 0, (uint64_t)&temp, 1); // Lee un carácter del teclado
         c = temp;
+
         if (c == '\r') continue; // Ignora carriage return
         if (c == '\b' || c == 127) { // Maneja backspace
             if (i > 0) {
@@ -39,7 +40,9 @@ static int readLine(char *buffer, int max) {
         } else if ((c >= 32 && c <= 126) || c == '\n') { // Solo caracteres imprimibles y salto de línea
             buffer[i++] = c;
         }
-        // Si no es imprimible ni salto de línea, lo ignora
+          if (i == max - 1) {
+            syscall(10, 0, 0, 0); // clearCursor syscall cuando el buffer está lleno
+        }
     }
     buffer[i] = 0;
     if (c != '\n') putChar('\n');
