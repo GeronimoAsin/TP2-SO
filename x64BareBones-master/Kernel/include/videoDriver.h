@@ -20,4 +20,6 @@ void drawCursor();
 void clearCursor();
 void hideCursor();
 void showCursor();
+uint16_t getWidth();
+uint16_t getHeight();
 #endif

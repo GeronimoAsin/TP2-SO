@@ -67,6 +67,13 @@ void putPixel(uint32_t hexColor, uint64_t x, uint64_t y) {
     framebuffer[offset+2]   =  (hexColor >> 16) & 0xFF;
 }
 
+uint16_t getWidth() {
+	return VBE_mode_info->width;
+}
+
+uint16_t getHeight() {
+	return VBE_mode_info->height;
+}
 
 uint32_t currentBackgroundColor = 0x000000;
 

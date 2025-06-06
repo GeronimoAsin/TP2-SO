@@ -3,8 +3,6 @@
 #include "videoDriver.h"
 #include "pongisGolf.h"
 
-#define SCREEN_WIDTH 1024
-#define SCREEN_HEIGHT 768
 
 #define PLAYER_SIZE 30
 #define PLAYER_SPEED 10
@@ -35,8 +33,8 @@ int currentLevel = 0;
 // Jugadores y pelota globales
 Player p1 = {100, 300, COLOR_PLAYER1, 0, 'w', 's', 'a', 'd'};
 Player p2 = {900, 300, COLOR_PLAYER2, 0, 'i', 'k', 'j', 'l'};
-Ball ball = {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0, 0, 0, COLOR_BALL};
-Hole hole = {SCREEN_WIDTH / 2, 100, HOLE_RADIUS, COLOR_HOLE};
+Ball ball;
+Hole hole;
 
 int numPlayers = 2;
 int prev_ball_x = 0, prev_ball_y = 0;
@@ -44,6 +42,21 @@ int prev_p1_x = 0, prev_p1_y = 0;
 int prev_p2_x = 0, prev_p2_y = 0;
 
 // Utilidades
+void initGameObjects() {
+    ball.x = getWidth() / 2;
+    ball.y = getHeight() / 2;
+    ball.dx = 0;
+    ball.dy = 0;
+    ball.inMotion = 0;
+    ball.color = COLOR_BALL;
+
+    hole.x = getWidth() / 2;
+    hole.y = 100;
+    hole.radius = HOLE_RADIUS;
+    hole.color = COLOR_HOLE;
+}
+
+
 void drawPlayer(Player *p) {
    // Cabeza
     drawCircle(p->x + PLAYER_SIZE / 2, p->y + PLAYER_SIZE / 2, PLAYER_SIZE / 2, p->color);
@@ -118,19 +131,19 @@ void clear() {
 void resetBall() {
     Level *lvl = &levels[currentLevel];
     int found = 0;
-    int try_x = SCREEN_WIDTH / 2;
-    int try_y = SCREEN_HEIGHT / 2;
+    int try_x = getWidth() / 2;
+    int try_y = getHeight() / 2;
 
-    for (int offset = 0; offset < SCREEN_WIDTH && !found; offset += 20) {
+    for (int offset = 0; offset < getWidth() && !found; offset += 20) {
         for (int dx = -offset; dx <= offset && !found; dx += 20) {
             for (int dy = -offset; dy <= offset && !found; dy += 20) {
-                int x = SCREEN_WIDTH / 2 + dx;
-                int y = SCREEN_HEIGHT / 2 + dy;
+                int x = getWidth() / 2 + dx;
+                int y = getHeight() / 2 + dy;
                 // Limita a los bordes
                 if (x < BALL_RADIUS) x = BALL_RADIUS;
-                if (x > SCREEN_WIDTH - BALL_RADIUS) x = SCREEN_WIDTH - BALL_RADIUS;
+                if (x > getWidth() - BALL_RADIUS) x = getWidth() - BALL_RADIUS;
                 if (y < BALL_RADIUS) y = BALL_RADIUS;
-                if (y > SCREEN_HEIGHT - BALL_RADIUS) y = SCREEN_HEIGHT - BALL_RADIUS;
+                if (y > getHeight() - BALL_RADIUS) y = getHeight() - BALL_RADIUS;
 
                 Ball temp = {x, y, 0, 0, 0, COLOR_BALL};
                 found = 1;
@@ -208,11 +221,11 @@ void movePlayerOptimized(Player *p, char key, int *prev_x, int *prev_y) {
 
     if (key == p->up && p->y > 0)
         new_y -= PLAYER_SPEED;
-    else if (key == p->down && p->y + PLAYER_SIZE < SCREEN_HEIGHT)
+    else if (key == p->down && p->y + PLAYER_SIZE < getHeight())
         new_y += PLAYER_SPEED;
     else if (key == p->left && p->x > 0)
         new_x -= PLAYER_SPEED;
-    else if (key == p->right && p->x + PLAYER_SIZE < SCREEN_WIDTH)
+    else if (key == p->right && p->x + PLAYER_SIZE < getWidth())
         new_x += PLAYER_SPEED;
 
     if (new_x == p->x && new_y == p->y) return;
@@ -325,16 +338,16 @@ void moveBallOptimized() {
         ball.x = BALL_RADIUS;
         ball.dx = -ball.dx;
     }
-    if (ball.x + BALL_RADIUS > SCREEN_WIDTH) {
-        ball.x = SCREEN_WIDTH - BALL_RADIUS;
+    if (ball.x + BALL_RADIUS > getWidth()) {
+        ball.x = getWidth() - BALL_RADIUS;
         ball.dx = -ball.dx;
     }
     if (ball.y - BALL_RADIUS < 0) {
         ball.y = BALL_RADIUS;
         ball.dy = -ball.dy;
     }
-    if (ball.y + BALL_RADIUS > SCREEN_HEIGHT) {
-        ball.y = SCREEN_HEIGHT - BALL_RADIUS;
+    if (ball.y + BALL_RADIUS > getHeight()) {
+        ball.y = getHeight() - BALL_RADIUS;
         ball.dy = -ball.dy;
     }
 
@@ -477,33 +490,33 @@ int playerHitsCircle(Player *p, ObstacleCircle *c) {
 
 void initLevels() {
     // Nivel 1
-    levels[0].hole_x = SCREEN_WIDTH / 2;
+    levels[0].hole_x = getWidth() / 2;
     levels[0].hole_y = 100;
     levels[0].numRects = 0;
     levels[0].numCircles = 0;
 
     // Nivel 2
-    levels[1].hole_x = SCREEN_WIDTH / 4;
+    levels[1].hole_x = getWidth() / 4;
     levels[1].hole_y = 150;
     levels[1].numRects = 1;
-    levels[1].rects[0] = (ObstacleRect){SCREEN_WIDTH/2 - 50, SCREEN_HEIGHT/2 - 20, 100, 40, 0x964B00};
+    levels[1].rects[0] = (ObstacleRect){getWidth()/2 - 50, getHeight()/2 - 20, 100, 40, 0x964B00};
     levels[1].numCircles = 0;
 
     // Nivel 3
-    levels[2].hole_x = SCREEN_WIDTH * 3 / 4;
+    levels[2].hole_x = getWidth() * 3 / 4;
     levels[2].hole_y = 200;
     levels[2].numRects = 0;
     levels[2].numCircles = 1;
-    levels[2].circles[0] = (ObstacleCircle){SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 30, 0x228B22};
+    levels[2].circles[0] = (ObstacleCircle){getWidth()/2, getHeight()/2, 30, 0x228B22};
 
     // Nivel 4
-    levels[3].hole_x = SCREEN_WIDTH / 2;
-    levels[3].hole_y = SCREEN_HEIGHT - 100;
+    levels[3].hole_x = getWidth() / 2;
+    levels[3].hole_y = getHeight() - 100;
     levels[3].numRects = 2;
     levels[3].rects[0] = (ObstacleRect){200, 300, 80, 30, 0x964B00};
     levels[3].rects[1] = (ObstacleRect){700, 400, 60, 60, 0x964B00};
     levels[3].numCircles = 1;
-    levels[3].circles[0] = (ObstacleCircle){SCREEN_WIDTH/2, 500, 40, 0x228B22};
+    levels[3].circles[0] = (ObstacleCircle){getWidth()/2, 500, 40, 0x228B22};
 
     // Nivel 5
     levels[4].hole_x = 100;
@@ -546,6 +559,7 @@ void showWinner() {
 }
 
 void pongisGolfMain() {
+	initGameObjects();
     initLevels();
     currentLevel = 0;
     hole.x = levels[currentLevel].hole_x;

@@ -80,6 +80,7 @@ clearcs:
 	jnc no_long_mode		; Exit if not supported.
 
 	call init_isa			; Setup legacy hardware
+	call vbe_init			; Initialize VESA BIOS Extensions (VBE) for graphics mode
 
 ; Hide the hardware cursor (interferes with print_string_16 if called earlier)
 	mov ax, 0x0200			; VIDEO - SET CURSOR POSITION
@@ -132,6 +133,52 @@ gdt32_end:
 
 ;db '_32_'				; Debug
 align 16
+
+vbe_init:
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+    push es
+
+    mov ax, 0x4F00              ; Get VBE Controller Info
+    mov di, VBEModeInfoBlock    ; Reusar como buffer temporal
+    int 0x10
+    cmp ax, 0x4F                 ; A=VBE call successful?
+    jne vbe_fail
+
+    ; Ahora obtenemos información de un modo compatible (ej: 0x118 = 1024x768x32b)
+    mov ax, 0x4F01              ; Get Mode Info
+    mov cx, 0x118               ; Modo que quieres (VBE 1024x768x32b)
+    mov di, VBEModeInfoBlock    ; Donde almacenar el VbeModeInfoBlock (0x5C00)
+    int 0x10
+    cmp ax, 0x4F
+    jne vbe_fail
+
+    ; Establecer el modo gráfico
+    mov ax, 0x4F02
+    mov bx, 0x4118              ; Set bit 14 (LFB = Linear Frame Buffer)
+    int 0x10
+    cmp ax, 0x4F
+    jne vbe_fail
+
+    jmp vbe_ok
+
+vbe_fail:
+    mov si, msg_novesa
+    call print_string_16
+
+vbe_ok:
+    pop es
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
 
 
 ; =============================================================================
@@ -635,7 +682,6 @@ clearnext:
 
 ; Pad to an even KB file (6 KiB)
 times 6144-($-$$) db 0x90
-
 
 ; =============================================================================
 ; EOF
