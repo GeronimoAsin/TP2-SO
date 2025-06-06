@@ -21,6 +21,8 @@
 #define SCORE_AREA_HEIGHT 70
 #define SCORE_AREA_COLOR 0x7FFFD4
 
+extern uint64_t syscall(uint64_t id, ...);
+
 Level levels[MAX_LEVELS];
 int currentLevel = 0;
 
