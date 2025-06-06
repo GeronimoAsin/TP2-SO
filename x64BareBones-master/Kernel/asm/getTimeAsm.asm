@@ -1,28 +1,23 @@
 global getTimeAsm
 
+global getSeconds
+global getMinutes
+global getHours
+
 getTimeAsm:
     push rbp
     mov rbp, rsp
 
     call getSeconds
-    mov rbx, rax          ; rbx = seconds
+    mov rcx, rax          ; rcx = seconds
 
     call getMinutes
-    mov rcx, rax
-    mov rax, rcx
-    mov rdx, 60
-    mul rdx               ; rax = minutes * 60
-    add rbx, rax          ; rbx += minutes in seconds
+    mov rbx, rax          ; rbx = minutes
 
     call getHours
-    mov rcx, rax
-    mov rax, rcx
-    mov rdx, 3600
-    mul rdx               ; rax = hours * 3600
-    add rbx, rax          ; rbx += hours in seconds
+    mov rax, rax          ; rax = hours
 
-    mov rax, rbx          ; Return total seconds in rax
-
+    ; rax = hours, rbx = minutes, rcx = seconds
     mov rsp, rbp
     pop rbp
     ret

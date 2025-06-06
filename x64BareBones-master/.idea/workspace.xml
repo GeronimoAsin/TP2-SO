@@ -23,7 +23,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d7dcde8b-6295-4451-bb2f-5e1c3f2c6a67" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Userland/SampleCodeModule/c/shell.c" beforeDir="false" afterPath="$PROJECT_DIR$/Userland/SampleCodeModule/c/shell.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Kernel/asm/getTimeAsm.asm" beforeDir="false" afterPath="$PROJECT_DIR$/Kernel/asm/getTimeAsm.asm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Kernel/interrupt/exceptions.c" beforeDir="false" afterPath="$PROJECT_DIR$/Kernel/interrupt/exceptions.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Userland/SampleCodeModule/c/getTime.c" beforeDir="false" afterPath="$PROJECT_DIR$/Userland/SampleCodeModule/c/getTime.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Userland/SampleCodeModule/include/getTime.h" beforeDir="false" afterPath="$PROJECT_DIR$/Userland/SampleCodeModule/include/getTime.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,6 +78,9 @@
         <entry key="$PROJECT_DIR$" value="RE_IMPORT" />
       </map>
     </option>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="QODANA_PROBLEMS_VIEW_TAB" />
   </component>
   <component name="ProjectApplicationVersion">
     <option name="ide" value="CLion" />
@@ -156,7 +163,10 @@
       <workItem from="1748711656907" duration="1733000" />
       <workItem from="1748960526509" duration="2840000" />
       <workItem from="1749063130000" duration="7627000" />
-      <workItem from="1749081648693" duration="4831000" />
+      <workItem from="1749081648693" duration="5067000" />
+      <workItem from="1749086727288" duration="5714000" />
+      <workItem from="1749157174318" duration="1014000" />
+      <workItem from="1749245428873" duration="632000" />
     </task>
     <servers />
   </component>
