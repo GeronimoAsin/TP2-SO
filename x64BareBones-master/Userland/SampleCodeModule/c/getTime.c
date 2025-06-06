@@ -1,18 +1,24 @@
 #include <stdint.h>
 #include "userlib.h"
+#include "getTime.h"
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 
-uint64_t getTime() {
+void getTime(Time *t) {
     // syscall 3 = getTime
-    uint64_t time;
-    syscall(3, 0, (uint64_t)&time, 0);
-    return time;
+    syscall(3, 0, (uint64_t)t, 0); //syscall para obtener el tiempo
+}
+
+int bcdToDec(uint8_t bcd) {
+    return ((bcd >> 4) * 10) + (bcd & 0x0F);
 }
 
 void printTime() {
-    uint64_t time = getTime();
-    uint64_t seconds = time % 60;
-    uint64_t minutes = (time / 60) % 60;
-    uint64_t hours = time / 3600;
-   printf("%d:%d:%d\n", hours, minutes, seconds);
+    Time t;
+    getTime(&t); //le paso el struct del tiempo a getTime
+
+     // Hora local Argentina (UTC-3)
+    int hourARG = (t.hours - 3 + 24) % 24;
+    printf("UTC TIME: %d:%d:%d\n", bcdToDec(t.hours), bcdToDec(t.minutes), bcdToDec(t.seconds));
+    printf("ARG TIME: %d:%d:%d\n", hourARG, bcdToDec(t.minutes), bcdToDec(t.seconds));  //imprimo la hora local de argentina
+
 }

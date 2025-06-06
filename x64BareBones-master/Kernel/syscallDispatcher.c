@@ -1,6 +1,12 @@
 #include "syscallDispatcher.h"
 #include "videoDriver.h"
 #include <stdarg.h>
+//struct para obtener el tiempo
+typedef struct {
+    uint8_t hours;
+    uint8_t minutes;
+    uint8_t seconds;
+} Time;
 
 uint64_t sys_getRegisters(uint64_t *dest);
 extern uint64_t getTime();
@@ -31,7 +37,7 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             clearScreen(0x00000000); 
             return 1;
         case 3:
-            return sys_getTime();
+            return sys_getTime((Time *) rdi);
         case 4:
             return sys_getRegisters((uint64_t *) rdi);
         case 5:
@@ -116,10 +122,11 @@ uint64_t sys_write(uint64_t fd, const char *buffer, uint64_t count)
 
 }
 
-//Devuelve el tiempo actual en segundos
-int sys_getTime()
+void sys_getTime(Time *t)
 {
-    return getTimeAsm();
+    t->hours = getHours(); //obtengo las horas
+    t->minutes = getMinutes(); //obtengo los minutos
+    t->seconds = getSeconds(); //obtengo los segundos
 }
 
 
