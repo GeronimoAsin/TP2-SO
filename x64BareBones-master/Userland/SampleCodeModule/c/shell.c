@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "userlib.h"
 #include "getTime.h"
+#include "pongisGolf.h"
 #include "printRegisters.h"
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 #define CMD_MAX_CHARS 100
@@ -77,8 +78,7 @@ void startShell() {
                 printf(help_text);
                 break;
             case 1: // pongisGolf
-                printf("Iniciando PongisGolf...\n");
-                // pongisGolfMain();
+                pongisGolfMain();
                 break;
             case 2: // clear screen
                 //llama sys_clear
