@@ -45,7 +45,6 @@ void drawCircle(int x, int y, int radius, uint32_t color);
 void drawRectangle(int x, int y, int width, int height, uint32_t color);
 void clearScreen(uint32_t color);
 void setCursor(int x, int y);
-void printChar(char c);
 void hideCursor();
 void gameObjects();
 void drawPlayer(Player *p);

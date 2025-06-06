@@ -38,37 +38,31 @@ int prev_p1_x = 0, prev_p1_y = 0;
 int prev_p2_x = 0, prev_p2_y = 0;
 
 int getWidth() {
-    return syscall(2); 
+    return syscall(20); 
 }
 
 int getHeight() {
-    return syscall(3); 
+    return syscall(21); 
 }
 
 void drawCircle(int x, int y, int radius, uint32_t color) {
-    syscall(4, x, y, radius, color); 
+    syscall(11, x, y, radius, color); 
 }
 
 void drawRectangle(int x, int y, int width, int height, uint32_t color) {
-    syscall(5, x, y, width, height, color); 
+    syscall(12, x, y, width, height, color); 
 }
 
 void clearScreen(uint32_t color) {
-    syscall(7, color); 
+    syscall(2, color); 
 }
 
 void setCursor(int x, int y) {
-    syscall(8, x, y); 
+    syscall(14, x, y); 
 }
-
-
-void printChar(char c) {
-    syscall(1, 1, &c, 1, 0); 
-}
-
 
 void hideCursor() {
-    syscall(10); 
+    syscall(18); 
 }
 
 // Utilidades
@@ -115,13 +109,13 @@ void drawScores() {
     drawScoreArea();
     setCursor(10, 10);
     printf("P1: ");
-    printChar('0' + p1.score);
+    putChar('0' + p1.score);
     setCursor(10, 40);
     printf("Rojo (WASD)");
     if(numPlayers == 2){
         setCursor(200, 10);
         printf("P2: ");
-        printChar('0' + p2.score); 
+        putChar('0' + p2.score); 
         setCursor(200, 40);
         printf("Azul (IJKL)");
     }

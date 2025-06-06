@@ -82,6 +82,12 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 19:
             showCursor();
             return 1;
+        case 20:
+            getWidth();
+            return 1;
+        case 21:
+            getHeight();
+            return 1;
         default:
             return -1;
     }   
