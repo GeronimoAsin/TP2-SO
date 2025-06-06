@@ -18,6 +18,16 @@ static char *help_text =
 	"- increase: Aumenta el tamano de la fuente\n"
 	"- decrease: Disminuye el tamano de la fuente\n";
 
+static const char *ascii_art =
+"+====================================================+\n"
+"   ____  _          _ _                             \n"
+"  / ___|| |__   ___| | |                            \n"
+"  \\___ \\| '_ \\ / _ \\ | | Bienvenido a PongisOS! \n"
+"   ___) | | | |  __/ | |                            \n"
+"  |____/|_| |_|\\___|_|_|                           \n"
+"                                                    \n"
+"  >>> Listo para ejecutar sus comandos! <<<         \n"
+"+====================================================+\n";
 
 static void print(const char *str) {
     while (*str) {
@@ -65,8 +75,8 @@ static int interpret(const char *cmd) {
 void startShell() {
     syscall(6,0,0,0);
     printTime();
+    printf("%s", ascii_art);
     char buffer[CMD_MAX_CHARS];
-    printf("Bienvenido a la shell! \n");
     while (1) {
         printf(PROMPT);
         syscall(9, 0, 0, 0); // drawCursor DESPUÉS de imprimir el prompt
