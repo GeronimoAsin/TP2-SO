@@ -5,7 +5,7 @@ extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 
 void getTime(Time *t) {
     // syscall 3 = getTime
-    syscall(3, 0, (uint64_t)t, 0);
+    syscall(3, 0, (uint64_t)t, 0); //syscall para obtener el tiempo
 }
 
 int bcdToDec(uint8_t bcd) {
@@ -14,6 +14,11 @@ int bcdToDec(uint8_t bcd) {
 
 void printTime() {
     Time t;
-    getTime(&t);
-    printf("%d:%d:%d\n", bcdToDec(t.hours), bcdToDec(t.minutes), bcdToDec(t.seconds));
+    getTime(&t); //le paso el struct del tiempo a getTime
+
+     // Hora local Argentina (UTC-3)
+    int hourARG = (t.hours - 3 + 24) % 24;
+    printf("UTC TIME: %d:%d:%d\n", bcdToDec(t.hours), bcdToDec(t.minutes), bcdToDec(t.seconds));
+    printf("ARG TIME: %d:%d:%d\n", hourARG, bcdToDec(t.minutes), bcdToDec(t.seconds));  //imprimo la hora local de argentina
+
 }
