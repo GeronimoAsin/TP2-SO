@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "pongisGolf.h"
+#include "userlib.h"
 
 #define PLAYER_SIZE 30
 #define PLAYER_SPEED 10
@@ -60,26 +61,18 @@ void setCursor(int x, int y) {
     syscall(8, x, y); 
 }
 
-void printString(const char *str) {
-    uint64_t len = 0;
-    while (str[len]) len++;
-    syscall(1, 1, str, len, 0); 
-}
 
 void printChar(char c) {
     syscall(1, 1, &c, 1, 0); 
 }
 
-void deleteLastChar() {
-    syscall(9); 
-}
 
 void hideCursor() {
     syscall(10); 
 }
 
 // Utilidades
-void GameObjects() {
+void gameObjects() {
     ball.x = getWidth() / 2;
     ball.y = getHeight() / 2;
     ball.dx = 0;
@@ -121,16 +114,16 @@ void drawScoreArea() {
 void drawScores() {
     drawScoreArea();
     setCursor(10, 10);
-    printString("P1: ");
+    printf("P1: ");
     printChar('0' + p1.score);
     setCursor(10, 40);
-    printString("Rojo (WASD)");
+    printf("Rojo (WASD)");
     if(numPlayers == 2){
         setCursor(200, 10);
-        printString("P2: ");
+        printf("P2: ");
         printChar('0' + p2.score); 
         setCursor(200, 40);
-        printString("Azul (IJKL)");
+        printf("Azul (IJKL)");
     }
 }
 
@@ -426,11 +419,11 @@ void writeString(const char *str) {
 void selectPlayers() {
     clearScreen(COLOR_BG);
     setCursor(300, 300);
-    printString("Presione '1' para 1 jugador o '2' para 2 jugadores:");
+    printf("Presione '1' para 1 jugador o '2' para 2 jugadores:");
     setCursor(350, 320);
-    printString("1. Jugador 1 (WASD)");
+    printf("1. Jugador 1 (WASD)");
     setCursor(350, 340);
-    printString("2. Jugador 2 (IJKL)");
+    printf("2. Jugador 2 (IJKL)");
     char c = 0;
     while (c != '1' && c != '2') {
         c = getCharFromKeyboard();
@@ -574,17 +567,17 @@ void showWinner() {
     clearScreen(COLOR_BG);
     setCursor(400, 300);
     if (p1.score > p2.score) {
-        printString("Winner: player 1");
+        printf("Winner: player 1");
     } else if (p2.score > p1.score) {
-        printString("Winner: player 2");
+        printf("Winner: player 2");
     } else {
-        printString("Empate!");
+        printf("Empate!");
     }
     for (int i = 0; i < 500000000; i++);
 }
 
 void pongisGolfMain() {
-    initGameObjects();
+    gameObjects();
     initLevels();
     currentLevel = 0;
     hole.x = levels[currentLevel].hole_x;
