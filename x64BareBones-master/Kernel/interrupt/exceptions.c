@@ -3,9 +3,22 @@
 #define ZERO_EXCEPTION_ID 0
 #define INVALID_OPCODE_EXCEPTION_ID 6
 
+extern uint8_t getSeconds();
 static void zero_division();
 static void invalid_opcode();
 void printHex(uint64_t value);
+
+void waitNSeconds(uint8_t secondsToWait) {
+	uint8_t start = getSeconds();
+	uint8_t now;
+	while (1) {
+		now = getSeconds();
+		int delta = now >= start ? (now - start) : (now + 60 - start);
+		if (delta >= secondsToWait) {
+			break;
+		}
+	}
+}
 
 void exceptionDispatcher(int exception, uint64_t rip) {
 	if (exception == ZERO_EXCEPTION_ID)
@@ -17,7 +30,7 @@ void exceptionDispatcher(int exception, uint64_t rip) {
 	printString("Valor de RIP: ");
 	newLine();
 	printHex(rip);
-	for(int i = 0; i<1000000000; i++);
+	waitNSeconds(30);
 }
 
 static void zero_division() {

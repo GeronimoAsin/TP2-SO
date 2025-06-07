@@ -23,3 +23,16 @@ void printTime() {
     printf("ARG TIME: %d:%d:%d\n", hourARG, bcdToDec(t.minutes), bcdToDec(t.seconds));  //imprimo la hora local de argentina
 
 }
+
+void waitNSeconds(uint8_t secondsToWait) {
+    Time start;
+    getTime(&start);
+    while (1) {
+        Time now;
+        getTime(&now);
+        int delta = now.seconds >= start.seconds ? (now.seconds - start.seconds) : (now.seconds + 60 - start.seconds);
+        if (delta >= secondsToWait) {
+            break;
+        }
+    }
+}
