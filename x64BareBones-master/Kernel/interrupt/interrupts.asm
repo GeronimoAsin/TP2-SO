@@ -77,23 +77,15 @@ SECTION .text
 
 
 %macro exceptionHandler 1
-	pushState
+    pushState
 
-	mov rdi, %1 ; pasaje de parametro
-	call exceptionDispatcher
+    mov rdi, %1           ; primer argumento: número de excepción
+    mov rsi, [rsp + 15*8] ; segundo argumento: RIP (después de pushState, RIP está en esta posición)
+    call exceptionDispatcher
 
-	popState
-	iretq
-%endmacro
-
-%macro exceptionHandler 6
-	pushState
-
-	mov rdi, %6 ; pasaje de parametro
-	call exceptionDispatcher
-
-	popState
-	iretq
+    jmp userland
+    popState
+    iretq
 %endmacro
 
 
@@ -167,11 +159,9 @@ _irq80Handler:
 
 ;Zero Division Exception
 _exception0Handler:
-    call saveRegisters
 	exceptionHandler 0
 
 _exception6Handler:
-    call saveRegisters
     exceptionHandler 6
 
 haltcpu:
@@ -179,7 +169,8 @@ haltcpu:
 	hlt
 	ret
 
-
+section .rodata
+userland equ 0x400000
 
 SECTION .bss
 	aux resq 1

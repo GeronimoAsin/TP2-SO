@@ -1,5 +1,5 @@
 section .bss
-registers: resb 128    ; 16 registros × 8 bytes = 128 bytes
+registers resb 128    ; 16 registros × 8 bytes = 128 bytes
 
 section .text
 global saveRegisters

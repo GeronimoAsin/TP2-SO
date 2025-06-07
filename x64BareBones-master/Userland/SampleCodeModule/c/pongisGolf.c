@@ -557,7 +557,7 @@ void showWinner() {
     } else {
         printf("Empate!");
     }
-    for (int i = 0; i < 500000000; i++);
+    for (int i = 0; i < 50000000; i++);
 }
 
 void pongisGolfMain() {
@@ -594,6 +594,8 @@ void pongisGolfMain() {
             if (numPlayers == 2) {
                 movePlayerOptimized(&p2, key, &prev_p2_x, &prev_p2_y);
             }
+			syscall(5,0,0,0,0,0);
+			hideCursor();
         }
 
         moveBallOptimized();
