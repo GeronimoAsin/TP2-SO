@@ -83,8 +83,11 @@ SECTION .text
     mov rsi, [rsp + 15*8] ; segundo argumento: RIP (después de pushState, RIP está en esta posición)
     call exceptionDispatcher
 
-    jmp userland
+
     popState
+    mov [rsp+ 24], rax
+    mov rax, userland
+    mov [rsp],rax
     iretq
 %endmacro
 

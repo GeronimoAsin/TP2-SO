@@ -4,6 +4,7 @@
 #include "pongisGolf.h"
 #include "printRegisters.h"
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
+extern void invalidOp();
 #define CMD_MAX_CHARS 100
 #define PROMPT "Shell $> "
 
@@ -16,7 +17,10 @@ static char *help_text =
     "- time: Muestra la hora actual\n"
     "- registers: Muestra los registros\n"
 	"- increase: Aumenta el tamano de la fuente\n"
-	"- decrease: Disminuye el tamano de la fuente\n";
+	"- decrease: Disminuye el tamano de la fuente\n"
+	"- zeroDiv: Genera una excepcion de division por cero\n"
+	"- invalidOp: Genera una excepcion de operacion invalida\n";
+
 
 static const char *ascii_art =
 "+====================================================+\n"
@@ -69,6 +73,8 @@ static int interpret(const char *cmd) {
     if (strcmp(cmd, "registers\n") == 0) return 5;
 	if (strcmp(cmd, "increase\n") == 0) return 6;
 	if (strcmp(cmd, "decrease\n") == 0) return 7;
+	if (strcmp(cmd, "zeroDiv\n") == 0) return 8;
+	if (strcmp(cmd, "invalidOp\n") == 0) return 9;// Comando vacío
     return -1;
 }
 
@@ -115,6 +121,12 @@ void startShell() {
 				break;
 			case 7:
 				syscall(8, 0, 0, 0); // decrease font size
+				break;
+			case 8:
+				int i = 4 / 0;
+				break;
+			case 9:
+				invalidOp();
 				break;
             default:
                 printf("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");

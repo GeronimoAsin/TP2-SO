@@ -1,4 +1,5 @@
 GLOBAL syscall
+GLOBAL invalidOp
 section .text
 
 ;puente para invocar las syscalls del kernel en Userland
@@ -9,3 +10,6 @@ syscall:
     int 80h
     pop rbx
     ret
+
+invalidOp:
+    mov ax, cs

@@ -17,6 +17,7 @@ void exceptionDispatcher(int exception, uint64_t rip) {
 	printString("Valor de RIP: ");
 	newLine();
 	printHex(rip);
+	for(int i = 0; i<1000000000; i++);
 }
 
 static void zero_division() {
