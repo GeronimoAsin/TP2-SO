@@ -186,3 +186,25 @@ void printf(const char *format, ...) {
 void deleteLastChar() {
     syscall(5, 0, 0, 0);
 }
+
+// Convierte un uint64_t a string hexadecimal (en minúsculas)
+void unsigned_numtohex64(uint64_t num, char *str) {
+    const char hexDigits[] = "0123456789abcdef";
+    int i = 0;
+    if (num == 0) {
+        str[i++] = '0';
+        str[i] = '\0';
+        return;
+    }
+    while (num > 0) {
+        str[i++] = hexDigits[num & 0xF]; // Usar AND en vez de % para evitar división
+        num >>= 4;
+    }
+    str[i] = '\0';
+    // Invertir el string
+    for (int j = 0, k = i - 1; j < k; j++, k--) {
+        char temp = str[j];
+        str[j] = str[k];
+        str[k] = temp;
+    }
+}
