@@ -62,7 +62,7 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 11:
             drawCircle(rbx, rdi, rsi, (uint32_t)rdx);
             return 1;
-        case 12:
+        case 12: 
             drawRectangle(rbx, rdi, rsi, rdx, (uint32_t)rcx);
             return 1;
         case 13: 

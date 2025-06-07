@@ -4,7 +4,7 @@
 #include "userlib.h"
 
 #define PLAYER_SIZE 30
-#define PLAYER_SPEED 10
+#define PLAYER_SPEED 13
 #define BALL_RADIUS 5
 #define HOLE_RADIUS 10
 #define MAX_LEVELS 5
@@ -316,12 +316,24 @@ void moveBallOptimized() {
     Level *lvl = &levels[currentLevel];
 
     for (int i = 0; i < lvl->numRects; i++) {
-        Ball temp = {next_x, next_y, 0, 0, 0, COLOR_BALL};
-        if (ballHitsRect(&temp, &lvl->rects[i])) {
-            if (ballHitsRect(&(Ball){ball.x, next_y, 0, 0, 0, COLOR_BALL}, &lvl->rects[i]))
-                ball.dy = -ball.dy;
-            if (ballHitsRect(&(Ball){next_x, ball.y, 0, 0, 0, COLOR_BALL}, &lvl->rects[i]))
+        ObstacleRect *rect = &lvl->rects[i];
+        Ball tempX = {next_x, ball.y, 0, 0, 0, COLOR_BALL};
+        Ball tempY = {ball.x, next_y, 0, 0, 0, COLOR_BALL};
+        Ball tempXY = {next_x, next_y, 0, 0, 0, COLOR_BALL};
+
+        int hitX = ballHitsRect(&tempX, rect);
+        int hitY = ballHitsRect(&tempY, rect);
+        int hitXY = ballHitsRect(&tempXY, rect);
+
+        if (hitXY) {
+            if (hitX && !hitY) {
                 ball.dx = -ball.dx;
+            } else if (!hitX && hitY) {
+                ball.dy = -2*ball.dy;
+            } else {
+                ball.dx = -ball.dx;
+                ball.dy = -2*ball.dy;
+            }
             return;
         }
     }
@@ -337,10 +349,24 @@ void moveBallOptimized() {
     }
     
     for (int i = 0; i < lvl->numCircles; i++) {
+        ObstacleCircle *c = &lvl->circles[i];
         Ball temp = {next_x, next_y, 0, 0, 0, COLOR_BALL};
-        if (ballHitsCircle(&temp, &lvl->circles[i])) {
-            ball.dx = -ball.dx;
-            ball.dy = -ball.dy;
+        if (ballHitsCircle(&temp, c)) {
+            int cx = c->x;
+            int cy = c->y;
+            int bx = ball.x;
+            int by = ball.y;
+            int nx = bx - cx;
+            int ny = by - cy;
+            int nlen2 = nx*nx + ny*ny;
+            if (nlen2 == 0){
+                nlen2 = 1;
+            } 
+
+            int dot = ball.dx * nx + ball.dy * ny;
+
+            ball.dx = 2 * (ball.dx - 2 * dot * nx / nlen2);
+            ball.dy = 2 * (ball.dy - 2 * dot * ny / nlen2);
             return;
         }
     }
@@ -522,11 +548,11 @@ void initLevels() {
     levels[3].circles[0] = (ObstacleCircle){getWidth()/2, 500, 40, 0x228B22};
 
     // Nivel 5
-    levels[4].hole_x = 100;
-    levels[4].hole_y = 100;
+    levels[4].hole_x = getWidth() / 2 + 50;
+    levels[4].hole_y = getHeight() /2 + 250;
     levels[4].numRects = 2;
     levels[4].rects[0] = (ObstacleRect){400, 200, 120, 30, 0x964B00};
-    levels[4].rects[1] = (ObstacleRect){600, 600, 80, 80, 0x964B00};
+    levels[4].rects[1] = (ObstacleRect){getWidth()/2, getHeight()/2 +100, 80, 80, 0x964B00};
     levels[4].numCircles = 2;
     levels[4].circles[0] = (ObstacleCircle){300, 400, 30, 0x228B22};
     levels[4].circles[1] = (ObstacleCircle){800, 300, 50, 0x228B22};
@@ -558,13 +584,15 @@ void showWinner() {
     } else {
         printf("Empate!");
     }
-    waitNSeconds(30);
+    setCursor(400, 320);
+    printf("Returning shell...");
+    waitNSeconds(5);
 }
 
 void pongisGolfMain() {
     gameObjects();
     initLevels();
-    currentLevel = 0;
+    currentLevel = 4;
     hole.x = levels[currentLevel].hole_x;
     hole.y = levels[currentLevel].hole_y;
     selectPlayers();
@@ -579,6 +607,7 @@ void pongisGolfMain() {
     }
     drawBall(&ball);
     drawScores();
+    hideCursor();
     
     // Inicializar posiciones anteriores
     prev_ball_x = ball.x;
@@ -610,7 +639,7 @@ void pongisGolfMain() {
             if (!nextLevel()) {
                 showWinner();
                 clearScreen(0x000000);
-                break;
+                return;
             }
             // Redibujo completo después de cambiar nivel
             clear();
