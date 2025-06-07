@@ -17,8 +17,9 @@ void printTime() {
     getTime(&t); //le paso el struct del tiempo a getTime
 
      // Hora local Argentina (UTC-3)
-    int hourARG = (t.hours - 3 + 24) % 24;
-    printf("UTC TIME: %d:%d:%d\n", bcdToDec(t.hours), bcdToDec(t.minutes), bcdToDec(t.seconds));
+    int hourUTC = bcdToDec(t.hours);
+    int hourARG = (hourUTC - 3 + 24) % 24;
+    printf("UTC TIME: %d:%d:%d\n", hourUTC, bcdToDec(t.minutes), bcdToDec(t.seconds));
     printf("ARG TIME: %d:%d:%d\n", hourARG, bcdToDec(t.minutes), bcdToDec(t.seconds));  //imprimo la hora local de argentina
 
 }
