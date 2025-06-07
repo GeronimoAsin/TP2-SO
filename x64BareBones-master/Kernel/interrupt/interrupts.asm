@@ -152,28 +152,17 @@ _irq04Handler:
 _irq05Handler:
 	irqHandlerMaster 5
 
-;System calls
-_irq80Handler: 
+_irq80Handler:
+    pushState               ; salva rax,rbx,rcx,rdx,rbp,rdi,rsi,r8..r15
 
-	;backup de los valores en los registros
-  	push rbx
-	push rdi
-	push rsi
-	mov rdi, rax
-	mov rsi, rbx
-	push rdx		; recibo buffer en rdx
-	mov rdx, rcx	; recibo count en rcx (swap entre los registros)
-	pop rdx			; rcx y rdx
+    mov     rdi, rax        ; 1er arg: id de syscall
+    mov     rsi, rbx        ; 2º arg
+    ; rdx=rdx, rcx=rcx, r8,r9 quedan con 5º y 6º arg
 
-	call syscallDispatcher
-	
-	pop rsi
-	pop rdi
-	pop rbx
+    call    syscallDispatcher
 
-	;retorno de la interrupcion
-	iretq
-
+    popState                ; restaura todos los registros
+    iretq                   ; retorna de la interrupción
 
 
 ;Zero Division Exception

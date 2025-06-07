@@ -22,7 +22,7 @@
 #define SCORE_AREA_HEIGHT 70
 #define SCORE_AREA_COLOR 0x7FFFD4
 
-extern uint64_t syscall(uint64_t id, ...);
+extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx, uint64_t r8, uint64_t r9);
 
 Level levels[MAX_LEVELS];
 int currentLevel = 0;
@@ -38,31 +38,35 @@ int prev_p1_x = 0, prev_p1_y = 0;
 int prev_p2_x = 0, prev_p2_y = 0;
 
 int getWidth() {
-    return syscall(20); 
+    int width;
+    syscall(20, &width, 0, 0, 0, 0);
+    return width;
 }
 
 int getHeight() {
-    return syscall(21); 
+    int height;
+    syscall(21, &height,0 ,0, 0, 0);
+    return height;
 }
 
 void drawCircle(int x, int y, int radius, uint32_t color) {
-    syscall(11, x, y, radius, color); 
+   syscall(11, x, y, radius, color, 0);
 }
 
 void drawRectangle(int x, int y, int width, int height, uint32_t color) {
-    syscall(12, x, y, width, height, color); 
+    syscall(12, x, y, width, height, color);
 }
 
 void clearScreen(uint32_t color) {
-    syscall(2, color); 
+    syscall(13, color, 0, 0, 0, 0);
 }
 
 void setCursor(int x, int y) {
-    syscall(14, x, y); 
+    syscall(14, x, y, 0, 0, 0);
 }
 
 void hideCursor() {
-    syscall(18); 
+    syscall(18, 0, 0, 0, 0, 0);
 }
 
 // Utilidades
@@ -393,21 +397,7 @@ void moveBallOptimized() {
 }
     
 char getCharFromKeyboard() {
-    char c;
-    int result = syscall(0, 0, &c, 1, 0); 
-    
-    if (result > 0) {
-        deleteLastChar();
-        hideCursor();
-        return c;
-    }
-    return 0;
-}
-
-void writeString(const char *str) {
-    uint64_t len = 0;
-    while (str[len]) len++;
-    syscall(1, 1, str, len, 0); 
+    return getChar();
 }
 
 void selectPlayers() {
@@ -576,7 +566,7 @@ void pongisGolfMain() {
     currentLevel = 0;
     hole.x = levels[currentLevel].hole_x;
     hole.y = levels[currentLevel].hole_y;
-    selectPlayers(); 
+    selectPlayers();
     
     // Dibujo inicial completo
     clear();
@@ -609,7 +599,7 @@ void pongisGolfMain() {
         moveBallOptimized();
 
         if (isInHole(&ball, &hole)) {
-            syscall(6);
+            syscall(6, 0, 0, 0, 0, 0);
             if (lastHitter != NULL) {
                 lastHitter->score++;
             }

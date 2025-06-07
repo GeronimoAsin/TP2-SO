@@ -55,13 +55,15 @@ uint64_t syscallDispatcher(uint64_t id, ...)
 			return 1;
         case 9:
           	drawCursor();
+            return 1;
         case 10:
           	clearCursor();
-        case 11: 
-            drawCircle((int)rbx, (int)rdi, (int)rsi, (uint32_t)rdx);
+            return 1;
+        case 11:
+            drawCircle(rbx, rdi, rsi, (uint32_t)rdx);
             return 1;
         case 12: 
-            drawRectangle((int)rbx, (int)rdi, (int)rsi, (int)rdx, (uint32_t)rcx);
+            drawRectangle(rbx, rdi, rsi, rdx, (uint32_t)rcx);
             return 1;
         case 13: 
             clearScreen((uint32_t)rbx);
@@ -83,10 +85,10 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             showCursor();
             return 1;
         case 20:
-            getWidth();
+            *((int *)rbx) = getWidth();
             return 1;
         case 21:
-            getHeight();
+            *((int *)rbx) = getHeight();
             return 1;
         default:
             return -1;

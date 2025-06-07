@@ -1,5 +1,4 @@
 GLOBAL syscall
-
 section .text
 
 ;puente para invocar las syscalls del kernel en Userland
