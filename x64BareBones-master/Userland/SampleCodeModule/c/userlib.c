@@ -53,12 +53,10 @@ void unsigned_numtohex(unsigned int num, char *str) {
         str[i] = '\0';
         return;
     }
-
     while (num > 0) {
         str[i++] = hexDigits[num % 16];
         num /= 16;
     }
-
     str[i] = '\0';
 
     for (int j = 0, k = i - 1; j < k; j++, k--) {
@@ -152,18 +150,15 @@ void printf(const char *format, ...) {
                     int num = va_arg(args, int);
                     char num_buffer[12]; // Buffer para almacenar el número como cadena
                     int num_len = 0;
-
                     if (num < 0) {
                         char buffer[2] = {'-', '\0'};
                         syscall(1, 1, (uint64_t)buffer, 1);
                         num = -num;
                     }
-
                     do {
                         num_buffer[num_len++] = (num % 10) + '0';
                         num /= 10;
                     } while (num > 0);
-
                     while (num_len > 0) {
                         char buffer[2] = {num_buffer[--num_len], '\0'};
                         syscall(1, 1, (uint64_t)buffer, 1);
@@ -176,7 +171,6 @@ void printf(const char *format, ...) {
                     break;
                 }
                 default:
-                    // Si el formato no es reconocido, lo ignoramos
                     break;
             }
         } else {

@@ -13,6 +13,9 @@ void print_registers() {
     };
 
     for (int i = 0; i < 16; i++) {
-        printf("%s = %d\n", reg_names[i], regs[i]);
+    printf("%s = %d\n", reg_names[i], regs[i]);
+        // o para hexadecimal:
+    //printf("%s = 0x %llx \n", reg_names[i], (unsigned long long)regs[i]);
+
     }
 }
