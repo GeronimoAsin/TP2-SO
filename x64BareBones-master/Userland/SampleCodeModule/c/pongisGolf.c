@@ -592,7 +592,7 @@ void showWinner() {
 void pongisGolfMain() {
     gameObjects();
     initLevels();
-    currentLevel = 4;
+    currentLevel = 0;
     hole.x = levels[currentLevel].hole_x;
     hole.y = levels[currentLevel].hole_y;
     selectPlayers();
