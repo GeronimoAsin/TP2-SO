@@ -131,47 +131,70 @@ void printf(const char *format, ...) {
     while (*format) {
         if (*format == '%') {
             format++;
-            switch (*format) {
-                case 'c': { // Caracter
-                    char c = (char)va_arg(args, int); // Los caracteres se pasan como int en argumentos variables
-                    char buffer[2] = {c, '\0'};
+            if (*format == 'l' && *(format+1) == 'l' && *(format+2) == 'x') {
+                format += 2;
+                uint64_t num = va_arg(args, uint64_t);
+                char hex_buffer[17];
+                unsigned_numtohex64(num, hex_buffer);
+                const char *str = hex_buffer;
+                while (*str) {
+                    char buffer[2] = {*str++, '\0'};
                     syscall(1, 1, (uint64_t)buffer, 1);
-                    break;
                 }
-                case 's': { // Cadena
-                    const char *str = va_arg(args, const char *);
-                    while (*str) {
-                        char buffer[2] = {*str++, '\0'};
+            } else {
+                switch (*format) {
+                    case 'c': { // Caracter
+                        char c = (char)va_arg(args, int); // Los caracteres se pasan como int en argumentos variables
+                        char buffer[2] = {c, '\0'};
                         syscall(1, 1, (uint64_t)buffer, 1);
+                        break;
                     }
-                    break;
-                }
-                case 'd': { // Entero
-                    int num = va_arg(args, int);
-                    char num_buffer[12]; // Buffer para almacenar el número como cadena
-                    int num_len = 0;
-                    if (num < 0) {
-                        char buffer[2] = {'-', '\0'};
+                    case 's': { // Cadena
+                        const char *str = va_arg(args, const char *);
+                        while (*str) {
+                            char buffer[2] = {*str++, '\0'};
+                            syscall(1, 1, (uint64_t)buffer, 1);
+                        }
+                        break;
+                    }
+                    case 'd': { // Entero
+                        int num = va_arg(args, int);
+                        char num_buffer[12]; // Buffer para almacenar el número como cadena
+                        int num_len = 0;
+                        if (num < 0) {
+                            char buffer[2] = {'-', '\0'};
+                            syscall(1, 1, (uint64_t)buffer, 1);
+                            num = -num;
+                        }
+                        do {
+                            num_buffer[num_len++] = (num % 10) + '0';
+                            num /= 10;
+                        } while (num > 0);
+                        while (num_len > 0) {
+                            char buffer[2] = {num_buffer[--num_len], '\0'};
+                            syscall(1, 1, (uint64_t)buffer, 1);
+                        }
+                        break;
+                    }
+                    case 'x': { // Hexadecimal (unsigned int)
+                        unsigned int num = va_arg(args, unsigned int);
+                        char hex_buffer[9];
+                        unsigned_numtohex(num, hex_buffer);
+                        const char *str = hex_buffer;
+                        while (*str) {
+                            char buffer[2] = {*str++, '\0'};
+                            syscall(1, 1, (uint64_t)buffer, 1);
+                        }
+                        break;
+                    }
+                    case '%': { // Literal '%'
+                        char buffer[2] = {'%', '\0'};
                         syscall(1, 1, (uint64_t)buffer, 1);
-                        num = -num;
+                        break;
                     }
-                    do {
-                        num_buffer[num_len++] = (num % 10) + '0';
-                        num /= 10;
-                    } while (num > 0);
-                    while (num_len > 0) {
-                        char buffer[2] = {num_buffer[--num_len], '\0'};
-                        syscall(1, 1, (uint64_t)buffer, 1);
-                    }
-                    break;
+                    default:
+                        break;
                 }
-                case '%': { // Literal '%'
-                    char buffer[2] = {'%', '\0'};
-                    syscall(1, 1, (uint64_t)buffer, 1);
-                    break;
-                }
-                default:
-                    break;
             }
         } else {
             char buffer[2] = {*format, '\0'};

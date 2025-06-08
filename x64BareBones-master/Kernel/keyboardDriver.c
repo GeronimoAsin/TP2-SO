@@ -77,7 +77,7 @@ void readAndProcess() {
                 deleteLastChar();
                 drawCursor();
               }else if(ascii != '\n'){
-                printChar(ascii);
+             printChar(ascii);
                 drawCursor();
             }
         }

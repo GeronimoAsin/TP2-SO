@@ -1,6 +1,7 @@
 #include "syscallDispatcher.h"
 #include "videoDriver.h"
 #include <stdarg.h>
+#define REGISTERS 18
 //struct para obtener el tiempo
 typedef struct {
     uint8_t hours;
@@ -10,7 +11,7 @@ typedef struct {
 
 uint64_t sys_getRegisters(uint64_t *dest);
 extern uint64_t getTime();
-extern uint64_t * getRegisters(uint64_t *dest);
+extern uint64_t * getRegisters();
 
 uint64_t syscallDispatcher(uint64_t id, ...)
 {
@@ -138,10 +139,13 @@ void sys_getTime(Time *t)
 }
 
 
-//Devuelve una direccion de memoria donde estan cargados los registros
 uint64_t sys_getRegisters(uint64_t *dest) {
     if (dest == 0)
         return -1;
-    getRegisters(dest); // Copia los registros al buffer destino
+
+        uint64_t *regs = getRegisters();
+        for (int i = 0; i < REGISTERS; i++)
+            dest[i] = regs[i]; //copia los registros a la direccion de memoria dest
+
     return 1;
 }
