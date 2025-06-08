@@ -34,6 +34,6 @@ void print_registers() {
 
     //print de los registros en formato hexadecimal
     for (int i = 0; i < 16; i++) {
-        printf("%s = 0x %llx\n", reg_names[i], (unsigned long long)regs[i]);
+        printf("%s = 0x%llx\n", reg_names[i], (unsigned long long)regs[i]);
     }
 }
