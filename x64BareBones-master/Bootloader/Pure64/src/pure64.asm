@@ -143,23 +143,22 @@ vbe_init:
     push di
     push es
 
-    mov ax, 0x4F00              ; Get VBE Controller Info
-    mov di, VBEModeInfoBlock    ; Reusar como buffer temporal
+    mov ax, 0x4F00              ; VBE Controller Info desde la BIOS
+    mov di, VBEModeInfoBlock
     int 0x10
-    cmp ax, 0x4F                 ; A=VBE call successful?
 
 
-    ; Ahora obtenemos información de un modo compatible (ej: 0x118 = 1024x768x32b)
-    mov ax, 0x4F01              ; Get Mode Info
-    mov cx, 0x118               ; Modo que quieres (VBE 1024x768x32b)
-    mov di, VBEModeInfoBlock    ; Donde almacenar el VbeModeInfoBlock (0x5C00)
+
+    mov ax, 0x4F01              ; Mode Info desde la BIOS
+    mov cx, 0x118
+    mov di, VBEModeInfoBlock
     int 0x10
     cmp ax, 0x4F
 
 
-    ; Establecer el modo gráfico
+
     mov ax, 0x4F02
-    mov bx, 0x4118              ; Set bit 14 (LFB = Linear Frame Buffer)
+    mov bx, 0x4118
     int 0x10
     cmp ax, 0x4F
 
