@@ -148,15 +148,15 @@ _irq05Handler:
 	irqHandlerMaster 5
 
 _irq80Handler:
-    pushState               ; salva rax,rbx,rcx,rdx,rbp,rdi,rsi,r8..r15
+    pushState
     mov     rdi, rax        ; 1er arg: id de syscall
     mov     rsi, rbx        ; 2º arg
     ; rdx=rdx, rcx=rcx, r8,r9 quedan con 5º y 6º arg
 
     call    syscallDispatcher
 
-    popState                ; restaura todos los registros
-    iretq                   ; retorna de la interrupción
+    popState
+    iretq
 
 
 ;Zero Division Exception
