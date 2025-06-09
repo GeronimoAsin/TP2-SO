@@ -9,11 +9,11 @@
 #define HOLE_RADIUS 10
 #define MAX_LEVELS 5
 
-#define COLOR_PLAYER1 0xFF0000 // rojo
-#define COLOR_PLAYER2 0x0000FF // azul
-#define COLOR_BALL 0xFFFFFF    // blanco
-#define COLOR_HOLE 0x000000    // negro
-#define COLOR_BG 0x7FFFD4      // verde agua
+#define COLOR_PLAYER1 0xFF0000 
+#define COLOR_PLAYER2 0x0000FF 
+#define COLOR_BALL 0xFFFFFF    
+#define COLOR_HOLE 0x000000    
+#define COLOR_BG 0x7FFFD4     
 
 #define SCORE_AREA_X 0
 #define SCORE_AREA_Y 0
@@ -26,46 +26,56 @@ extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx, uint
 void waitNSeconds(uint8_t secondsToWait);
 
 Level levels[MAX_LEVELS];
+Player *lastHitter = NULL;
 int currentLevel = 0;
 
+// Estructuras para judadores, pelota, hoyo y obstáculos
 Player p1 = {100, 300, COLOR_PLAYER1, 0, 'w', 's', 'a', 'd'};
 Player p2 = {900, 300, COLOR_PLAYER2, 0, 'i', 'k', 'j', 'l'};
 Ball ball;
 Hole hole;
+ObstacleRect scoreArea = {SCORE_AREA_X, SCORE_AREA_Y, SCORE_AREA_WIDTH_2P, SCORE_AREA_HEIGHT, SCORE_AREA_COLOR};
 
 int numPlayers = 2;
 int prev_ball_x = 0, prev_ball_y = 0;
 int prev_p1_x = 0, prev_p1_y = 0;
 int prev_p2_x = 0, prev_p2_y = 0;
 
+// Llamada a syscall para ancho de pantalla
 int getWidth() {
     int width;
     syscall(20, &width, 0, 0, 0, 0);
     return width;
 }
 
+// Llamada a syscall para alto de pantalla
 int getHeight() {
     int height;
     syscall(21, &height,0 ,0, 0, 0);
     return height;
 }
 
+// Llamada a syscall para dibujar circulos
 void drawCircle(int x, int y, int radius, uint32_t color) {
    syscall(11, x, y, radius, color, 0);
 }
 
+// Llamada a syscall para dibujar rectangulos
 void drawRectangle(int x, int y, int width, int height, uint32_t color) {
     syscall(12, x, y, width, height, color);
 }
 
+// Llamada a syscall para borrar la pantalla
 void clearScreen(uint32_t color) {
     syscall(13, color, 0, 0, 0, 0);
 }
 
+// Llamada a syscall para establecer el cursor en una posición
 void setCursor(int x, int y) {
     syscall(14, x, y, 0, 0, 0);
 }
 
+// Llamada a syscall para ocultar el cursor
 void hideCursor() {
     syscall(18, 0, 0, 0, 0, 0);
 }
@@ -85,24 +95,7 @@ void gameObjects() {
     hole.color = COLOR_HOLE;
 }
 
-void drawPlayer(Player *p) {
-    drawCircle(p->x + PLAYER_SIZE / 2, p->y + PLAYER_SIZE / 2, PLAYER_SIZE / 2, p->color);
-
-    int eye_radius = PLAYER_SIZE / 8;
-    int eye_offset_x = PLAYER_SIZE / 4;
-    int eye_offset_y = PLAYER_SIZE / 4;
-    drawCircle(p->x + eye_offset_x, p->y + eye_offset_y, eye_radius, 0x000000);
-    drawCircle(p->x + PLAYER_SIZE - eye_offset_x, p->y + eye_offset_y, eye_radius, 0x000000);
-
-    int mouth_width = PLAYER_SIZE / 2;
-    int mouth_height = PLAYER_SIZE / 8;
-    int mouth_x = p->x + PLAYER_SIZE / 4;
-    int mouth_y = p->y + (PLAYER_SIZE * 3) / 4;
-    drawRectangle(mouth_x, mouth_y, mouth_width, mouth_height, 0x000000);
-}
-
-ObstacleRect scoreArea = {SCORE_AREA_X, SCORE_AREA_Y, SCORE_AREA_WIDTH_2P, SCORE_AREA_HEIGHT, SCORE_AREA_COLOR};
-
+// Funcion que dibuja el area de puntajes
 void drawScoreArea() {
     if(numPlayers == 1){
         scoreArea.width = SCORE_AREA_WIDTH_1P;
@@ -110,6 +103,7 @@ void drawScoreArea() {
     drawRectangle(scoreArea.x, scoreArea.y, scoreArea.width, scoreArea.height, scoreArea.color);
 }
 
+// Funcion que dibuja los puntajes de los jugadores
 void drawScores() {
     drawScoreArea();
     setCursor(10, 10);
@@ -126,30 +120,54 @@ void drawScores() {
     }
 }
 
+// Funcion que dibuja un jugador
+void drawPlayer(Player *p) {
+    drawCircle(p->x + PLAYER_SIZE / 2, p->y + PLAYER_SIZE / 2, PLAYER_SIZE / 2, p->color);
+
+    int eye_radius = PLAYER_SIZE / 8;
+    int eye_offset_x = PLAYER_SIZE / 4;
+    int eye_offset_y = PLAYER_SIZE / 4;
+    drawCircle(p->x + eye_offset_x, p->y + eye_offset_y, eye_radius, 0x000000);
+    drawCircle(p->x + PLAYER_SIZE - eye_offset_x, p->y + eye_offset_y, eye_radius, 0x000000);
+
+    int mouth_width = PLAYER_SIZE / 2;
+    int mouth_height = PLAYER_SIZE / 8;
+    int mouth_x = p->x + PLAYER_SIZE / 4;
+    int mouth_y = p->y + (PLAYER_SIZE * 3) / 4;
+    drawRectangle(mouth_x, mouth_y, mouth_width, mouth_height, 0x000000);
+}
+
+// Funcion que borra un jugador
 void clearPlayer(int x, int y) {
     drawCircle(x + PLAYER_SIZE / 2, y + PLAYER_SIZE / 2, PLAYER_SIZE / 2, COLOR_BG);
 }
 
+// Funcion que dibuja la pelota
 void drawBall(Ball *b) {
     drawCircle(b->x, b->y, BALL_RADIUS, b->color);
 }
 
+// Funcion que borra la pelota
 void clearBall(int x, int y) {
     drawCircle(x, y, BALL_RADIUS, COLOR_BG);
 }
 
+// Funcion que dibuja el hoyo
 void drawHole(Hole *h) {
     drawCircle(h->x, h->y, h->radius, h->color);
 }
 
+// Funcion que borra el hoyo
 void clearHole(int x, int y) {
     drawCircle(x, y, HOLE_RADIUS, COLOR_BG);
 }
 
+// Funcion que limpia la pantalla
 void clear() {
     clearScreen(COLOR_BG);
 }
 
+// Funcion que se encarga de reiniciar la pelota al pasar de nivel
 void resetBall() {
     Level *lvl = &levels[currentLevel];
     int found = 0;
@@ -161,7 +179,7 @@ void resetBall() {
             for (int dy = -offset; dy <= offset && !found; dy += 20) {
                 int x = getWidth() / 2 + dx;
                 int y = getHeight() / 2 + dy;
-                // Limita a los bordes
+
                 if (x < BALL_RADIUS) x = BALL_RADIUS;
                 if (x > getWidth() - BALL_RADIUS) x = getWidth() - BALL_RADIUS;
                 if (y < BALL_RADIUS) y = BALL_RADIUS;
@@ -188,6 +206,7 @@ void resetBall() {
     ball.inMotion = 0;
 }
 
+// Funcion que se encarga de reiniciar un jugador al pasar de nivel
 void resetPlayer(Player *p, int start_x, int start_y) {
     Level *lvl = &levels[currentLevel];
     int found = 0, try_x, try_y;
@@ -204,16 +223,19 @@ void resetPlayer(Player *p, int start_x, int start_y) {
     p->y = try_y;
 }
 
+// Funcion que retorna 1 si la pelota esta dentro del hoyo
 int isInHole(Ball *b, Hole *h) {
     int dx = b->x - h->x;
     int dy = b->y - h->y;
     return (dx * dx + dy * dy <= h->radius * h->radius);
 }
 
+// Funcion que calcula el valor absoluto de un entero (no se podia usar math.h)
 static int my_abs(int x) {
     return x < 0 ? -x : x;
 }
 
+// Funcion que retorna 1 si el jugador golpea la pelota
 int playerHitsBall(Player *p, Ball *b) {
     int player_cx = p->x + PLAYER_SIZE / 2;
     int player_cy = p->y + PLAYER_SIZE / 2;
@@ -224,6 +246,7 @@ int playerHitsBall(Player *p, Ball *b) {
     return distance2 <= (minDist * minDist);
 }
 
+// Funcion que retorna 1 si dos jugadores colisionan
 int playersCollide(Player *p1, Player *p2) {
     int px1 = p1->x, px2 = p1->x + PLAYER_SIZE;
     int py1 = p1->y, py2 = p1->y + PLAYER_SIZE;
@@ -232,9 +255,8 @@ int playersCollide(Player *p1, Player *p2) {
     return !(px2 < qx1 || px1 > qx2 || py2 < qy1 || py1 > qy2);
 }
 
-Player *lastHitter = NULL;
-
-void movePlayerOptimized(Player *p, char key, int *prev_x, int *prev_y) {
+//Funcion que mueve al jugador segun sus coordenadas, velocidad y tamaño
+void movePlayer(Player *p, char key, int *prev_x, int *prev_y) {
     int new_x = p->x;
     int new_y = p->y;
 
@@ -308,7 +330,8 @@ void movePlayerOptimized(Player *p, char key, int *prev_x, int *prev_y) {
     }
 }
 
-void moveBallOptimized() {
+// Funcion que mueve a la pelota segun sus coordenadas, velocidad de impacto y tamaño
+void moveBall() {
     if (!ball.inMotion) return;
 
     int next_x = ball.x + ball.dx;
@@ -422,11 +445,13 @@ void moveBallOptimized() {
         ball.inMotion = 0;
     }
 }
-    
+
+// Funcion que obtiene un caracter del teclado
 char getCharFromKeyboard() {
     return getChar();
 }
 
+// Funcion que permite seleccionar la cantidad de jugadores
 void selectPlayers() {
     clearScreen(COLOR_BG);
     setCursor(300, 300);
@@ -442,6 +467,7 @@ void selectPlayers() {
     numPlayers = (c == '1') ? 1 : 2;
 }
 
+// Funcion que dibuja los obstaculos del nivel actual
 void drawObstacles() {
     drawRectangle(scoreArea.x, scoreArea.y, scoreArea.width, scoreArea.height, scoreArea.color);
     Level *lvl = &levels[currentLevel];
@@ -455,6 +481,7 @@ void drawObstacles() {
     }
 }
 
+// Funcion que redibuja los obstaculos en un area especifica
 void redrawObstaclesInArea(int x, int y, int width, int height) {
     Level *lvl = &levels[currentLevel];
     
@@ -485,6 +512,7 @@ void redrawObstaclesInArea(int x, int y, int width, int height) {
     }
 }
 
+// Funcion que retorna 1 si la pelota colisiona con un rectangulo
 int ballHitsRect(Ball *b, ObstacleRect *r) {
     int closestX = b->x < r->x ? r->x : (b->x > r->x + r->width ? r->x + r->width : b->x);
     int closestY = b->y < r->y ? r->y : (b->y > r->y + r->height ? r->y + r->height : b->y);
@@ -493,6 +521,7 @@ int ballHitsRect(Ball *b, ObstacleRect *r) {
     return (dx * dx + dy * dy) <= (BALL_RADIUS * BALL_RADIUS);
 }
 
+// Funcion que retorna 1 si la pelota colisiona con un circulo
 int ballHitsCircle(Ball *b, ObstacleCircle *c) {
     int dx = b->x - c->x;
     int dy = b->y - c->y;
@@ -500,6 +529,7 @@ int ballHitsCircle(Ball *b, ObstacleCircle *c) {
     return (dx * dx + dy * dy) <= (minDist * minDist);
 }
 
+// Funcion que retorna 1 si el jugador colisiona con un rectangulo
 int playerHitsRect(Player *p, ObstacleRect *r) {
     int px1 = p->x, px2 = p->x + PLAYER_SIZE;
     int py1 = p->y, py2 = p->y + PLAYER_SIZE;
@@ -508,6 +538,7 @@ int playerHitsRect(Player *p, ObstacleRect *r) {
     return !(px2 < rx1 || px1 > rx2 || py2 < ry1 || py1 > ry2);
 }
 
+// Funcion que retorna 1 si el jugador colisiona con un circulo
 int playerHitsCircle(Player *p, ObstacleCircle *c) {
     int cx = p->x + PLAYER_SIZE / 2;
     int cy = p->y + PLAYER_SIZE / 2;
@@ -517,7 +548,8 @@ int playerHitsCircle(Player *p, ObstacleCircle *c) {
     return (dx * dx + dy * dy) <= (minDist * minDist);
 }
 
-void initLevels() {
+// Funcion que inicializa los niveles del juego (se pueden crear mas niveles dentro de ella)
+void Levels() {
     // Nivel 1
     levels[0].hole_x = getWidth() / 2;
     levels[0].hole_y = 100;
@@ -558,6 +590,7 @@ void initLevels() {
     levels[4].circles[1] = (ObstacleCircle){800, 300, 50, 0x228B22};
 }
 
+// Funcion que se encarga de pasar de nivel. Esto implica reiniciar la pelota y los jugadores
 int nextLevel() {
     currentLevel++;
     if (currentLevel >= MAX_LEVELS) {
@@ -574,6 +607,7 @@ int nextLevel() {
     return 1;
 }
 
+// Funcion que muestra al ganador en pantalla al finalizar el juego
 void showWinner() {
     clearScreen(COLOR_BG);
     setCursor(400, 300);
@@ -589,15 +623,18 @@ void showWinner() {
     waitNSeconds(5);
 }
 
+// Funcion principal. Se encarga de inicializar el juego dibujando a los jugadores, la pelota, el hoyo y los 
+// obstaculos. Ademas, se encarga de manejar toda la logica del juego, como el movimiento de los jugadores
+// y la pelota, las colisiones entre ellos y los cambios de nivel al meter la pelota.
+// Tambien se encarga de mostrar al ganador una vez que se hayan completado todos los niveles.
 void pongisGolfMain() {
     gameObjects();
-    initLevels();
+    Levels();
     currentLevel = 0;
     hole.x = levels[currentLevel].hole_x;
     hole.y = levels[currentLevel].hole_y;
     selectPlayers();
     
-    // Dibujo inicial completo
     clear();
     drawHole(&hole);
     drawObstacles();
@@ -609,7 +646,6 @@ void pongisGolfMain() {
     drawScores();
     hideCursor();
     
-    // Inicializar posiciones anteriores
     prev_ball_x = ball.x;
     prev_ball_y = ball.y;
     prev_p1_x = p1.x;
@@ -620,15 +656,15 @@ void pongisGolfMain() {
         char key = getCharFromKeyboard();
 
         if (key) {
-            movePlayerOptimized(&p1, key, &prev_p1_x, &prev_p1_y);
+            movePlayer(&p1, key, &prev_p1_x, &prev_p1_y);
             if (numPlayers == 2) {
-                movePlayerOptimized(&p2, key, &prev_p2_x, &prev_p2_y);
+                movePlayer(&p2, key, &prev_p2_x, &prev_p2_y);
             }
 			syscall(5,0,0,0,0,0);
 			hideCursor();
         }
 
-        moveBallOptimized();
+        moveBall();
 
         if (isInHole(&ball, &hole)) {
             syscall(6, 0, 0, 0, 0, 0);
@@ -641,7 +677,7 @@ void pongisGolfMain() {
                 clearScreen(0x000000);
                 return;
             }
-            // Redibujo completo después de cambiar nivel
+
             clear();
             drawHole(&hole);
             drawObstacles();

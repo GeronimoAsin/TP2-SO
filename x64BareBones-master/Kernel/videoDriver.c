@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include "include/videoDriver.h"
 #include "include/bitmap.h"
-#define PROMPT_LENGTH 8// "Shell > " son 8 caracteres
-#define PROMPT_X_MIN (PROMPT_LENGTH * 8) // cada carácter ocupa 8 píxeles
+#define PROMPT_LENGTH 8
+#define PROMPT_X_MIN (PROMPT_LENGTH * 8) 
 #define MAX_ROWS 100
 #define MAX_COLS 200
 char screenBuffer[MAX_ROWS][MAX_COLS];
@@ -86,6 +86,7 @@ uint32_t getAdaptiveTextColor(uint32_t backgroundColor) {
     return (luminance > 128) ? 0x000000 : 0xFFFFFF;
 }
 
+// Funcion que imprime un caracter
 void printChar(char c) {
 	if (currentX + fontWidth > VBE_mode_info->width) {
 		newLine();
@@ -93,11 +94,11 @@ void printChar(char c) {
 	if (currentY + fontHeight > VBE_mode_info->height) {
 		currentY = 0;
 	}
-	// Guarda en el buffer
+
 	if (bufferCols[bufferRows] < MAX_COLS) {
 		screenBuffer[bufferRows][bufferCols[bufferRows]++] = c;
 	}
-	// Dibuja el carácter como antes
+
 	uint32_t textColor = getAdaptiveTextColor(currentBackgroundColor);
 	uint8_t *glyph = font_bitmap + 16 * (c - 32);
 	for (int cy = 0; cy < fontHeight; cy++) {
@@ -112,6 +113,7 @@ void printChar(char c) {
 	}
 	currentX += fontWidth;
 }
+
 // Modifica printString para no recibir color
 void printString(const char *str) {
     while (*str) {
@@ -128,7 +130,7 @@ void deleteLastChar() {
     }
 
 	if (bufferCols[bufferRows] == 0 && bufferRows == 0) {
-		return; // Nada que borrar
+		return; 
 	}
 
 	if (bufferCols[bufferRows] == 0 && bufferRows > 0) {
@@ -138,19 +140,16 @@ void deleteLastChar() {
 		bufferCols[bufferRows]--;
 	}
 
-	// Actualiza la posición del cursor
 	if (currentX >= fontWidth) {
 		currentX -= fontWidth;
 	} else if (currentY >= fontHeight) {
 		currentY -= fontHeight;
-		// Busca la longitud de la línea anterior
 		currentX = bufferCols[bufferRows] * fontWidth;
 	} else {
 		currentX = 0;
 		currentY = 0;
 	}
 
-	// Borra el área del carácter
 	for (int cy = 0; cy < fontHeight; cy++) {
 		for (int cx = 0; cx < fontWidth; cx++) {
 			putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
@@ -172,13 +171,13 @@ void clearScreen(uint32_t backgroundColor) {
 	bufferCols[0] = 0;
 }
 
-
-
+// Funcion que actualiza la posición del cursor
 void setCursor(uint64_t x, uint64_t y) {
 	currentX = x;
 	currentY = y;
 }
 
+// Funcion que mueve el cursor a la siguiente línea
 void newLine() {
 	currentX = 0;
 	currentY += fontHeight;
@@ -190,6 +189,7 @@ void newLine() {
 	}
 }
 
+// Funcion que dibuja un rectángulo en pantalla
 void drawRectangle(uint64_t topLeftX, uint64_t topLeftY, uint64_t width, uint64_t height, uint32_t color) {
 	for (uint64_t y = topLeftY; y < topLeftY + height && y < VBE_mode_info->height; y++) {
 		for (uint64_t x = topLeftX; x < topLeftX + width && x < VBE_mode_info->width; x++) {
@@ -198,14 +198,13 @@ void drawRectangle(uint64_t topLeftX, uint64_t topLeftY, uint64_t width, uint64_
 	}
 }
 
-
+// Función que dibuja un círculo en pantalla 
 void drawCircle(uint64_t centerX, uint64_t centerY, uint64_t radius, uint32_t color) {
 	int64_t x = 0;
 	int64_t y = radius;
 	int64_t d = 3 - 2 * radius;
 
 	while (y >= x) {
-		// Dibuja líneas horizontales para rellenar el círculo en cada octante
 		for (int64_t i = centerX - x; i <= centerX + x; i++) {
 			putPixel(color, i, centerY + y);
 			putPixel(color, i, centerY - y);
@@ -225,14 +224,13 @@ void drawCircle(uint64_t centerX, uint64_t centerY, uint64_t radius, uint32_t co
 	}
 }
 
-// Dibuja un carácter en pantalla en la posición actual, sin modificar el buffer
+// Funcion que dibuja un carácter en pantalla
 void drawChar(char c) {
 	if (currentX + fontWidth > VBE_mode_info->width) {
 		currentX = 0;
 		currentY += fontHeight;
 	}
 	if (currentY + fontHeight > VBE_mode_info->height) {
-		// Si se llena la pantalla, no dibuja más
 		return;
 	}
 	uint32_t textColor = getAdaptiveTextColor(currentBackgroundColor);
@@ -250,14 +248,13 @@ void drawChar(char c) {
 	currentX += fontWidth;
 }
 
-// Modifica redrawScreenFromBuffer para usar drawChar
+// Funcion que redibuja la pantalla desde el buffer
 void redrawScreenFromBuffer() {
 	currentX = 0;
 	currentY = 0;
 	for (int row = 0; row <= bufferRows; row++) {
 		for (int col = 0; col < bufferCols[row]; col++) {
 			if (currentY + fontHeight > VBE_mode_info->height) {
-				// Si se llena la pantalla, detiene el redibujado
 				return;
 			}
 			drawChar(screenBuffer[row][col]);
@@ -269,6 +266,7 @@ void redrawScreenFromBuffer() {
 	}
 }
 
+// Funcion que limpia la pantalla con un color de fondo determinado
 void clearScreenPixels(uint32_t backgroundColor) {
 	for (uint64_t y = 0; y < VBE_mode_info->height; y++) {
 		for (uint64_t x = 0; x < VBE_mode_info->width; x++) {
@@ -280,6 +278,7 @@ void clearScreenPixels(uint32_t backgroundColor) {
 	currentBackgroundColor = backgroundColor;
 }
 
+// Función para aumentar el tamaño de la fuente
 void increaseFontSize() {
 	if (fontWidth < FONT_WIDTH_MAX && fontHeight < FONT_HEIGHT_MAX) {
 		fontWidth *= 2;
@@ -289,6 +288,7 @@ void increaseFontSize() {
 	}
 }
 
+// Función para disminuir el tamaño de la fuente
 void decreaseFontSize() {
 	if (fontWidth > FONT_WIDTH_MIN && fontHeight > FONT_HEIGHT_MIN) {
 		fontWidth /= 2;
@@ -300,6 +300,7 @@ void decreaseFontSize() {
 
 static int cursorVisible = 1;
 
+// Función para dibujar el cursor en la posición actual
 void drawCursor() {
     if (!cursorVisible) return;
     uint32_t cursorColor = 0xFFFFFF ^ currentBackgroundColor; 
@@ -310,6 +311,7 @@ void drawCursor() {
     }
 }
 
+// Función para limpiar el cursor 
 void clearCursor() {
     for (int cy = 0; cy < fontHeight; cy++) {
         for (int cx = 0; cx < fontWidth; cx++) {
@@ -318,12 +320,13 @@ void clearCursor() {
     }
 }
 
-
+// Funciones para ocultar el cursor
 void hideCursor() {
     cursorVisible = 0;
     clearCursor();
 }
 
+// Función para mostrar el cursor
 void showCursor() {
     cursorVisible = 1;
     drawCursor();

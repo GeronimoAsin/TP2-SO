@@ -34,7 +34,6 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             //printChar('1'); // debug int80h.  La syscall de sys_read llega al caso 1
             return sys_write(rbx, (const char *)rdi, rsi);
         case 2:
-            //sys_clear
             clearScreen(0x00000000); 
             return 1;
         case 3:
@@ -45,7 +44,6 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             deleteLastChar();
             return 1;
 		case 6:
-			//sys_beep
 			beep();
 			return 1;
 		case 7:
