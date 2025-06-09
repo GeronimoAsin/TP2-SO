@@ -147,7 +147,7 @@ vbe_init:
     mov di, VBEModeInfoBlock    ; Reusar como buffer temporal
     int 0x10
     cmp ax, 0x4F                 ; A=VBE call successful?
-    jne vbe_fail
+
 
     ; Ahora obtenemos información de un modo compatible (ej: 0x118 = 1024x768x32b)
     mov ax, 0x4F01              ; Get Mode Info
@@ -155,22 +155,14 @@ vbe_init:
     mov di, VBEModeInfoBlock    ; Donde almacenar el VbeModeInfoBlock (0x5C00)
     int 0x10
     cmp ax, 0x4F
-    jne vbe_fail
+
 
     ; Establecer el modo gráfico
     mov ax, 0x4F02
     mov bx, 0x4118              ; Set bit 14 (LFB = Linear Frame Buffer)
     int 0x10
     cmp ax, 0x4F
-    jne vbe_fail
 
-    jmp vbe_ok
-
-vbe_fail:
-    mov si, msg_novesa
-    call print_string_16
-
-vbe_ok:
     pop es
     pop di
     pop si

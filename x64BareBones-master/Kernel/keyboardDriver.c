@@ -11,7 +11,7 @@ static char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
 static int kb_head = 0, kb_tail = 0;
 static int shift = 0;
 
-
+extern void saveRegisters(); // función asm
 extern void read(uint8_t *data); // función asm
 
 
@@ -62,6 +62,10 @@ void readAndProcess() {
     }
     if (data == 0xAA || data == 0xB6) {
         shift = 0;
+        return;
+    }
+    if (data == 0x01) { // ESC
+        saveRegisters();
         return;
     }
     else if (data < 0x80) {
