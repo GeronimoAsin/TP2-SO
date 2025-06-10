@@ -5,41 +5,41 @@ beep:
     push rbp
     mov rbp, rsp
 
-    ; Guardar registros que vamos a usar
+
     push rax
     push rcx
     push rdx
 
-    ; Configurar el PIT canal 2 (speaker)
-    mov al, 0xB6        ; Canal 2, modo 3 (onda cuadrada), acceso palabra completa
+    ; Configuro el PIT canal 2 (speaker)
+    mov al, 0xB6        ; Canal 2, modo 3 (onda cuadrada)
     out 0x43, al
 
     ; Frecuencia - 1193180 / 440 ≈ 2712
-    mov dx, 2712        ; Usar frecuencia en DX para mayor claridad
-    mov al, dl          ; Byte bajo
+    mov dx, 2712
+    mov al, dl
     out 0x42, al
-    mov al, dh          ; Byte alto
+    mov al, dh
     out 0x42, al
 
-    ; Activar el speaker
+    ; Activo el speaker
     in al, 0x61
-    or al, 3            ; Activar bits 0 y 1 (gate y data)
+    or al, 3
     out 0x61, al
 
-    ; Retardo más largo y diferente método
-    mov rcx, 10000000   ; Aumentar significativamente el retardo
+    ; Loop para que se escuche el sonido
+    mov rcx, 10000000
 .loop:
     nop
-    nop                 ; Múltiples NOPs para consumir ciclos
+    nop                 ; nop = "no hacer nada"
     dec rcx
     jnz .loop
 
-    ; Apagar el speaker
+    ; Apago el speaker
     in al, 0x61
-    and al, 0xFC        ; Desactivar explícitamente bits 0-1
+    and al, 0xFC
     out 0x61, al
 
-    ; Restaurar registros
+
     pop rdx
     pop rcx
     pop rax
