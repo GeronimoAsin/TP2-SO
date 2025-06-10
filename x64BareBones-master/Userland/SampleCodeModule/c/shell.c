@@ -125,9 +125,8 @@ void startShell() {
 				syscall(8, 0, 0, 0); // decrease font size
 				break;
 			case 8:
-             int a = 1; 
-             int b = 0;
-             int c = a / b;
+                 int a = 1;
+                 int c = a / 0;
 				//genera una excepcion de division por cero
 				break;
 			case 9:
