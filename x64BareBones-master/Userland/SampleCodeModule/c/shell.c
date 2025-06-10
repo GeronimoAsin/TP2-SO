@@ -79,20 +79,6 @@ static int interpret(const char *cmd) {
 }
 
 
- void trigger_zero_div() {
-   /*
-     int a = 1; 
-     int b = 0;
-     int c = a / b;
-    (void)c;
-    */
-}
-
-void trigger_invalid_op() {
-    /*
-    invalidOp();
-    */
-}
 
 void startShell() {
     syscall(6,0,0,0);
@@ -139,10 +125,13 @@ void startShell() {
 				syscall(8, 0, 0, 0); // decrease font size
 				break;
 			case 8:
-				trigger_zero_div(); //genera una excepcion de division por cero
+             int a = 1; 
+             int b = 0;
+             int c = a / b;
+				//genera una excepcion de division por cero
 				break;
 			case 9:
-				trigger_invalid_op(); //genera una excepcion de operacion invalida
+            invalidOp();
 				break;
             default:
                 printf("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");
