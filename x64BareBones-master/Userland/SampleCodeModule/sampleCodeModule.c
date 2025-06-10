@@ -8,29 +8,8 @@ static int var2 = 0;
 
 
 int main() {
-/*
-	//debug getChar (sys_read desde Userland)
-while(1){
-    char c = getChar();
-    if (c >= 32 && c <= 126) {
-        putChar(c);
-    }
-}
-*/
+	//entrada a la shell
 	startShell();
-		
-		//
-	/*
-	//All the following code may be removed 
-	*v = 'X';
-	*(v+1) = 0x74;
-
-	//Test if BSS is properly set up
-	if (var1 == 0 && var2 == 0)
-		return 0xDEADC0DE;
-	*/
-  
-	//return 0xDEADBEEF;
 
 	return 0; 
 

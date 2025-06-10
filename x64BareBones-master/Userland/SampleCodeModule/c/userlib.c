@@ -220,11 +220,11 @@ void unsigned_numtohex64(uint64_t num, char *str) {
         return;
     }
     while (num > 0) {
-        str[i++] = hexDigits[num & 0xF]; // Usar AND en vez de % para evitar división
+        str[i++] = hexDigits[num & 0xF]; // Uso AND en vez de % para evitar división
         num >>= 4;
     }
     str[i] = '\0';
-    // Invertir el string
+    // Invierto el string
     for (int j = 0, k = i - 1; j < k; j++, k--) {
         char temp = str[j];
         str[j] = str[k];

@@ -74,8 +74,24 @@ static int interpret(const char *cmd) {
 	if (strcmp(cmd, "increase\n") == 0) return 6;
 	if (strcmp(cmd, "decrease\n") == 0) return 7;
 	if (strcmp(cmd, "zeroDiv\n") == 0) return 8;
-	if (strcmp(cmd, "invalidOp\n") == 0) return 9;// Comando vacío
+	if (strcmp(cmd, "invalidOp\n") == 0) return 9;
     return -1;
+}
+
+
+ void trigger_zero_div() {
+   /*
+     int a = 1; 
+     int b = 0;
+     int c = a / b;
+    (void)c;
+    */
+}
+
+void trigger_invalid_op() {
+    /*
+    invalidOp();
+    */
 }
 
 void startShell() {
@@ -123,10 +139,10 @@ void startShell() {
 				syscall(8, 0, 0, 0); // decrease font size
 				break;
 			case 8:
-				int i = 4 / 0;
+				trigger_zero_div(); //genera una excepcion de division por cero
 				break;
 			case 9:
-				invalidOp();
+				trigger_invalid_op(); //genera una excepcion de operacion invalida
 				break;
             default:
                 printf("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");

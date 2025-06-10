@@ -112,22 +112,8 @@ int main()
 
 
 	load_idt();
-	//pongisGolfMain();
-	//entrada a la shell 
+	//entry point a Userland 
 	((EntryPoint)sampleCodeModuleAddress)();
-
-
-//test keyboardDriver y sys_read con buffer circular
-/*
-    char buffer[32];
-    printString("Escribi una linea (max 10 caracteres): ");
-    uint64_t n = sys_read(0, buffer, 10);
-    buffer[n] = '\0'; // fin de string
-
-    printString("Leiste: ");
-    printString(buffer);
- 
-*/
 
 	while(1);
 }
