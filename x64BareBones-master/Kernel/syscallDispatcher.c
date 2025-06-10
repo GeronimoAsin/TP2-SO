@@ -15,29 +15,29 @@ extern uint64_t getRegisters();
 
 uint64_t syscallDispatcher(uint64_t id, ...)
 {
-    uint64_t rbx, rdi, rsi, rdx, rcx;
+    uint64_t rbx, rdx, rcx, r8, r9;
     va_list args;
     va_start(args, id);
     rbx = va_arg(args, uint64_t);
-    rdi = va_arg(args, uint64_t);
-    rsi = va_arg(args, uint64_t);
     rdx = va_arg(args, uint64_t);
     rcx = va_arg(args, uint64_t);
+    r8 = va_arg(args, uint64_t);
+    r9 = va_arg(args, uint64_t);
     va_end(args);
 
     //switch case para llamar a las syscalls segun id
     switch (id)
     {
         case 0:
-            return sys_read(rbx, (char*) rdi, rsi);
+            return sys_read(rbx, (char*) rdx, rcx);
         case 1:
             //printChar('1'); // debug int80h.  La syscall de sys_read llega al caso 1
-            return sys_write(rbx, (const char *)rdi, rsi);
+            return sys_write(rbx, (const char *)rdx, rcx);
         case 2:
             clearScreen(0x00000000); 
             return 1;
         case 3:
-            return sys_getTime((Time *) rdi);
+            return sys_getTime((Time *) rdx);
         case 4:
             return sys_getRegisters((uint64_t *)rbx);
         case 5:
@@ -59,21 +59,21 @@ uint64_t syscallDispatcher(uint64_t id, ...)
           	clearCursor();
             return 1;
         case 11:
-            drawCircle(rbx, rdi, rsi, (uint32_t)rdx);
+            drawCircle(rbx, rdx, rcx, (uint32_t)r8);
             return 1;
         case 12: 
-            drawRectangle(rbx, rdi, rsi, rdx, (uint32_t)rcx);
+            drawRectangle(rbx, rdx, rcx, r8, (uint32_t)r9);
             return 1;
         case 13: 
             clearScreen((uint32_t)rbx);
             return 1;
         case 14: 
-            setCursor((int)rbx, (int)rdi);
+            setCursor((int)rbx, (int)rdx);
             return 1;
         case 15: 
-            return sys_write(rbx, (const char *)rdi, rsi);
+            return sys_write(rbx, (const char *)rdx, rcx);
         case 16: 
-            return sys_read(rbx, (char*) rdi, rsi);
+            return sys_read(rbx, (char*) rdx, rcx);
         case 17: 
             deleteLastChar();
             return 1;
