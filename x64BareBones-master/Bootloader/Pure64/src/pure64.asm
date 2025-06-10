@@ -80,7 +80,6 @@ clearcs:
 	jnc no_long_mode		; Exit if not supported.
 
 	call init_isa			; Setup legacy hardware
-	call vbe_init			; Initialize VESA BIOS Extensions (VBE) for graphics mode
 
 ; Hide the hardware cursor (interferes with print_string_16 if called earlier)
 	mov ax, 0x0200			; VIDEO - SET CURSOR POSITION
@@ -133,43 +132,6 @@ gdt32_end:
 
 ;db '_32_'				; Debug
 align 16
-
-vbe_init:
-    push ax
-    push bx
-    push cx
-    push dx
-    push si
-    push di
-    push es
-
-    mov ax, 0x4F00              ; VBE Controller Info desde la BIOS
-    mov di, VBEModeInfoBlock
-    int 0x10
-
-
-
-    mov ax, 0x4F01              ; Mode Info desde la BIOS
-    mov cx, 0x118
-    mov di, VBEModeInfoBlock
-    int 0x10
-    cmp ax, 0x4F
-
-
-
-    mov ax, 0x4F02
-    mov bx, 0x4118
-    int 0x10
-    cmp ax, 0x4F
-
-    pop es
-    pop di
-    pop si
-    pop dx
-    pop cx
-    pop bx
-    pop ax
-    ret
 
 
 ; =============================================================================
@@ -673,6 +635,7 @@ clearnext:
 
 ; Pad to an even KB file (6 KiB)
 times 6144-($-$$) db 0x90
+
 
 ; =============================================================================
 ; EOF
