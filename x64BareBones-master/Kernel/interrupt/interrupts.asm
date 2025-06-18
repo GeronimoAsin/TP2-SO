@@ -1,4 +1,4 @@
-
+extern getStackBase
 GLOBAL _cli
 GLOBAL _sti
 GLOBAL picMasterMask
@@ -81,13 +81,17 @@ SECTION .text
 
     mov rdi, %1           ; primer argumento: número de excepción
     mov rsi, [rsp + 15*8] ; segundo argumento: RIP (después de pushState, RIP está en esta posición)
+    mov rcx, [rsp + 16*8];  tercer argumento: CS
+    mov rdx, [rsp + 17*8];  cuarto argumento: RFLAGS
     call exceptionDispatcher
 
 
     popState
-    mov [rsp+ 24], rax
-    mov rax, userland
-    mov [rsp],rax
+
+    call getStackBase
+
+    mov [rsp], rax
+
     iretq
 %endmacro
 

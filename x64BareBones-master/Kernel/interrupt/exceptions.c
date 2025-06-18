@@ -20,7 +20,7 @@ void waitNSeconds(uint8_t secondsToWait) {
 	}
 }
 
-void exceptionDispatcher(int exception, uint64_t rip) {
+void exceptionDispatcher(int exception, uint64_t rip, uint64_t cs, uint64_t rflags) {
 	if (exception == ZERO_EXCEPTION_ID)
 		zero_division();
 	if(exception == INVALID_OPCODE_EXCEPTION_ID) {
@@ -30,7 +30,13 @@ void exceptionDispatcher(int exception, uint64_t rip) {
 	printString("Valor de RIP: ");
 	newLine();
 	printHex(rip);
-	waitNSeconds(30);
+	printString("Valor de CS: ");
+	newLine();
+	printHex(cs);
+	printString("Valor de RFLAGS: ");
+	newLine();
+	printHex(rflags);
+	waitNSeconds(15);
 }
 
 static void zero_division() {
