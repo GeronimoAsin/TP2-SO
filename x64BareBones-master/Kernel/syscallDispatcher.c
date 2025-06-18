@@ -1,7 +1,7 @@
 #include "syscallDispatcher.h"
 #include "videoDriver.h"
 #include <stdarg.h>
-#define REGISTERS 16
+#define REGISTERS 18
 //struct para obtener el tiempo
 typedef struct {
     uint8_t hours;
