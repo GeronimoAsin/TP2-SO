@@ -97,8 +97,8 @@ SECTION .text
     mov [savedRegisters + 0x68], r13
     mov [savedRegisters + 0x70], r14
     mov [savedRegisters + 0x78], r15
-    ; Guardar registro RIP
-    mov rax, [rsp + 15*8]  ;direccion de retorno apuntada por rsp
+    ; RIP
+    mov rax, [rsp + 15*8]
     mov [savedRegisters + 0x80], rax
     mov rax, [rsp + 17*8]
     mov [savedRegisters + 0x88], rax
@@ -180,7 +180,7 @@ _irq01Handler:
     mov [savedRegisters + 0x68], r13
     mov [savedRegisters + 0x70], r14
     mov [savedRegisters + 0x78], r15
-    ; Guardar registro RIP
+    ;RIP
     mov rax, [rsp + 15*8]  ;direccion de retorno apuntada por rsp
     mov [savedRegisters + 0x80], rax
     mov rax, [rsp + 17*8]
