@@ -20,7 +20,7 @@ void waitNSeconds(uint8_t secondsToWait) {
 	}
 }
 
-void exceptionDispatcher(int exception, uint64_t rip, uint64_t cs, uint64_t rflags) {
+void exceptionDispatcher(int exception, uint64_t rip, uint64_t rflags, uint64_t cs) {
 	if (exception == ZERO_EXCEPTION_ID)
 		zero_division();
 	if(exception == INVALID_OPCODE_EXCEPTION_ID) {
@@ -36,7 +36,8 @@ void exceptionDispatcher(int exception, uint64_t rip, uint64_t cs, uint64_t rfla
 	printString("Valor de RFLAGS: ");
 	newLine();
 	printHex(rflags);
-	waitNSeconds(15);
+	printString("Ejecute registers para conocer el estado de los demas registros.");
+	newLine();
 }
 
 static void zero_division() {

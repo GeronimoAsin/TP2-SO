@@ -21,7 +21,6 @@ EXTERN irqDispatcher
 EXTERN exceptionDispatcher
 EXTERN syscallDispatcher
 EXTERN saveRegisters
-
 SECTION .text
 
 %macro pushState 0
@@ -82,10 +81,32 @@ SECTION .text
 %macro exceptionHandler 1
     pushState
 
+    mov [savedRegisters + 0x00], rax
+    mov [savedRegisters + 0x08], rbx
+    mov [savedRegisters + 0x10], rcx
+    mov [savedRegisters + 0x18], rdx
+    mov [savedRegisters + 0x20], rsi
+    mov [savedRegisters + 0x28], rdi
+    mov [savedRegisters + 0x30], rsp
+    mov [savedRegisters + 0x38], rbp
+    mov [savedRegisters + 0x40], r8
+    mov [savedRegisters + 0x48], r9
+    mov [savedRegisters + 0x50], r10
+    mov [savedRegisters + 0x58], r11
+    mov [savedRegisters + 0x60], r12
+    mov [savedRegisters + 0x68], r13
+    mov [savedRegisters + 0x70], r14
+    mov [savedRegisters + 0x78], r15
+    ; Guardar registro RIP
+    mov rax, [rsp + 15*8]  ;direccion de retorno apuntada por rsp
+    mov [savedRegisters + 0x80], rax
+    mov rax, [rsp + 17*8]
+    mov [savedRegisters + 0x88], rax
+    mov rax, [savedRegisters]
     mov rdi, %1           ; primer argumento: número de excepción
     mov rsi, [rsp + 15*8] ; segundo argumento: RIP (después de pushState, RIP está en esta posición)
-    mov rcx, [rsp + 16*8];  tercer argumento: CS
-    mov rdx, [rsp + 17*8];  cuarto argumento: RFLAGS
+    mov rdx, [rsp + 17*8];  tercer argumento: RFLAGS
+    mov rcx, [rsp + 16*8];  cuarto argumento: CS
     call exceptionDispatcher
 
 
@@ -143,55 +164,28 @@ _irq01Handler:
     cmp al, 0x01           ; 0x01 es el scancode de ESC
     jne .skip_save_regs
 
-    ; Guardar los registros originales en el buffer 'savedRegisters'
-    mov rsi, savedRegisters
-    mov rax, [rsp + 0*8]   ; rax
-    mov [rsi + 0x00], rax
-    mov rax, [rsp + 1*8]   ; rbx
-    mov [rsi + 0x08], rax
-    mov rax, [rsp + 2*8]   ; rcx
-    mov [rsi + 0x10], rax
-    mov rax, [rsp + 3*8]   ; rdx
-    mov [rsi + 0x18], rax
-    mov rax, [rsp + 6*8]   ; rsi
-    mov [rsi + 0x20], rax
-    mov rax, [rsp + 5*8]   ; rdi
-    mov [rsi + 0x28], rax
-    
-    ; RSP original: RSP actual + tamaño registros guardados + tamaño de los valores pusheados por el procesador
-    mov rax, rsp
-    add rax, 15*8          ; Tamaño de pushState (15 registros)
-    add rax, 3*8           ; Tamaño de valores pusheados por CPU (RIP, CS, RFLAGS)
-    mov [rsi + 0x30], rax  ; Guardar RSP original
-    
-    ; Uso el RBP que guardamos antes de modificarlo
-    mov rax, [temp_rbp]    ; RBP original guardado en pushState
-    mov [rsi + 0x38], rax
-    
-    mov rax, [rsp + 7*8]   ; r8
-    mov [rsi + 0x40], rax
-    mov rax, [rsp + 8*8]   ; r9
-    mov [rsi + 0x48], rax
-    mov rax, [rsp + 9*8]   ; r10
-    mov [rsi + 0x50], rax
-    mov rax, [rsp + 10*8]  ; r11
-    mov [rsi + 0x58], rax
-    mov rax, [rsp + 11*8]  ; r12
-    mov [rsi + 0x60], rax
-    mov rax, [rsp + 12*8]  ; r13
-    mov [rsi + 0x68], rax
-    mov rax, [rsp + 13*8]  ; r14
-    mov [rsi + 0x70], rax
-    mov rax, [rsp + 14*8]  ; r15
-    mov [rsi + 0x78], rax
-
-    ; RIP está después de todos los registros pusheados por pushState
-    mov rax, [rsp + 15*8]  ; RIP (pusheado por CPU antes de entrar al handler)
-    mov [rsi + 0x80], rax
-    
-    ; RFLAGS está después del CS
-    mov rax, [rsp + 17*8]  ; RFLAGS
-    mov [rsi + 0x88], rax
+    mov [savedRegisters + 0x00], rax
+    mov [savedRegisters + 0x08], rbx
+    mov [savedRegisters + 0x10], rcx
+    mov [savedRegisters + 0x18], rdx
+    mov [savedRegisters + 0x20], rsi
+    mov [savedRegisters + 0x28], rdi
+    mov [savedRegisters + 0x30], rsp
+    mov [savedRegisters + 0x38], rbp
+    mov [savedRegisters + 0x40], r8
+    mov [savedRegisters + 0x48], r9
+    mov [savedRegisters + 0x50], r10
+    mov [savedRegisters + 0x58], r11
+    mov [savedRegisters + 0x60], r12
+    mov [savedRegisters + 0x68], r13
+    mov [savedRegisters + 0x70], r14
+    mov [savedRegisters + 0x78], r15
+    ; Guardar registro RIP
+    mov rax, [rsp + 15*8]  ;direccion de retorno apuntada por rsp
+    mov [savedRegisters + 0x80], rax
+    mov rax, [rsp + 17*8]
+    mov [savedRegisters + 0x88], rax
+    mov rax, [savedRegisters]
 
 .skip_save_regs:
     mov rdi, 1 ; pasaje de parametro para irqDispatcher
