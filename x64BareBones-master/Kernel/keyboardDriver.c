@@ -65,7 +65,7 @@ void readAndProcess() {
         return;
     }
     if (data == 0x01) { // ESC
-        saveRegisters();
+        //saveRegisters();
         return;
     }
     else if (data < 0x80) {

@@ -1,6 +1,7 @@
 #include "syscallDispatcher.h"
 #include "videoDriver.h"
 #include <stdarg.h>
+#include <string.h>
 #define REGISTERS 18
 //struct para obtener el tiempo
 typedef struct {
@@ -8,6 +9,8 @@ typedef struct {
     uint8_t minutes;
     uint8_t seconds;
 } Time;
+
+extern uint64_t savedRegisters[]; // Declaración del buffer ASM
 
 uint64_t sys_getRegisters(uint64_t *dest);
 extern uint64_t getTime();
@@ -140,10 +143,16 @@ void sys_getTime(Time *t)
 uint64_t sys_getRegisters(uint64_t *dest) {
     if (dest == 0){
         return -1;
-	}
+    }
+    /*
+
     uint64_t *regs = getRegisters();
     for (int i = 0; i < REGISTERS; i++)
         dest[i] = regs[i]; //copia los registros a la direccion de memoria dest
+    */
 
+
+    //save registers desde interrupts.asm
+    memcpy(dest, savedRegisters, REGISTERS * sizeof(uint64_t));
     return 1;
 }
