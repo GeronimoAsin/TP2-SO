@@ -103,19 +103,15 @@ SECTION .text
     mov rax, [rsp + 17*8]
     mov [savedRegisters + 0x88], rax
     mov rax, [savedRegisters]
-    mov rdi, %1           ; primer argumento: número de excepción
-    mov rsi, [rsp + 15*8] ; segundo argumento: RIP (después de pushState, RIP está en esta posición)
-    mov rdx, [rsp + 17*8];  tercer argumento: RFLAGS
-    mov rcx, [rsp + 16*8];  cuarto argumento: CS
+    mov rdi, %1
+    mov rsi, [rsp + 15*8] ; RIP
+    mov rdx, [rsp + 17*8] ; RFLAGS
+    mov rcx, [rsp + 16*8] ; CS
     call exceptionDispatcher
 
+    mov qword [rsp + 15*8], 0x400000
 
     popState
-
-    call getStackBase
-
-    mov [rsp], rax
-
     iretq
 %endmacro
 
