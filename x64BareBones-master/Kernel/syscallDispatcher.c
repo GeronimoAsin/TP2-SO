@@ -144,13 +144,6 @@ uint64_t sys_getRegisters(uint64_t *dest) {
     if (dest == 0){
         return -1;
     }
-    /*
-
-    uint64_t *regs = getRegisters();
-    for (int i = 0; i < REGISTERS; i++)
-        dest[i] = regs[i]; //copia los registros a la direccion de memoria dest
-    */
-
 
     //save registers desde interrupts.asm
     memcpy(dest, savedRegisters, REGISTERS * sizeof(uint64_t));
