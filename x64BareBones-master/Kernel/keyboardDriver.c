@@ -74,16 +74,7 @@ void readAndProcess() {
             ascii = scancode_to_ascii_shift[data];
         }
         if ((ascii >= 32 && ascii <= 126) || ascii == '\n' || ascii == '\b') {
-            clearCursor();
             keyboard_buffer_push(ascii);
-            if(ascii == '\b' )
-              {
-                deleteLastChar();
-                drawCursor();
-              }else if(ascii != '\n'){
-             printChar(ascii);
-                drawCursor();
-            }
         }
     }
 }

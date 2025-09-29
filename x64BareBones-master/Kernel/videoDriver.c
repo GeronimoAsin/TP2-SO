@@ -91,11 +91,9 @@ void printChar(char c) {
 	if (currentX + fontWidth > VBE_mode_info->width) {
 		newLine();
 	}
-	if (currentY + fontHeight > VBE_mode_info->height) {
-		currentY = 0;
-	}
+	// Eliminamos la verificación problemática de currentY ya que newLine() maneja el scroll
 
-	if (bufferCols[bufferRows] < MAX_COLS) {
+	if (bufferRows < MAX_ROWS && bufferCols[bufferRows] < MAX_COLS) {
 		screenBuffer[bufferRows][bufferCols[bufferRows]++] = c;
 	}
 
@@ -177,52 +175,73 @@ void setCursor(uint64_t x, uint64_t y) {
 	currentY = y;
 }
 
+// Función para hacer scroll hacia arriba
+void scrollUp() {
+	// Mover el contenido de la pantalla hacia arriba por fontHeight píxeles
+	uint8_t * framebuffer = (uint8_t *) VBE_mode_info->framebuffer;
+	uint32_t bytesPerPixel = (VBE_mode_info->bpp) / 8;
+	uint32_t pitch = VBE_mode_info->pitch;
+	uint32_t width = VBE_mode_info->width;
+	uint32_t height = VBE_mode_info->height;
+	
+	// Copiar cada línea hacia arriba
+	for (uint32_t y = fontHeight; y < height; y++) {
+		for (uint32_t x = 0; x < width; x++) {
+			uint64_t srcOffset = (x * bytesPerPixel) + (y * pitch);
+			uint64_t dstOffset = (x * bytesPerPixel) + ((y - fontHeight) * pitch);
+			
+			framebuffer[dstOffset] = framebuffer[srcOffset];
+			framebuffer[dstOffset + 1] = framebuffer[srcOffset + 1];
+			framebuffer[dstOffset + 2] = framebuffer[srcOffset + 2];
+		}
+	}
+	
+	// Limpiar la última línea
+	for (uint32_t y = height - fontHeight; y < height; y++) {
+		for (uint32_t x = 0; x < width; x++) {
+			putPixel(currentBackgroundColor, x, y);
+		}
+	}
+	
+	// Hacer scroll del buffer también
+	if (bufferRows > 0) {
+		// Mover todas las líneas del buffer hacia arriba
+		for (int i = 0; i < bufferRows; i++) {
+			bufferCols[i] = bufferCols[i + 1];
+			for (int j = 0; j < bufferCols[i]; j++) {
+				screenBuffer[i][j] = screenBuffer[i + 1][j];
+			}
+		}
+		// Limpiar la última línea del buffer
+		bufferCols[bufferRows] = 0;
+		if (bufferRows > 0) {
+			bufferRows--;
+		}
+	}
+}
+
 // Funcion que mueve el cursor a la siguiente línea
 void newLine() {
 	currentX = 0;
 	currentY += fontHeight;
 	if (currentY + fontHeight > VBE_mode_info->height) {
-		clearScreen(currentBackgroundColor);
+		// En lugar de limpiar toda la pantalla, hacer scroll
+		scrollUp();
+		currentY = VBE_mode_info->height - fontHeight; // Posicionar en la última línea
+		// Después del scroll, agregar una nueva línea al buffer
+		if (bufferRows < MAX_ROWS - 1) {
+			bufferRows++;
+		}
+		bufferCols[bufferRows] = 0;
 	} else {
-		bufferRows++;
+		if (bufferRows < MAX_ROWS - 1) {
+			bufferRows++;
+		}
 		bufferCols[bufferRows] = 0;
 	}
 }
 
-// Funcion que dibuja un rectángulo en pantalla
-void drawRectangle(uint64_t topLeftX, uint64_t topLeftY, uint64_t width, uint64_t height, uint32_t color) {
-	for (uint64_t y = topLeftY; y < topLeftY + height && y < VBE_mode_info->height; y++) {
-		for (uint64_t x = topLeftX; x < topLeftX + width && x < VBE_mode_info->width; x++) {
-			putPixel(color, x, y);
-		}
-	}
-}
 
-// Función que dibuja un círculo en pantalla 
-void drawCircle(uint64_t centerX, uint64_t centerY, uint64_t radius, uint32_t color) {
-	int64_t x = 0;
-	int64_t y = radius;
-	int64_t d = 3 - 2 * radius;
-
-	while (y >= x) {
-		for (int64_t i = centerX - x; i <= centerX + x; i++) {
-			putPixel(color, i, centerY + y);
-			putPixel(color, i, centerY - y);
-		}
-		for (int64_t i = centerX - y; i <= centerX + y; i++) {
-			putPixel(color, i, centerY + x);
-			putPixel(color, i, centerY - x);
-		}
-
-		x++;
-		if (d > 0) {
-			y--;
-			d = d + 4 * (x - y) + 10;
-		} else {
-			d = d + 4 * x + 6;
-		}
-	}
-}
 
 // Funcion que dibuja un carácter en pantalla
 void drawChar(char c) {
@@ -276,26 +295,6 @@ void clearScreenPixels(uint32_t backgroundColor) {
 	currentX = 0;
 	currentY = 0;
 	currentBackgroundColor = backgroundColor;
-}
-
-// Función para aumentar el tamaño de la fuente
-void increaseFontSize() {
-	if (fontWidth < FONT_WIDTH_MAX && fontHeight < FONT_HEIGHT_MAX) {
-		fontWidth *= 2;
-		fontHeight *= 2;
-		clearScreenPixels(currentBackgroundColor);
-		redrawScreenFromBuffer();
-	}
-}
-
-// Función para disminuir el tamaño de la fuente
-void decreaseFontSize() {
-	if (fontWidth > FONT_WIDTH_MIN && fontHeight > FONT_HEIGHT_MIN) {
-		fontWidth /= 2;
-		fontHeight /= 2;
-		clearScreenPixels(currentBackgroundColor);
-		redrawScreenFromBuffer();
-	}
 }
 
 static int cursorVisible = 1;

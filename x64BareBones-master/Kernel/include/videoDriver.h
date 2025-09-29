@@ -9,6 +9,7 @@ void deleteLastChar();
 void clearScreen(uint32_t backgroundColor);
 void setCursor(uint64_t x, uint64_t y);
 void newLine();
+void scrollUp();
 void drawRectangle(uint64_t topLeftX, uint64_t topLeftY, uint64_t width, uint64_t height, uint32_t color);
 void drawCircle(uint64_t centerX, uint64_t centerY, uint64_t radius, uint32_t color);
 void drawChar(char c);

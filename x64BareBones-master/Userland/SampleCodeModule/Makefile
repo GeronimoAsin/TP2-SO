@@ -1,7 +1,7 @@
 include ../Makefile.inc
 
 MODULE=0000-sampleCodeModule.bin
-SOURCES=$(wildcard [^_]*.c) c/userlib.c	c/shell.c c/getTime.c c/printRegisters.c c/pongisGolf.c
+SOURCES=$(wildcard [^_]*.c) c/*.c
 ASM_SOURCES=asm/libasm.asm
 ASM_OBJECTS=$(ASM_SOURCES:.asm=.o)
 

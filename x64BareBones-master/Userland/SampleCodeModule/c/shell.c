@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include "userlib.h"
 #include "getTime.h"
-#include "pongisGolf.h"
 #include "printRegisters.h"
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 extern void invalidOp();
@@ -11,13 +10,10 @@ extern void invalidOp();
 static char *help_text =
     "Comandos disponibles:\n"
     "- help: Muestra esta ayuda\n"
-    "- pongisGolf: Inicia el juego PongisGolf\n"
     "- clear: Limpia la pantalla\n"
     "- echo + [texto]: Imprime el texto en pantalla\n"
     "- time: Muestra la hora actual\n"
     "- registers: Muestra los registros\n"
-	"- increase: Aumenta el tamano de la fuente\n"
-	"- decrease: Disminuye el tamano de la fuente\n"
 	"- zeroDiv: Genera una excepcion de division por cero\n"
 	"- invalidOp: Genera una excepcion de operacion invalida\n";
 
@@ -26,7 +22,7 @@ static const char *ascii_art =
 "+====================================================+\n"
 "   ____  _          _ _                             \n"
 "  / ___|| |__   ___| | |                            \n"
-"  \\___ \\| '_ \\ / _ \\ | | Bienvenido a BatataOS! \n"
+"  \\___ \\| '_ \\ / _ \\ | | Bienvenido a BatataOS 2.0! \n"
 "   ___) | | | |  __/ | |                            \n"
 "  |____/|_| |_|\\___|_|_|                           \n"
 "                                                    \n"
@@ -44,19 +40,23 @@ static int readLine(char *buffer, int max) {
     char c = 0;
     while (i < max - 1 && c != '\n') {
         char temp=0;
-        syscall(0, 0, (uint64_t)&temp, 1); // Lee un carácter del teclado
+        read(0, &temp, 1); // Lee un carácter del teclado
         c = temp;
 
         if (c == '\r') continue; // Ignora carriage return
         if (c == '\b' || c == 127) { // Maneja backspace
             if (i > 0) {
                 i--;
+                deleteLastChar(); // Borra visualmente el carácter
             }
         } else if ((c >= 32 && c <= 126) || c == '\n') { // Solo caracteres imprimibles y salto de línea
             buffer[i++] = c;
+            if (c != '\n') {
+                putChar(c); // Muestra el carácter en pantalla mientras se escribe
+            }
         }
           if (i == max - 1) {
-            syscall(10, 0, 0, 0); // clearCursor syscall cuando el buffer está lleno
+            clearCursor(); // clearCursor syscall cuando el buffer está lleno
         }
     }
     buffer[i] = 0;
@@ -66,13 +66,10 @@ static int readLine(char *buffer, int max) {
 
 static int interpret(const char *cmd) {
     if (strcmp(cmd, "help\n") == 0) return 0;
-    if (strcmp(cmd, "pongisGolf\n") == 0) return 1;
     if (strcmp(cmd, "clear\n") == 0) return 2;
     if (strncmp(cmd, "echo\n", 4) == 0 && (cmd[4] == ' ' || cmd[4] == '\t' || cmd[4] == 0)) return 3;
     if (strcmp(cmd, "time\n") == 0) return 4;
     if (strcmp(cmd, "registers\n") == 0) return 5;
-	if (strcmp(cmd, "increase\n") == 0) return 6;
-	if (strcmp(cmd, "decrease\n") == 0) return 7;
 	if (strcmp(cmd, "zeroDiv\n") == 0) return 8;
 	if (strcmp(cmd, "invalidOp\n") == 0) return 9;
     return -1;
@@ -81,13 +78,14 @@ static int interpret(const char *cmd) {
 
 
 void startShell() {
-    syscall(6,0,0,0);
+    beep();
     printTime();
     printf("%s", ascii_art);
     char buffer[CMD_MAX_CHARS];
     while (1) {
+        clearCursor(); // Limpia cualquier cursor previo
         printf(PROMPT);
-        syscall(9, 0, 0, 0); // drawCursor DESPUÉS de imprimir el prompt
+        drawCursor(); // drawCursor DESPUÉS de imprimir el prompt
         readLine(buffer, CMD_MAX_CHARS);
         printf("\n");
         int cmd = interpret(buffer);
@@ -95,12 +93,8 @@ void startShell() {
             case 0: // help
                 printf(help_text);
                 break;
-            case 1: // pongisGolf
-                pongisGolfMain();
-                break;
             case 2: // clear screen
-                //llama sys_clear
-                syscall(2, 0, 0, 0);
+                clearScreen();
                 break;
             case 3: { // echo
                 // Imprime lo que sigue después de "echo "
@@ -118,19 +112,13 @@ void startShell() {
                 print_registers();
                 break;
             }
-			case 6:
-				syscall(7, 0, 0, 0); // increase font size
-				break;
-			case 7:
-				syscall(8, 0, 0, 0); // decrease font size
-				break;
 			case 8:
                  int a = 1;
                  int c = a / 0;
 				//genera una excepcion de division por cero
 				break;
 			case 9:
-            invalidOp();
+                invalidOp();
 				break;
             default:
                 printf("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");

@@ -1,7 +1,8 @@
 #include "userlib.h"
 #include <stdint.h>
 #include <stdarg.h>
-extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
+
+extern uint64_t syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 
 
 void unsigned_numtostr(unsigned int num, char *str) {
@@ -98,17 +99,17 @@ int strcmp(const char *s1, const char *s2)
 }
 
 
-  void putChar(char c) {
+void putChar(char c) {
     char buffer[2];
       buffer[0] = c;
-      syscall(1, 1, (uint64_t)buffer, 1);
-  }
+      write(1, buffer, 1);
+}
 
-  char getChar() {
+char getChar() {
     char c;
-    syscall(0, 0, (uint64_t)&c, 1);
+    read(0, &c, 1);
     return c;
-  }
+}
 
 
 int strncmp(const char *s1, const char *s2, unsigned int n) {
@@ -139,21 +140,21 @@ void printf(const char *format, ...) {
                 const char *str = hex_buffer;
                 while (*str) {
                     char buffer[2] = {*str++, '\0'};
-                    syscall(1, 1, (uint64_t)buffer, 1);
+                    write(1, buffer, 1);
                 }
             } else {
                 switch (*format) {
                     case 'c': { // Caracter
                         char c = (char)va_arg(args, int); // Los caracteres se pasan como int en argumentos variables
                         char buffer[2] = {c, '\0'};
-                        syscall(1, 1, (uint64_t)buffer, 1);
+                        write(1, buffer, 1);
                         break;
                     }
                     case 's': { // Cadena
                         const char *str = va_arg(args, const char *);
                         while (*str) {
                             char buffer[2] = {*str++, '\0'};
-                            syscall(1, 1, (uint64_t)buffer, 1);
+                            write(1, buffer, 1);
                         }
                         break;
                     }
@@ -163,7 +164,7 @@ void printf(const char *format, ...) {
                         int num_len = 0;
                         if (num < 0) {
                             char buffer[2] = {'-', '\0'};
-                            syscall(1, 1, (uint64_t)buffer, 1);
+                            write(1, buffer, 1);
                             num = -num;
                         }
                         do {
@@ -172,7 +173,7 @@ void printf(const char *format, ...) {
                         } while (num > 0);
                         while (num_len > 0) {
                             char buffer[2] = {num_buffer[--num_len], '\0'};
-                            syscall(1, 1, (uint64_t)buffer, 1);
+                            write(1, buffer, 1);
                         }
                         break;
                     }
@@ -183,13 +184,13 @@ void printf(const char *format, ...) {
                         const char *str = hex_buffer;
                         while (*str) {
                             char buffer[2] = {*str++, '\0'};
-                            syscall(1, 1, (uint64_t)buffer, 1);
+                            write(1, buffer, 1);
                         }
                         break;
                     }
                     case '%': { // Literal '%'
                         char buffer[2] = {'%', '\0'};
-                        syscall(1, 1, (uint64_t)buffer, 1);
+                        write(1, buffer, 1);
                         break;
                     }
                     default:
@@ -198,7 +199,7 @@ void printf(const char *format, ...) {
             }
         } else {
             char buffer[2] = {*format, '\0'};
-            syscall(1, 1, (uint64_t)buffer, 1);
+            write(1, buffer, 1);
         }
         format++;
     }
@@ -206,9 +207,6 @@ void printf(const char *format, ...) {
     va_end(args);
 }
 
-void deleteLastChar() {
-    syscall(5, 0, 0, 0);
-}
 
 // Convierte un uint64_t a string hexadecimal (en minúsculas)
 void unsigned_numtohex64(uint64_t num, char *str) {
@@ -230,4 +228,43 @@ void unsigned_numtohex64(uint64_t num, char *str) {
         str[j] = str[k];
         str[k] = temp;
     }
+}
+
+
+//Syscalls:
+
+int read(int fd, char *buffer, int count) {
+    return syscall(0, fd, (uint64_t)buffer, count);
+}
+
+int write(int fd, const char *buffer, int count) {
+    return syscall(1, fd, (uint64_t)buffer, count);
+}
+
+int clearScreen() {
+    return syscall(2, 0, 0, 0);
+}
+
+int drawCursor() {
+    return syscall(7, 0, 0, 0);
+}
+
+int clearCursor() {
+    return syscall(8, 0, 0, 0);
+}
+
+int beep() {
+    return syscall(6, 0, 0, 0);
+}
+
+int deleteLastChar() {
+    return syscall(5, 0, 0, 0);
+}
+
+uint64_t getRegisters(uint64_t *regs) {
+    return syscall(4, (uint64_t)regs, 0, 0);
+}
+
+int getTime(uint64_t *t) {
+    return syscall(3, 0, (uint64_t)t, 0);
 }

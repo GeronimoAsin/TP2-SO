@@ -40,7 +40,8 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             clearScreen(0x00000000); 
             return 1;
         case 3:
-            return sys_getTime((Time *) rdx);
+            sys_getTime((Time *) rdx);
+            return 1;
         case 4:
             return sys_getRegisters((uint64_t *)rbx);
         case 5:
@@ -49,48 +50,14 @@ uint64_t syscallDispatcher(uint64_t id, ...)
 		case 6:
 			beep();
 			return 1;
-		case 7:
-			increaseFontSize();
-			return 1;
-		case 8:
-			decreaseFontSize();
-			return 1;
-        case 9:
+        case 7:
           	drawCursor();
             return 1;
-        case 10:
+        case 8:
           	clearCursor();
             return 1;
-        case 11:
-            drawCircle(rbx, rdx, rcx, (uint32_t)r8);
-            return 1;
-        case 12: 
-            drawRectangle(rbx, rdx, rcx, r8, (uint32_t)r9);
-            return 1;
-        case 13: 
-            clearScreen((uint32_t)rbx);
-            return 1;
-        case 14: 
+        case 9: 
             setCursor((int)rbx, (int)rdx);
-            return 1;
-        case 15: 
-            return sys_write(rbx, (const char *)rdx, rcx);
-        case 16: 
-            return sys_read(rbx, (char*) rdx, rcx);
-        case 17: 
-            deleteLastChar();
-            return 1;
-        case 18: 
-            hideCursor();
-            return 1;
-        case 19:
-            showCursor();
-            return 1;
-        case 20:
-            *((int *)rbx) = getWidth();
-            return 1;
-        case 21:
-            *((int *)rbx) = getHeight();
             return 1;
         default:
             return -1;
@@ -122,10 +89,13 @@ uint64_t sys_write(uint64_t fd, const char *buffer, uint64_t count)
 
     uint64_t i;
     for (i = 0; i < count; i++) {
-        if (buffer[i] == '\n')
+        if (buffer[i] == '\n') {
             newLine();
-        else
+        } else if (buffer[i] == '\b') {
+            deleteLastChar();
+        } else {
             printChar(buffer[i]);
+        }
     }
 
     return i; // Retorna la cantidad de caracteres escritos

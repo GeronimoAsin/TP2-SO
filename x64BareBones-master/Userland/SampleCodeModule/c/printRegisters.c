@@ -5,7 +5,7 @@ extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 
 void print_registers() {
     uint64_t regs[18] = {0};
-    syscall(4, regs, 0, 0);  // Llamada a syscall con el número 4 (getRegisters)
+    getRegisters(regs);
 
     const char* reg_names[18] = {
         "RAX", "RBX", "RCX", "RDX",

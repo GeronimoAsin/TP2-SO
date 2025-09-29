@@ -3,11 +3,6 @@
 #include "getTime.h"
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 
-void getTime(Time *t) {
-    // syscall 3 = getTime
-    syscall(3, 0, (uint64_t)t, 0); //syscall para obtener el tiempo
-}
-
 int bcdToDec(uint8_t bcd) {
     return ((bcd >> 4) * 10) + (bcd & 0x0F);
 }
