@@ -11,3 +11,4 @@
 *.o
 
 .idea/
+run.sh
