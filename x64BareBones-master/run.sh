@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Detectar el sistema operativo
@@ -33,5 +34,9 @@ case $OS in
 esac
 
 # Ejecutar QEMU con la configuración de audio apropiada
-echo "Ejecutando: qemu-system-x86_64 -hda Image/x64BareBonesImage.qcow2 -m 512 $AUDIO_CONFIG -display gtk,zoom-to-fit=on"
-qemu-system-x86_64 -hda Image/x64BareBonesImage.qcow2 -m 512 $AUDIO_CONFIG -display gtk,zoom-to-fit=on
+echo "Ejecutando: qemu-system-x86_64 -hda Image/x64BareBonesImage.qcow2 -m 512 $AUDIO_CONFIG"
+qemu-system-x86_64 -hda Image/x64BareBonesImage.qcow2 -m 512 $AUDIO_CONFIG
+
+
+
+
