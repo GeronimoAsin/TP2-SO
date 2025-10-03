@@ -1,6 +1,6 @@
 #include <stdint.h>
-#include "include/videoDriver.h"
-#include "include/bitmap.h"
+#include "../include/videoDriver.h"
+#include "../include/bitmap.h"
 #define PROMPT_LENGTH 8
 #define PROMPT_X_MIN (PROMPT_LENGTH * 8) 
 #define MAX_ROWS 100

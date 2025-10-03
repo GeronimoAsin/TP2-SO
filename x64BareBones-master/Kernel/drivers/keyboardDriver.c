@@ -1,7 +1,6 @@
-#include "include/keyboardDriver.h"
+#include "../include/keyboardDriver.h"
 #include <stdint.h>
-#include "include/videoDriver.h"
-#include "include/naiveConsole.h"
+#include "../include/videoDriver.h"
 
 #define KEYBOARD_BUFFER_SIZE 128
 
