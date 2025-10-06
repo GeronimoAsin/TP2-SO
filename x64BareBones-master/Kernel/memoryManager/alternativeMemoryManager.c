@@ -1,1 +1,0 @@
-//Implementación elegida por el grupo del memory manager
