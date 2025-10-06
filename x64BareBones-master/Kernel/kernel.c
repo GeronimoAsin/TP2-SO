@@ -86,15 +86,18 @@ int main()
         if (p) {
 			//escribo en la direccion devuelta
             *p = 0x12345678;
-            printString("lectura del bloque: "); printHex64((uint64_t)(*p)); printString("hola");newLine(); //aca esta fallando 
+            printString("lectura del bloque: "); printHex64((uint64_t)(*p)); newLine();
             // mensaje antes de liberar
             printString("freeing..."); newLine();
             freeMemory(mm, p);
             printString("freed"); newLine();
 			//se libero correctamente la memoria
-        }
+			destroyMemoryManager(mm);
+			printString("memory destroyed") ;
+
+}
     }
-	//entry point a Userland 
+	//entry point a Userland
 	//((EntryPoint)sampleCodeModuleAddress)();
 
 	while(1);

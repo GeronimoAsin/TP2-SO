@@ -5,18 +5,20 @@
 
 static MemoryManagerCDT memoryManagerInstance; 
 
+extern void * getStackBase();
 
-
-
-MemoryManagerADT createMemoryManager() 
+MemoryManagerADT createMemoryManager()
 {
     MemoryManagerADT newMem = &memoryManagerInstance;
 
-    //Alineamiento del heap al empezar
-    uintptr_t alignedStart = ALIGN_POINTER(MEM_START, WORD_ALIGN);
+    // Calcular el inicio del heap después del stack
+    void *stackBase = getStackBase();
+    uintptr_t heapStart = (uintptr_t)stackBase;  // se puede escribir despues del stackBase asignado en kernel.c     0x100000 + stackBase
+    unsigned int heapSize = MEM_HEAP_SIZE;
 
+    uintptr_t alignedStart = ALIGN_POINTER(heapStart, WORD_ALIGN);
     newMem->heapStart = (uint8_t *)alignedStart;
-    newMem->heapSize = MEM_HEAP_SIZE - (unsigned int)(alignedStart - (uintptr_t)MEM_START);
+    newMem->heapSize = heapSize - (unsigned int)(alignedStart - heapStart);
     newMem->chunkSize = CHUNK_SIZE;
 
     newMem->chunkCount = (newMem->heapSize / newMem->chunkSize);
@@ -25,15 +27,11 @@ MemoryManagerADT createMemoryManager()
     if (newMem->chunkCount > CHUNK_COUNT) {
         newMem->chunkCount = CHUNK_COUNT; 
     }
-
     newMem->nextFreeIndex = 0;
-
-    for (unsigned int i = 0; i < newMem->chunkCount; i++) 
+    for (unsigned int i = 0; i < newMem->chunkCount; i++)
     {
-        //asignacion de chunks libres en el stack
         newMem->freeChunkStack[i] = newMem->heapStart + (i * newMem->chunkSize);
     }
-
     return newMem;
 
 
@@ -43,7 +41,7 @@ MemoryManagerADT createMemoryManager()
 
 void * allocateMemory(MemoryManagerADT memoryManager, unsigned int size) {
    
-    if (memoryManager == NULL || size == 0U) {
+    if (memoryManager == NULL || size == 0) {
        //no existe el memory manager o el size es 0
         return NULL;
     }
@@ -117,4 +115,3 @@ void destroyMemoryManager(MemoryManagerADT memoryManager) {
     //Reseteo de indices libres, no es necesario poner la memoria en 0
     memoryManager->nextFreeIndex = 0;
 }
-
