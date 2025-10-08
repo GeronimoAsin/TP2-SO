@@ -1,14 +1,16 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
-#include <stddef.h> 
+#include <stddef.h>
 #include <stdint.h>
 
-#define MEM_START 0x0000000000100000         // dir base del mapa de memoria
-#define MEM_HEAP_SIZE  (16 * 1024 * 1024)   // por ahora dejo 16 MiB porque explota con el tamaño del manual 
+#define MEM_START 0x100000ULL                // dir base de memoria Pure64
+#define STACK_SIZE 0x8000ULL                 // 32 KiB de stackBase fijos
+#define HEAP_START (MEM_START + STACK_SIZE)  // Inicio del heap
+#define HEAP_SIZE (0xFFFFFFFFFFFFFFFFULL - HEAP_START + 1) // Tamaño total del heap
 
 #define CHUNK_SIZE 4096
 #define WORD_ALIGN 8
-#define CHUNK_COUNT ((unsigned int)(MEM_HEAP_SIZE / CHUNK_SIZE)) //cantidad de chunks totales
+#define CHUNK_COUNT ((unsigned int) HEAP_SIZE / CHUNK_SIZE)
 
 #define ALIGN_POINTER(ptr, alignment) \
 ((uintptr_t)(ptr) + ((alignment) - ((uintptr_t)(ptr) % (alignment))))
@@ -20,10 +22,10 @@ typedef struct MemoryManagerCDT {
     unsigned int chunkSize;                 // tamaño de un solo chunk
     unsigned int chunkCount;                // cantidad de chunks totales
     unsigned int nextFreeIndex;             // Indice del proximo chunk libre
-    uint8_t * freeChunkStack[CHUNK_COUNT];  // stack LIFO de chunks libres
+    uint8_t * freeChunkStack[CHUNK_COUNT]; // stack LIFO de chunks libres
 } MemoryManagerCDT;
 
-typedef MemoryManagerCDT * MemoryManagerADT; 
+typedef MemoryManagerCDT * MemoryManagerADT;
 
 
 

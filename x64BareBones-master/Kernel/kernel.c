@@ -35,6 +35,23 @@ static void printHex64(uint64_t value)
     printString(buf);
 }
 
+// Imprime un uint64_t en formato decimal
+static void printDec64(uint64_t value)
+{
+    char buf[21]; // 20 dígitos + null terminator
+    int i = 20;
+    buf[i] = '\0';
+    if (value == 0) {
+        buf[--i] = '0';
+    } else {
+        while (value > 0 && i > 0) {
+            buf[--i] = '0' + (value % 10);
+            value /= 10;
+        }
+    }
+    printString(&buf[i]);
+}
+
 void clearBSS(void * bssAddress, uint64_t bssSize)
 {
 	memset(bssAddress, 0, bssSize);
@@ -79,10 +96,38 @@ int main()
         printString("OK ");
 		newLine();
 
+
+		printString("---------- INFO MEM MANAGER -------");
+		newLine();
+    	printString("heapSize ");
+		printDec64(mm->heapSize);
+    	newLine();
+
+    	printString("chunkSize ");
+    	printDec64(mm->chunkSize);
+    	newLine();
+
+    	printString("chunkCount ");
+    	printDec64(mm->chunkCount);
+    	newLine();
+
+    	printString("nextFreeIndex ");
+    	printDec64(mm->nextFreeIndex);
+		newLine();
+
+    	printString("----------------------------");
+    	newLine();
+
 		//guardo la dir base de la memoria alocada
         int *p = (int *)allocateMemory(mm, sizeof(int));
 
         printString("alloc int: "); printHex64((uint64_t)p); newLine();
+
+    	printString("nextFreeIndex ");
+    	printDec64(mm->nextFreeIndex);
+
+		newLine();
+
         if (p) {
 			//escribo en la direccion devuelta
             *p = 0x12345678;
@@ -90,10 +135,17 @@ int main()
             // mensaje antes de liberar
             printString("freeing..."); newLine();
             freeMemory(mm, p);
+
+        	printString("nextFreeIndex ");
+        	printDec64(mm->nextFreeIndex);
+        	newLine();
+
+
             printString("freed"); newLine();
 			//se libero correctamente la memoria
 			destroyMemoryManager(mm);
 			printString("memory destroyed") ;
+
 
 }
     }

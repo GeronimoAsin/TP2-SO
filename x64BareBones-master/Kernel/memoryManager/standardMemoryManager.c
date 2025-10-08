@@ -5,33 +5,23 @@
 
 static MemoryManagerCDT memoryManagerInstance; 
 
-extern void * getStackBase();
 
 MemoryManagerADT createMemoryManager()
 {
     MemoryManagerADT newMem = &memoryManagerInstance;
 
-    // Calcular el inicio del heap después del stack
-    void *stackBase = getStackBase();
-    uintptr_t heapStart = (uintptr_t)stackBase;  // se puede escribir despues del stackBase asignado en kernel.c     0x100000 + stackBase
-    unsigned int heapSize = MEM_HEAP_SIZE;
-
-    uintptr_t alignedStart = ALIGN_POINTER(heapStart, WORD_ALIGN);
+    uintptr_t alignedStart = ALIGN_POINTER(HEAP_START, WORD_ALIGN);
     newMem->heapStart = (uint8_t *)alignedStart;
-    newMem->heapSize = heapSize - (unsigned int)(alignedStart - heapStart);
+    newMem->heapSize = HEAP_SIZE - (unsigned int)(alignedStart - HEAP_START);
     newMem->chunkSize = CHUNK_SIZE;
 
-    newMem->chunkCount = (newMem->heapSize / newMem->chunkSize);
-    
-    // para no desbordar el stack
-    if (newMem->chunkCount > CHUNK_COUNT) {
-        newMem->chunkCount = CHUNK_COUNT; 
-    }
+    newMem->chunkCount = CHUNK_COUNT;
     newMem->nextFreeIndex = 0;
     for (unsigned int i = 0; i < newMem->chunkCount; i++)
     {
         newMem->freeChunkStack[i] = newMem->heapStart + (i * newMem->chunkSize);
     }
+
     return newMem;
 
 
