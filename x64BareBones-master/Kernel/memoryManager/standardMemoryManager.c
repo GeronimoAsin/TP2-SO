@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-
+/*
 static MemoryManagerCDT memoryManagerInstance; 
 
 
@@ -109,3 +109,4 @@ void destroyMemoryManager(MemoryManagerADT memoryManager) {
     //Reseteo de indices libres, no es necesario poner la memoria en 0
     memoryManager->nextFreeIndex = 0;
 }
+*/
