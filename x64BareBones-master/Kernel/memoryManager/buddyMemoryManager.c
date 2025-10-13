@@ -1,17 +1,16 @@
 #include "memoryManager.h"
 #include <stdint.h>
 #include <stddef.h>
-/*
-#define MIN_BLOCK_SIZE 32 
-#define MAX_ORDER 20      
+#define MIN_BLOCK_SIZE 32
+#define MAX_ORDER 20
 #define BLOCK_ALLOCATED 1
 #define BLOCK_FREE 0
 
 typedef struct BlockHeader
 {
-    unsigned int size;       
-    unsigned int order;      
-    unsigned char allocated; 
+    unsigned int size;
+    unsigned int order;
+    unsigned char allocated;
 } BlockHeader;
 
 typedef struct FreeBlock
@@ -30,6 +29,14 @@ typedef struct BuddyMemoryManager
 } BuddyMemoryManager;
 
 static BuddyMemoryManager buddyManager;
+
+static unsigned int getSizeOrder(size_t size);
+static unsigned int getBlockSize(unsigned int order);
+static void *getBuddyAddress(void *block, unsigned int order);
+static void removeFromFreeList(FreeBlock *block, unsigned int order);
+static void addToFreeList(FreeBlock *block, unsigned int order);
+static void *splitBlock(unsigned int order);
+static int isBlockInFreeList(void *blockAddr, unsigned int order);
 
 MemoryManagerADT createMemoryManager()
 {
@@ -60,7 +67,7 @@ MemoryManagerADT createMemoryManager()
     return (MemoryManagerADT)&buddyManager;
 }
 
-void *allocateMemory(MemoryManagerADT memoryManager, unsigned int size)
+void *allocateMemory(MemoryManagerADT memoryManager, size_t size)
 {
     if (memoryManager == NULL || size == 0)
     {
@@ -71,14 +78,14 @@ void *allocateMemory(MemoryManagerADT memoryManager, unsigned int size)
 
     if (order > buddyManager.maxOrder)
     {
-        return NULL; 
+        return NULL;
     }
 
     void *block = splitBlock(order);
 
     if (block == NULL)
     {
-        return NULL; 
+        return NULL;
     }
 
     BlockHeader *header = (BlockHeader *)block;
@@ -110,7 +117,7 @@ void freeMemory(MemoryManagerADT memoryManager, void *ptr)
 
     if (header->allocated != BLOCK_ALLOCATED)
     {
-        return; 
+        return;
     }
 
     unsigned int order = header->order;
@@ -123,7 +130,7 @@ void freeMemory(MemoryManagerADT memoryManager, void *ptr)
 
         if (!isBlockInFreeList(buddyAddr, order))
         {
-            break; 
+            break;
         }
 
         removeFromFreeList((FreeBlock *)buddyAddr, order);
@@ -155,9 +162,9 @@ void destroyMemoryManager(MemoryManagerADT memoryManager)
     buddyManager.heapSize = 0;
 }
 
-static unsigned int getSizeOrder(unsigned int size)
+static unsigned int getSizeOrder(size_t size)
 {
-    unsigned int adjustedSize = size + sizeof(BlockHeader);
+    size_t adjustedSize = size + sizeof(BlockHeader);
     unsigned int order = 0;
     unsigned int blockSize = MIN_BLOCK_SIZE;
 
@@ -172,7 +179,7 @@ static unsigned int getSizeOrder(unsigned int size)
 
 static unsigned int getBlockSize(unsigned int order)
 {
-    return MIN_BLOCK_SIZE << order; 
+    return MIN_BLOCK_SIZE << order;
 }
 
 static void *getBuddyAddress(void *block, unsigned int order)
@@ -220,7 +227,6 @@ static void *splitBlock(unsigned int order)
         return NULL;
     }
 
-    
     if (buddyManager.freeLists[order] == NULL)
     {
         void *largerBlock = splitBlock(order + 1);
@@ -257,5 +263,3 @@ static int isBlockInFreeList(void *blockAddr, unsigned int order)
 
     return 0;
 }
-
-*/
