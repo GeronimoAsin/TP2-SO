@@ -12,8 +12,10 @@ MemoryManagerADT createMemoryManager()
 
     uintptr_t alignedStart = ALIGN_POINTER(HEAP_START, WORD_ALIGN);
     newMem->heapStart = (uint8_t *)alignedStart;
+
     newMem->heapSize = HEAP_SIZE - (unsigned int)(alignedStart - HEAP_START);
     newMem->chunkSize = CHUNK_SIZE;
+    newMem->chunkCount = newMem->heapSize / CHUNK_SIZE;
 
     newMem->chunkCount = CHUNK_COUNT;
     newMem->nextFreeIndex = 0;
@@ -30,7 +32,7 @@ MemoryManagerADT createMemoryManager()
 
 
 void * allocateMemory(MemoryManagerADT memoryManager, unsigned int size) {
-   
+
     if (memoryManager == NULL || size == 0) {
        //no existe el memory manager o el size es 0
         return NULL;

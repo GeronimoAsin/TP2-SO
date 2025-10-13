@@ -1,7 +1,7 @@
 #include "memoryManager.h"
 #include <stdint.h>
 #include <stddef.h>
-
+/*
 #define MIN_BLOCK_SIZE 32 
 #define MAX_ORDER 20      
 #define BLOCK_ALLOCATED 1
@@ -258,3 +258,4 @@ static int isBlockInFreeList(void *blockAddr, unsigned int order)
     return 0;
 }
 
+*/

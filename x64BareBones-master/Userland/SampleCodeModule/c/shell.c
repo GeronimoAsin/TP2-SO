@@ -15,7 +15,8 @@ static char *help_text =
     "- time: Muestra la hora actual\n"
     "- registers: Muestra los registros\n"
 	"- zeroDiv: Genera una excepcion de division por cero\n"
-	"- invalidOp: Genera una excepcion de operacion invalida\n";
+	"- invalidOp: Genera una excepcion de operacion invalida\n"
+    "- memtest: Test de asignacion y liberacion de memoria del memManager\n";
 
 
 static const char *ascii_art =
@@ -33,6 +34,18 @@ static void print(const char *str) {
     while (*str) {
         putChar(*str++);
     }
+}
+
+static void printHex64(uint64_t value) {
+    char buf[19]; // "0x" + 16 hex + '\0'
+    buf[0] = '0';
+    buf[1] = 'x';
+    for (int i = 0; i < 16; i++) {
+        uint8_t nibble = (value >> ((15 - i) * 4)) & 0xF;
+        buf[2 + i] = (nibble < 10) ? ('0' + nibble) : ('A' + (nibble - 10));
+    }
+    buf[18] = '\0';
+    print(buf);
 }
 
 static int readLine(char *buffer, int max) {
@@ -70,6 +83,7 @@ static int interpret(const char *cmd) {
     if (strncmp(cmd, "echo\n", 4) == 0 && (cmd[4] == ' ' || cmd[4] == '\t' || cmd[4] == 0)) return 3;
     if (strcmp(cmd, "time\n") == 0) return 4;
     if (strcmp(cmd, "registers\n") == 0) return 5;
+    if (strcmp(cmd, "memtest\n") == 0) return 6;
 	if (strcmp(cmd, "zeroDiv\n") == 0) return 8;
 	if (strcmp(cmd, "invalidOp\n") == 0) return 9;
     return -1;
@@ -112,11 +126,59 @@ void startShell() {
                 print_registers();
                 break;
             }
-			case 8:
+            case 6: { // memtest
+                printf("=== Prueba de memoria ===\n");
+
+                // Primera asignación
+                void *p1 = malloc(32);
+                if (p1 == NULL) {
+                    printf("malloc(32) fallo\n");
+                    break;
+                }
+                printf("malloc(32) = ");
+                printHex64((uint64_t)p1);
+                printf("\n");
+
+                // Segunda asignación
+                void *p2 = malloc(64);
+                if (p2 == NULL) {
+                    printf("malloc(64) fallo\n");
+                    free(p1);
+                    break;
+                }
+                printf("malloc(64) = ");
+                printHex64((uint64_t)p2);
+                printf("\n");
+
+                // Libero primera asignación
+                printf("Liberando ");
+                printHex64((uint64_t)p1);
+                printf("...\n");
+                free(p1);
+
+                // Nueva asignación
+                void *p3 = malloc(16);
+                if (p3 == NULL) {
+                    printf("malloc(16) fallo\n");
+                    free(p2);
+                    break;
+                }
+                printf("malloc(16) = ");
+                printHex64((uint64_t)p3);
+                print("\n");
+
+                // Limpieza
+                free(p2);
+                free(p3);
+                printf("=== Prueba completada ===\n");
+                break;
+            }
+            case 8: {
                  int a = 1;
                  int c = a / 0;
 				//genera una excepcion de division por cero
 				break;
+			}
 			case 9:
                 invalidOp();
 				break;

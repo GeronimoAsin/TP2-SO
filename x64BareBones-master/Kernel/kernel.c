@@ -149,8 +149,10 @@ int main()
 
 }
     }
+
+
 	//entry point a Userland
-	//((EntryPoint)sampleCodeModuleAddress)();
+	((EntryPoint)sampleCodeModuleAddress)();
 
 	while(1);
 }

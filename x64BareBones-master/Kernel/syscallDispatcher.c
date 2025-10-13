@@ -2,6 +2,7 @@
 #include "videoDriver.h"
 #include <stdarg.h>
 #include <string.h>
+#include "memoryManager/memoryManager.h"
 #define REGISTERS 18
 //struct para obtener el tiempo
 typedef struct {
@@ -15,6 +16,8 @@ extern uint64_t savedRegisters[]; // Declaración del buffer ASM
 uint64_t sys_getRegisters(uint64_t *dest);
 extern uint64_t getTime();
 extern uint64_t getRegisters();
+
+static MemoryManagerADT kernelMemoryManager = NULL;
 
 uint64_t syscallDispatcher(uint64_t id, ...)
 {
@@ -58,6 +61,14 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             return 1;
         case 9: 
             setCursor((int)rbx, (int)rdx);
+            return 1;
+        case 10: // malloc: tamaño en rbx, puntero de retorno rax
+            {
+                void *p = sys_malloc((size_t) rbx);
+                return (uint64_t)p;
+            }
+        case 11: // free: puntero a liberar en rbx
+            sys_free((void *) rbx);
             return 1;
         default:
             return -1;
@@ -119,3 +130,23 @@ uint64_t sys_getRegisters(uint64_t *dest) {
     memcpy(dest, savedRegisters, REGISTERS * sizeof(uint64_t));
     return 1;
 }
+
+
+void * sys_malloc(size_t size)
+{
+    if (size == 0) return NULL;
+
+    if (kernelMemoryManager == NULL) {
+        kernelMemoryManager = createMemoryManager();
+    }
+
+    return allocateMemory(kernelMemoryManager, size);
+}
+
+void sys_free(void *ptr)
+{
+    if (ptr == NULL) return;
+    if (kernelMemoryManager == NULL) return; // todavia no se aloco memoria
+    freeMemory(kernelMemoryManager, ptr);
+}
+

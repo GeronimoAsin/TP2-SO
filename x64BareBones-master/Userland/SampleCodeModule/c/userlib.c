@@ -268,3 +268,13 @@ uint64_t getRegisters(uint64_t *regs) {
 int getTime(uint64_t *t) {
     return syscall(3, 0, (uint64_t)t, 0);
 }
+
+void * malloc(size_t size)
+{
+    return (void *)syscall(10, size, 0, 0);
+}
+
+void free(void *ptr)
+{
+    syscall(11, (uint64_t)ptr, 0, 0);
+}

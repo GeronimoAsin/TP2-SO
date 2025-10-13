@@ -1,6 +1,7 @@
 #ifndef SYSCALLDISPATCHER_H
 #define SYSCALLDISPATCHER_H
 #include <stdint.h>
+#include <stddef.h>
 
 uint64_t sys_read(uint64_t fd, char *buff, uint64_t count);
 uint64_t sys_write(uint64_t fd,  const char *buffer, uint64_t count); 
@@ -12,8 +13,8 @@ void setCursor(uint64_t x, uint64_t y);
 void deleteLastChar();
 void hideCursor();
 void showCursor();
-
-
+void *sys_malloc(size_t size);
+void sys_free(void *ptr);
 
 
 
