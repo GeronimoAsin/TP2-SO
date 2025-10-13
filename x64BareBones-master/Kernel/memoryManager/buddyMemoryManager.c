@@ -1,8 +1,8 @@
 #include "memoryManager.h"
 #include <stdint.h>
 #include <stddef.h>
-#define MIN_BLOCK_SIZE 4096
-#define MAX_ORDER 20
+
+#define MAX_ORDER 10
 #define BLOCK_ALLOCATED 1
 #define BLOCK_FREE 0
 
@@ -25,6 +25,8 @@ typedef struct BuddyMemoryManager
     unsigned int heapSize;
     unsigned int minBlockSize;
     unsigned int maxOrder;
+    unsigned int chunkSize;
+    unsigned int chunkCount;
     FreeBlock *freeLists[MAX_ORDER + 1];
 } BuddyMemoryManager;
 
@@ -43,10 +45,13 @@ MemoryManagerADT createMemoryManager()
     uintptr_t alignedStart = ALIGN_POINTER(HEAP_START, WORD_ALIGN);
     buddyManager.heapStart = (uint8_t *)alignedStart;
     buddyManager.heapSize = HEAP_SIZE - (unsigned int)(alignedStart - HEAP_START);
-    buddyManager.minBlockSize = MIN_BLOCK_SIZE;
+    buddyManager.minBlockSize = CHUNK_SIZE;
+
+    buddyManager.chunkSize = CHUNK_SIZE;
+    buddyManager.chunkCount = CHUNK_COUNT;
 
     buddyManager.maxOrder = 0;
-    unsigned int blockSize = MIN_BLOCK_SIZE;
+    unsigned int blockSize = CHUNK_SIZE;
     while (blockSize < buddyManager.heapSize && buddyManager.maxOrder < MAX_ORDER)
     {
         blockSize *= 2;
@@ -166,7 +171,7 @@ static unsigned int getSizeOrder(size_t size)
 {
     size_t adjustedSize = size + sizeof(BlockHeader);
     unsigned int order = 0;
-    unsigned int blockSize = MIN_BLOCK_SIZE;
+    unsigned int blockSize = CHUNK_SIZE;
 
     while (blockSize < adjustedSize && order < MAX_ORDER)
     {
@@ -179,7 +184,7 @@ static unsigned int getSizeOrder(size_t size)
 
 static unsigned int getBlockSize(unsigned int order)
 {
-    return MIN_BLOCK_SIZE << order;
+    return CHUNK_SIZE << order;
 }
 
 static void *getBuddyAddress(void *block, unsigned int order)
