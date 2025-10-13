@@ -66,7 +66,7 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             {
                 void *p = sys_malloc(rbx);
                 return (uint64_t)p;
-            }
+}
         case 11: // free: puntero a liberar en rbx
             sys_free((void *) rbx);
             return 1;
