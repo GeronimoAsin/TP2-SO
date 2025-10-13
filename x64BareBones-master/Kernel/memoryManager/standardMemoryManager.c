@@ -16,9 +16,9 @@ MemoryManagerADT createMemoryManager()
     newMem->heapSize = HEAP_SIZE - (unsigned int)(alignedStart - HEAP_START);
     newMem->chunkSize = CHUNK_SIZE;
     newMem->chunkCount = newMem->heapSize / CHUNK_SIZE;
-
-    newMem->chunkCount = CHUNK_COUNT;
     newMem->nextFreeIndex = 0;
+
+    // Inicializar la pila de chunks libres
     for (unsigned int i = 0; i < newMem->chunkCount; i++)
     {
         newMem->freeChunkStack[i] = newMem->heapStart + (i * newMem->chunkSize);
@@ -31,7 +31,7 @@ MemoryManagerADT createMemoryManager()
 
 
 
-void * allocateMemory(MemoryManagerADT memoryManager, unsigned int size) {
+void * allocateMemory(MemoryManagerADT memoryManager, size_t size) {
 
     if (memoryManager == NULL || size == 0) {
        //no existe el memory manager o el size es 0
@@ -51,7 +51,7 @@ void * allocateMemory(MemoryManagerADT memoryManager, unsigned int size) {
     uint8_t * candidate = memoryManager->freeChunkStack[memoryManager->nextFreeIndex];
     uintptr_t aligned = ALIGN_POINTER(candidate, WORD_ALIGN);
 
-    //verifico que el tamaño solicitado entra en el chunk
+    // Verificar que el tamaño solicitado entra en el chunk después del alineamiento
     uintptr_t chunkStart = (uintptr_t)candidate;
     uintptr_t chunkEnd = chunkStart + memoryManager->chunkSize;
     if (aligned + size > chunkEnd) {
@@ -74,8 +74,6 @@ void * allocateMemory(MemoryManagerADT memoryManager, unsigned int size) {
     return (void *)aligned;
 }
 
-
-
 void freeMemory(MemoryManagerADT memoryManager, void * ptr) {
     if (memoryManager == NULL || ptr == NULL) {
         return;
@@ -86,7 +84,7 @@ void freeMemory(MemoryManagerADT memoryManager, void * ptr) {
     uintptr_t p = (uintptr_t)ptr;
 
     if (p < start || p >= end) {
-        // puntero fuera del heap
+        // Puntero fuera del heap
         return;
     }
 
@@ -95,8 +93,12 @@ void freeMemory(MemoryManagerADT memoryManager, void * ptr) {
         return;
     }
 
-    //devuelvo el chunk a la pila . No intento calcular el indice exacto del chunk.
-    memoryManager->freeChunkStack[--memoryManager->nextFreeIndex] = (uint8_t *)ptr;
+    // inicio del chunk al que pertenece el puntero
+    uintptr_t chunkIndex = (p - start) / memoryManager->chunkSize;
+    uint8_t *chunkStart = memoryManager->heapStart + (chunkIndex * memoryManager->chunkSize);
+
+    // Agregar el chunk de vuelta a la pila de chunks libres
+    memoryManager->freeChunkStack[--memoryManager->nextFreeIndex] = chunkStart;
 }
 
 void destroyMemoryManager(MemoryManagerADT memoryManager) {

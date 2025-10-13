@@ -16,7 +16,8 @@ static char *help_text =
     "- registers: Muestra los registros\n"
 	"- zeroDiv: Genera una excepcion de division por cero\n"
 	"- invalidOp: Genera una excepcion de operacion invalida\n"
-    "- memtest: Test de asignacion y liberacion de memoria del memManager\n";
+    "- memtest: Test de asignacion y liberacion de memoria del memManager\n"
+    "- memchunks: Test de asignacion de varios chunks consecutivos de memoria\n";
 
 
 static const char *ascii_art =
@@ -86,6 +87,7 @@ static int interpret(const char *cmd) {
     if (strcmp(cmd, "memtest\n") == 0) return 6;
 	if (strcmp(cmd, "zeroDiv\n") == 0) return 8;
 	if (strcmp(cmd, "invalidOp\n") == 0) return 9;
+    if (strcmp(cmd, "memchunks\n") == 0) return 7;
     return -1;
 }
 
@@ -170,6 +172,27 @@ void startShell() {
                 // Limpieza
                 free(p2);
                 free(p3);
+                printf("=== Prueba completada ===\n");
+                break;
+            }
+            case 7: { // memchunks
+                printf("=== Prueba de chunks consecutivos ===\n");
+                void *ptrs[4];
+                int i;
+                for (i = 0; i < 4; i++) {
+                    ptrs[i] = malloc(4096);
+                    if (ptrs[i] == NULL) {
+                        printf("malloc(4096) fallo en el bloque %d\n", i+1);
+                        break;
+                    }
+                    printf("malloc(4096) bloque %d = ", i+1);
+                    printHex64((uint64_t)ptrs[i]);
+                    printf("\n");
+                }
+                // Liberar los bloques asignados
+                for (int j = 0; j < i; j++) {
+                    free(ptrs[j]);
+                }
                 printf("=== Prueba completada ===\n");
                 break;
             }

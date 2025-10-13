@@ -149,13 +149,40 @@ int main()
 
 }
     }
+    newLine();
+    // Test de chunks consecutivos (similar a memchunks)
+    printString("=== Test de chunks consecutivos (kernel) ==="); newLine();
+    void *ptrs[4];
+    int i;
+    for (i = 0; i < 4; i++) {
+        ptrs[i] = allocateMemory(mm, 4096);
+        printString("allocateMemory(4096) bloque ");
+        printDec64(i+1);
+        printString(" = ");
+        printHex64((uint64_t)ptrs[i]);
+        newLine();
+    }
+    // Liberar los bloques
+    for (int j = 0; j < i; j++) {
+        freeMemory(mm, ptrs[j]);
+    }
+    printString("=== Test completado ==="); newLine();
 
+
+		printString("heapStart: ");
+        printHex64((uint64_t)mm->heapStart);
+        newLine();
+        printString("Primeros 4 chunks en freeChunkStack:"); newLine();
+        for (int k = 0; k < 4; k++) {
+            printString("freeChunkStack["); printDec64(k); printString("]: ");
+            printHex64((uint64_t)mm->freeChunkStack[k]);
+            newLine();
+        }
+
+    newLine();
 
 	//entry point a Userland
 	((EntryPoint)sampleCodeModuleAddress)();
 
 	while(1);
 }
-
-
-

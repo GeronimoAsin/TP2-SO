@@ -64,7 +64,7 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             return 1;
         case 10: // malloc: tamaño en rbx, puntero de retorno rax
             {
-                void *p = sys_malloc((size_t) rbx);
+                void *p = sys_malloc(rbx);
                 return (uint64_t)p;
             }
         case 11: // free: puntero a liberar en rbx
@@ -149,4 +149,3 @@ void sys_free(void *ptr)
     if (kernelMemoryManager == NULL) return; // todavia no se aloco memoria
     freeMemory(kernelMemoryManager, ptr);
 }
-

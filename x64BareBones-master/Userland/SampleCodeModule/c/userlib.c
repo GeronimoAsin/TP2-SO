@@ -271,7 +271,7 @@ int getTime(uint64_t *t) {
 
 void * malloc(size_t size)
 {
-    return (void *)syscall(10, size, 0, 0);
+    return (void *)syscall(10, (uint64_t)size, 0, 0);
 }
 
 void free(void *ptr)

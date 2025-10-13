@@ -13,6 +13,7 @@ void unsigned_numtohex(unsigned int num, char *str);
 void signed_numtostr(int num, char *str);
 int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, unsigned int n);
-void *malloc(size_t size);
-void free(void * pointer);
+void * malloc(size_t size);
+void free(void *ptr);
 #endif //USERLIB_H
+
