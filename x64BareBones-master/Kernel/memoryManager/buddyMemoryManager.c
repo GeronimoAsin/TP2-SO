@@ -238,8 +238,8 @@ static void *splitBlock(unsigned int order)
         unsigned int blockSize = getBlockSize(order);
         void *buddy = (void *)((uintptr_t)largerBlock + blockSize);
 
-        addToFreeList((FreeBlock *)largerBlock, order);
         addToFreeList((FreeBlock *)buddy, order);
+        addToFreeList((FreeBlock *)largerBlock, order);
     }
 
     FreeBlock *block = buddyManager.freeLists[order];

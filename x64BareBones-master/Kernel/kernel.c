@@ -15,8 +15,8 @@ extern uint8_t endOfKernel;
 
 static const uint64_t PageSize = 0x1000;
 
-static void * const sampleCodeModuleAddress = (void*)0x400000;
-static void * const sampleDataModuleAddress = (void*)0x500000;
+static void *const sampleCodeModuleAddress = (void *)0x400000;
+static void *const sampleDataModuleAddress = (void *)0x500000;
 
 typedef int (*EntryPoint)();
 
@@ -27,7 +27,8 @@ static void printHex64(uint64_t value)
     char buf[19]; // "0x" + 16 hex + '\0'
     buf[0] = '0';
     buf[1] = 'x';
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 16; i++)
+    {
         uint8_t nibble = (value >> ((15 - i) * 4)) & 0xF;
         buf[2 + i] = (nibble < 10) ? ('0' + nibble) : ('A' + (nibble - 10));
     }
@@ -41,10 +42,14 @@ static void printDec64(uint64_t value)
     char buf[21]; // 20 dígitos + null terminator
     int i = 20;
     buf[i] = '\0';
-    if (value == 0) {
+    if (value == 0)
+    {
         buf[--i] = '0';
-    } else {
-        while (value > 0 && i > 0) {
+    }
+    else
+    {
+        while (value > 0 && i > 0)
+        {
             buf[--i] = '0' + (value % 10);
             value /= 10;
         }
@@ -52,137 +57,138 @@ static void printDec64(uint64_t value)
     printString(&buf[i]);
 }
 
-void clearBSS(void * bssAddress, uint64_t bssSize)
+void clearBSS(void *bssAddress, uint64_t bssSize)
 {
-	memset(bssAddress, 0, bssSize);
+    memset(bssAddress, 0, bssSize);
 }
 
-void * getStackBase()
+void *getStackBase()
 {
-	return (void*)(
-		(uint64_t)&endOfKernel
-		+ PageSize * 8				//The size of the stack itself, 32KiB
-		- sizeof(uint64_t)			//Begin at the top of the stack
-	);
+    return (void *)((uint64_t)&endOfKernel + PageSize * 8 // The size of the stack itself, 32KiB
+                    - sizeof(uint64_t)                    // Begin at the top of the stack
+    );
 }
 
-void * initializeKernelBinary()
+void *initializeKernelBinary()
 {
-	void * moduleAddresses[] = {
-		sampleCodeModuleAddress,
-		sampleDataModuleAddress
-	};
+    void *moduleAddresses[] = {
+        sampleCodeModuleAddress,
+        sampleDataModuleAddress};
 
-	loadModules(&endOfKernelBinary, moduleAddresses);
+    loadModules(&endOfKernelBinary, moduleAddresses);
 
-	clearBSS(&bss, &endOfKernel - &bss);
+    clearBSS(&bss, &endOfKernel - &bss);
 
-	return getStackBase();
+    return getStackBase();
 }
 
 int main()
 {
-	load_idt();
+    load_idt();
 
-	//test muy basico del memory manager
+    // test muy basico del memory manager
     MemoryManagerADT mm = createMemoryManager();
     printString("MM init ");
-	newLine();
-    if (mm == 0) {
+    newLine();
+    if (mm == 0)
+    {
         printString("FAIL ");
-    } else {
+    }
+    else
+    {
 
-		//se inicializo bien la memoria
+        // se inicializo bien la memoria
         printString("OK ");
-		newLine();
+        newLine();
 
+        printString("---------- INFO MEM MANAGER -------");
+        newLine();
+        printString("heapSize ");
+        printDec64(mm->heapSize);
+        newLine();
 
-		printString("---------- INFO MEM MANAGER -------");
-		newLine();
-    	printString("heapSize ");
-		printDec64(mm->heapSize);
-    	newLine();
+        printString("chunkSize ");
+        printDec64(mm->chunkSize);
+        newLine();
 
-    	printString("chunkSize ");
-    	printDec64(mm->chunkSize);
-    	newLine();
+        printString("chunkCount ");
+        printDec64(mm->chunkCount);
+        newLine();
 
-    	printString("chunkCount ");
-    	printDec64(mm->chunkCount);
-    	newLine();
+        printString("nextFreeIndex ");
+        printDec64(mm->nextFreeIndex);
+        newLine();
 
-    	printString("nextFreeIndex ");
-    	printDec64(mm->nextFreeIndex);
-		newLine();
+        printString("----------------------------");
+        newLine();
 
-    	printString("----------------------------");
-    	newLine();
-
-		//guardo la dir base de la memoria alocada
+        // guardo la dir base de la memoria alocada
         int *p = (int *)allocateMemory(mm, sizeof(int));
 
-        printString("alloc int: "); printHex64((uint64_t)p); newLine();
+        printString("alloc int: ");
+        printHex64((uint64_t)p);
+        newLine();
 
-    	printString("nextFreeIndex ");
-    	printDec64(mm->nextFreeIndex);
-
-		newLine();
-
-        if (p) {
-			//escribo en la direccion devuelta
+        if (p)
+        {
+            // escribo en la direccion devuelta
             *p = 0x12345678;
-            printString("lectura del bloque: "); printHex64((uint64_t)(*p)); newLine();
+            printString("lectura del bloque: ");
+            printHex64((uint64_t)(*p));
+            newLine();
             // mensaje antes de liberar
-            printString("freeing..."); newLine();
+            printString("freeing...");
+            newLine();
             freeMemory(mm, p);
 
-        	printString("nextFreeIndex ");
-        	printDec64(mm->nextFreeIndex);
-        	newLine();
+            printString("freed");
+            newLine();
+        }
 
-
-            printString("freed"); newLine();
-			//se libero correctamente la memoria
-			destroyMemoryManager(mm);
-			printString("memory destroyed") ;
-
-
-}
-    }
-    newLine();
-    // Test de chunks consecutivos (similar a memchunks)
-    printString("=== Test de chunks consecutivos (kernel) ==="); newLine();
-    void *ptrs[4];
-    int i;
-    for (i = 0; i < 4; i++) {
-        ptrs[i] = allocateMemory(mm, 4096);
-        printString("allocateMemory(4096) bloque ");
-        printDec64(i+1);
-        printString(" = ");
-        printHex64((uint64_t)ptrs[i]);
         newLine();
-    }
-    // Liberar los bloques
-    for (int j = 0; j < i; j++) {
-        freeMemory(mm, ptrs[j]);
-    }
-    printString("=== Test completado ==="); newLine();
+        // Test de chunks consecutivos (similar a memchunks)
+        printString("=== Test de chunks consecutivos (kernel) ===");
+        newLine();
+        void *ptrs[4];
+        int i;
+        for (i = 0; i < 4; i++)
+        {
+            ptrs[i] = allocateMemory(mm, 4096);
+            printString("allocateMemory(4096) bloque ");
+            printDec64(i + 1);
+            printString(" = ");
+            printHex64((uint64_t)ptrs[i]);
+            newLine();
+        }
+        // Liberar los bloques
+        for (int j = 0; j < i; j++)
+        {
+            freeMemory(mm, ptrs[j]);
+        }
+        printString("=== Test completado ===");
+        newLine();
 
-
-		printString("heapStart: ");
+        // Nota: El siguiente código solo funciona con standardMemoryManager, no con buddyMemoryManager
+        printString("heapStart: ");
         printHex64((uint64_t)mm->heapStart);
         newLine();
-        printString("Primeros 4 chunks en freeChunkStack:"); newLine();
-        for (int k = 0; k < 4; k++) {
-            printString("freeChunkStack["); printDec64(k); printString("]: ");
+        printString("Primeros 4 chunks en freeChunkStack:");
+        newLine();
+        for (int k = 0; k < 4; k++)
+        {
+            printString("freeChunkStack[");
+            printDec64(k);
+            printString("]: ");
             printHex64((uint64_t)mm->freeChunkStack[k]);
             newLine();
         }
 
-    newLine();
+        newLine();
 
-	//entry point a Userland
-	((EntryPoint)sampleCodeModuleAddress)();
+        // entry point a Userland
+        ((EntryPoint)sampleCodeModuleAddress)();
 
-	while(1);
+        while (1)
+            ;
+    }
 }
