@@ -1,7 +1,7 @@
 #include "memoryManager.h"
 #include <stdint.h>
 #include <stddef.h>
-#define MIN_BLOCK_SIZE 32
+#define MIN_BLOCK_SIZE 4096
 #define MAX_ORDER 20
 #define BLOCK_ALLOCATED 1
 #define BLOCK_FREE 0
