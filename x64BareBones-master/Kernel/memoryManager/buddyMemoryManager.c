@@ -1,4 +1,3 @@
-/*
 #include "memoryManager.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -24,10 +23,11 @@ typedef struct BuddyMemoryManager
 {
     uint8_t *heapStart;
     unsigned int heapSize;
-    unsigned int minBlockSize;
-    unsigned int maxOrder;
     unsigned int chunkSize;
     unsigned int chunkCount;
+    unsigned int nextFreeIndex; 
+    unsigned int minBlockSize;
+    unsigned int maxOrder;
     FreeBlock *freeLists[MAX_ORDER + 1];
 } BuddyMemoryManager;
 
@@ -50,6 +50,7 @@ MemoryManagerADT createMemoryManager()
 
     buddyManager.chunkSize = CHUNK_SIZE;
     buddyManager.chunkCount = CHUNK_COUNT;
+    buddyManager.nextFreeIndex = 0; 
 
     buddyManager.maxOrder = 0;
     unsigned int blockSize = CHUNK_SIZE;
@@ -269,5 +270,3 @@ static int isBlockInFreeList(void *blockAddr, unsigned int order)
 
     return 0;
 }
-
-*/
