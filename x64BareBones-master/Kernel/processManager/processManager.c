@@ -1,3 +1,4 @@
+/*
 #include "processManager.h"
 #include "list.h"
 #include "priorityQueue.h"
@@ -104,3 +105,5 @@ void destroyProcessManager(ProcessManagerADT processManager) {
     destroyList(processManager->allProcesses);
     freeMemory(processManager);
 }
+
+*/

@@ -278,3 +278,7 @@ void free(void *ptr)
 {
     syscall(11, (uint64_t)ptr, 0, 0);
 }
+
+int64_t my_getpid() {
+    return syscall(12, 0, 0, 0);
+}

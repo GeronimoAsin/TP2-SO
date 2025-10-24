@@ -1,3 +1,4 @@
+/*
 #include "memoryManager.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -268,3 +269,5 @@ static int isBlockInFreeList(void *blockAddr, unsigned int order)
 
     return 0;
 }
+
+*/

@@ -1,3 +1,4 @@
+/*
 #ifndef PROCESS_MANAGER_H
 #define PROCESS_MANAGER_H
 #include <stdint.h>
@@ -44,3 +45,5 @@ void waitPid(ProcessManagerADT processManager, pid_t childPid);
 void destroyProcessManager(ProcessManagerADT processManager);
 
 #endif // PROCESS_MANAGER_H
+
+*/
