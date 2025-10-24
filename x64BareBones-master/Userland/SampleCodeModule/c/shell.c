@@ -218,7 +218,7 @@ void startShell() {
                 char *p = buffer;
                 // Avanzar hasta el final del nombre "test_mm" (7 caracteres)
                 for (int k = 0; k < 7 && *p; k++) p++;
-                // Avanzar cualquier espacio/tab/char no numérico hasta encontrar signo o dígito
+                //numero
                 while (*p && *p != '\n' && *p != '\r' && !((*p >= '0' && *p <= '9') || *p == '+' || *p == '-')) p++;
 
                 // Si terminamos o encontramos newline sin número, error
@@ -243,7 +243,7 @@ void startShell() {
                     break;
                 }
 
-                // Llamar a test_mm con el argumento extraído
+                // Llamar a test_mm
                 char *argv_local[1] = { argbuf };
                 printf("=== Test de stress de memoria (test_mm) ===\n");
                 uint64_t res = test_mm(1, argv_local);

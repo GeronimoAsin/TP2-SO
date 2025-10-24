@@ -39,9 +39,17 @@ uint64_t test_mm(uint64_t argc, char *argv[]) {
             // DEBUG: durante las primeras 2 iteraciones, registrar las solicitudes
             if (iter < 2) {
                 if (mm_rqs[rq].address)
-                    printf("test_mm: iter=%llu alloc[%d]=%u -> ptr=%p\n", (unsigned long long)iter, alloc_try, mm_rqs[rq].size, mm_rqs[rq].address);
+                    // iter y puntero en hexa 64-bit; tamaño como entero firmado (acota bien para este test)
+                    printf("test_mm: iter=0x%llx alloc[%d]=%d -> ptr=0x%llx\n",
+                           (unsigned long long)iter,
+                           (int)alloc_try,
+                           (int)mm_rqs[rq].size,
+                           (unsigned long long)mm_rqs[rq].address);
                 else
-                    printf("test_mm: iter=%llu alloc[%d]=%u -> NULL\n", (unsigned long long)iter, alloc_try, mm_rqs[rq].size);
+                    printf("test_mm: iter=0x%llx alloc[%d]=%d -> NULL\n",
+                           (unsigned long long)iter,
+                           (int)alloc_try,
+                           (int)mm_rqs[rq].size);
             }
             alloc_try++;
 
@@ -79,7 +87,10 @@ uint64_t test_mm(uint64_t argc, char *argv[]) {
 
         iter++;
         if ((iter & 0x3F) == 0) { // cada 64 iteraciones para ver progreso más frecuente
-            printf("test_mm: iter=0x%llx last_rq=%d last_total=%d\n", (unsigned long long)iter, rq, total);
+            printf("test_mm: iter=0x%llx last_rq=%d last_total=%d\n",
+                   (unsigned long long)iter,
+                   (int)rq,
+                   (int)total);
         }
 
     }
