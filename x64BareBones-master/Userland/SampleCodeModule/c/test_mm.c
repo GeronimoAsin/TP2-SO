@@ -37,6 +37,7 @@ uint64_t test_mm(uint64_t argc, char *argv[]) {
             mm_rqs[rq].address = malloc(mm_rqs[rq].size);
 
             // DEBUG: durante las primeras 2 iteraciones, registrar las solicitudes
+/*
             if (iter < 2) {
                 if (mm_rqs[rq].address)
                     // iter y puntero en hexa 64-bit; tamaño como entero firmado (acota bien para este test)
@@ -51,6 +52,7 @@ uint64_t test_mm(uint64_t argc, char *argv[]) {
                            (int)alloc_try,
                            (int)mm_rqs[rq].size);
             }
+*/
             alloc_try++;
 
             if (mm_rqs[rq].address) {
