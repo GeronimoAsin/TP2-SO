@@ -4,6 +4,7 @@ static unsigned long ticks = 0;
 
 void timer_handler() {
 	ticks++;
+	scheduler_tick();
 }
 
 int ticks_elapsed() {

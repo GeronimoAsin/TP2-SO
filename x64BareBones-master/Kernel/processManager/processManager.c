@@ -1,7 +1,7 @@
-/*
 #include "processManager.h"
 #include "list.h"
 #include "priorityQueue.h"
+#include <stddef.h>
 #define STACK_SIZE 0x4000 // 16 KiB
 
 typedef struct ProcessManagerCDT {
@@ -106,4 +106,20 @@ void destroyProcessManager(ProcessManagerADT processManager) {
     freeMemory(processManager);
 }
 
+void context_switch(PCB *prev, PCB *next) {
+
+}
+
+void scheduler_tick() {
+/*
+ // agarra el proceso actual y el next en la cola de readys
+    PCB *current = getCurrentProcess();
+    PCB *next = getNextReadyProcess();
+
+	// si hay un next distinto al current, realiza el context switch
+    if (next != NULL && next != current) {
+        context_switch(current, next);
+    }
+
 */
+}
