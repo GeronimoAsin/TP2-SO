@@ -15,5 +15,6 @@ int strcmp(const char *s1, const char *s2);
 //int strncmp(const char *s1, const char *s2, unsigned int n);
 void * malloc(size_t size);
 void free(void *ptr);
+void meminfo();
 #endif //USERLIB_H
 

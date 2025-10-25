@@ -115,4 +115,10 @@ void destroyMemoryManager(MemoryManagerADT memoryManager) {
     // Reiniciar el stack al estado inicial
     memoryManager->nextFreeIndex = memoryManager->chunkCount;
 }
+
+
+MemoryManagerADT meminfo()
+{
+    return &memoryManagerInstance;
+}
 */

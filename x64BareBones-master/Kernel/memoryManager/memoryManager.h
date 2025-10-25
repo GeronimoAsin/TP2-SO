@@ -44,4 +44,7 @@ void freeMemory(MemoryManagerADT memoryManager, void *ptr);
 //destruye el memory manager
 void destroyMemoryManager(MemoryManagerADT memoryManager);
 
+MemoryManagerADT meminfo();
+
+
 #endif // MEMORY_MANAGER_H

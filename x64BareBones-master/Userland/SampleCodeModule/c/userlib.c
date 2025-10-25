@@ -1,6 +1,20 @@
 #include "userlib.h"
 #include <stdint.h>
 #include <stdarg.h>
+#include <stddef.h>
+
+#define CHUNK_SIZE 4096
+
+typedef struct MemoryManagerCDT {
+    uint8_t * heapStart;
+    unsigned int heapSize;
+    unsigned int chunkSize;
+    unsigned int chunkCount;
+    unsigned int nextFreeIndex;
+    uint8_t * freeChunkStack[]; // flexible array, no se usa aquí
+} MemoryManagerCDT;
+
+typedef MemoryManagerCDT * MemoryManagerADT;
 
 extern uint64_t syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 
@@ -125,6 +139,7 @@ int strncmp(const char *s1, const char *s2, unsigned int n) {
 }
 
 
+
 void printf(const char *format, ...) {
     va_list args;
     va_start(args, format);
@@ -207,7 +222,6 @@ void printf(const char *format, ...) {
     va_end(args);
 }
 
-
 // Convierte un uint64_t a string hexadecimal (en minúsculas)
 void unsigned_numtohex64(uint64_t num, char *str) {
     const char hexDigits[] = "0123456789abcdef";
@@ -281,4 +295,30 @@ void free(void *ptr)
 
 int64_t my_getpid() {
     return syscall(12, 0, 0, 0);
+}
+
+void meminfo() {
+    MemoryManagerADT mem = (MemoryManagerADT) syscall(12, 0, 0, 0);
+
+ if (!mem) {
+       printf("No se pudo obtener información de memoria.\n");
+        return;
+    }
+
+    unsigned int usados = mem->chunkCount - mem->nextFreeIndex;
+    unsigned int libres = mem->nextFreeIndex;
+    unsigned int usado_bytes = usados * mem->chunkSize;
+    unsigned int libre_bytes = libres * mem->chunkSize;
+    printf("--- Estado de la memoria ---\n");
+    printf("Direccion base del heap: 0x%x\n", mem->heapStart);
+    printf("Dimension total del heap: %d bytes\n", mem->heapSize);
+    printf("Dimension de chunk: %d bytes\n", mem->chunkSize);
+    printf("Cantidad total de chunks: %u\n", mem->chunkCount);
+    printf("Chunks libres: %d\n", libres);
+    printf("Chunks usados: %d\n", usados);
+    printf("Memoria libre: %d bytes\n", libre_bytes);
+    printf("Memoria usada: %d bytes\n", usado_bytes);
+    printf("----------------------------\n");
+
+
 }

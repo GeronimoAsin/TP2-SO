@@ -4,6 +4,11 @@
 #include <string.h>
 #include "memoryManager/memoryManager.h"
 #define REGISTERS 18
+
+typedef struct MemoryManagerCDT * MemoryManagerADT;
+MemoryManagerADT sys_meminfo();
+
+
 //struct para obtener el tiempo
 typedef struct {
     uint8_t hours;
@@ -70,6 +75,8 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 11: // free: puntero a liberar en rbx
             sys_free((void *) rbx);
             return 1;
+        case 12:
+            return (uint64_t) sys_meminfo();
         default:
             return -1;
     }   
@@ -148,4 +155,9 @@ void sys_free(void *ptr)
     if (ptr == NULL) return;
     if (kernelMemoryManager == NULL) return; // todavia no se aloco memoria
     freeMemory(kernelMemoryManager, ptr);
+}
+
+MemoryManagerADT sys_meminfo()
+{
+    return meminfo();
 }

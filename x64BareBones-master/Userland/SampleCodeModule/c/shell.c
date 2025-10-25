@@ -18,6 +18,7 @@ static char *help_text =
     "- registers: Muestra los registros\n"
 	"- zeroDiv: Genera una excepcion de division por cero\n"
 	"- invalidOp: Genera una excepcion de operacion invalida\n"
+    "- meminfo: Informacion de la memoria \n"
     "- memtest: Test de asignacion y liberacion de memoria del memManager\n"
     "- memchunks: Test de asignacion de varios chunks consecutivos de memoria\n"
     "- test_mm: Test de stress del memory manager de la catedra (requiere un argumento de cantidad maxima de memoria)\n";
@@ -91,6 +92,7 @@ static int interpret(const char *cmd) {
 	if (strcmp(cmd, "zeroDiv\n") == 0) return 8;
 	if (strcmp(cmd, "invalidOp\n") == 0) return 9;
     if (strcmp(cmd, "memchunks\n") == 0) return 7;
+    if (strcmp(cmd, "meminfo\n") == 0) return 11;
     // Acepta "test_mm" seguido de espacio/tab/newline, signo o dígito, o incluso sin separador antes del número
     if (strncmp(cmd, "test_mm", 7) == 0) {
         char c = cmd[7];
@@ -250,6 +252,11 @@ void startShell() {
                 if (res == (uint64_t)-1) {
                     printf("Error: uso correcto -> test_mm <max_memory>\n");
                 }
+                break;
+            }
+            case 11:
+            {
+                meminfo();
                 break;
             }
             default:
