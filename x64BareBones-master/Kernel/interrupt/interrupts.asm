@@ -1,4 +1,6 @@
 extern getStackBase
+
+extern printString
 GLOBAL _cli
 GLOBAL _sti
 GLOBAL picMasterMask
@@ -16,6 +18,8 @@ GLOBAL _irq80Handler
 
 GLOBAL _exception0Handler
 GLOBAL _exception6Handler
+
+global getGlobalSavedContext
 
 EXTERN irqDispatcher
 EXTERN exceptionDispatcher
@@ -115,6 +119,9 @@ SECTION .text
     iretq
 %endmacro
 
+getGlobalSavedContext:
+    mov rax, savedRegisters
+    ret
 
 _hlt:
 	sti
@@ -149,8 +156,73 @@ picSlaveMask:
 
 ;8254 Timer (Timer Tick)
 _irq00Handler:
-	irqHandlerMaster 0
+    mov [savedRegisters + 0x00], rax
+    mov [savedRegisters + 0x08], rbx
+    mov [savedRegisters + 0x10], rcx
+    mov [savedRegisters + 0x18], rdx
+    mov [savedRegisters + 0x20], rsi
+    mov [savedRegisters + 0x28], rdi
+    mov [savedRegisters + 0x30], rsp
+    mov [savedRegisters + 0x38], rbp
+    mov [savedRegisters + 0x40], r8
+    mov [savedRegisters + 0x48], r9
+    mov [savedRegisters + 0x50], r10
+    mov [savedRegisters + 0x58], r11
+    mov [savedRegisters + 0x60], r12
+    mov [savedRegisters + 0x68], r13
+    mov [savedRegisters + 0x70], r14
+    mov [savedRegisters + 0x78], r15
+    mov rax, [rsp]  ;RIP
+    mov [savedRegisters + 0x80], rax
+    mov rax, [rsp + 8] ;CS
+    mov [savedRegisters + 0x88], rax
+    mov rax, [rsp + 2*8]  ;RFLAGS
+    mov [savedRegisters + 0x90], rax
+    mov rax, [rsp + 3*8] ;RSP
+    mov [savedRegisters + 0x98], rax
+    mov rax, [rsp + 4*8] ;SS
+    mov [savedRegisters + 0xA0], rax
+    mov rax, [rsp +5*8] ;Align
+    mov [savedRegisters + 0xA8], rax
+    
+	mov rdi, 0
+    mov rsi, savedRegisters
+    call irqDispatcher
 
+    ; fin de la interrupción
+    mov al, 20h
+    out 20h, al
+
+    mov rsp, [savedRegisters + 0x30] ;restauro rsp
+    mov rax, [savedRegisters + 0xA8] ;restauro align
+    mov [rsp + 5*8], rax
+    mov rax, [savedRegisters + 0xA0] ;restauro ss
+    mov [rsp + 4*8], rax
+    mov rax, [savedRegisters + 0x98] ;restauro rsp
+    mov [rsp + 3*8], rax
+    mov rax, [savedRegisters + 0x90] ;restauro rflags
+    mov [rsp + 2*8], rax
+    mov rax, [savedRegisters + 0x88] ;restauro cs
+    mov [rsp + 8], rax
+    mov rax, [savedRegisters + 0x80] ;restauro rip
+    mov [rsp], rax
+    mov r15, [savedRegisters + 0x78]
+    mov r14, [savedRegisters + 0x70]
+    mov r13, [savedRegisters + 0x68]
+    mov r12, [savedRegisters + 0x60]
+    mov r11, [savedRegisters + 0x58]
+    mov r10, [savedRegisters + 0x50]
+    mov r9, [savedRegisters + 0x48]
+    mov r8, [savedRegisters + 0x40]
+    mov rbp, [savedRegisters + 0x38]
+    mov rdi, [savedRegisters + 0x28]
+    mov rsi, [savedRegisters + 0x20]
+    mov rdx, [savedRegisters + 0x18]
+    mov rcx, [savedRegisters + 0x10]
+    mov rbx, [savedRegisters + 0x08]
+    mov rax, [savedRegisters + 0x00]
+    iretq
+    
 ;Keyboard
 _irq01Handler:
     pushState
@@ -259,5 +331,6 @@ userland equ 0x400000
 SECTION .bss
 	aux resq 1
 	global savedRegisters
-savedRegisters: resq 18    ; 18 registros de 8 bytes (uint64_t)
+savedRegisters: resq 21    ; 21 registros de 8 bytes (uint64_t)
 temp_rbp: resq 1          ; Variable temporal para guardar RBP original
+

@@ -6,17 +6,17 @@
 static void int_20();
 static void int_21();
 
-void (* functions[2])()={int_20, int_21};
+void (* functions[2])(uint64_t *)={int_20, int_21};
 
-void irqDispatcher(uint64_t irq) {
-	functions[irq]();
+void irqDispatcher(uint64_t irq, uint64_t *savedContext) {
+	functions[irq](savedContext);
 	return;
 }
 
-void int_20() {
-	timer_handler();
+void int_20(uint64_t *savedContext) {
+	timer_handler(savedContext);
 }
 
-void int_21(){
+void int_21(uint64_t *savedContext){
 	readAndProcess();
 }

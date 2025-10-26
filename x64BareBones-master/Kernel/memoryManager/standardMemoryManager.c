@@ -1,4 +1,4 @@
-/*
+
 #include "memoryManager.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -121,4 +121,3 @@ MemoryManagerADT meminfo()
 {
     return &memoryManagerInstance;
 }
-*/

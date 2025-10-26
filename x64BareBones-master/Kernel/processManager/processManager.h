@@ -2,12 +2,15 @@
 #define PROCESS_MANAGER_H
 
 #include "pcb.h"
+#include "../memoryManager/memoryManager.h"
 
 typedef struct ProcessManagerCDT * ProcessManagerADT;
 
-ProcessManagerADT createProcessManager();
+ProcessManagerADT createProcessManager(MemoryManagerADT memoryManager);
 
-pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv);
+ProcessManagerADT getGlobalProcessManager(); // para usar en time.c
+
+void createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv);
 
 pid_t getPid(ProcessManagerADT processManager);
 
@@ -21,7 +24,7 @@ void block(ProcessManagerADT processManager, pid_t processId);
 
 void unblock(ProcessManagerADT processManager, pid_t processId);
 
-void leaveCPU(ProcessManagerADT processManager, pid_t processId);
+void leaveCPU(ProcessManagerADT processManager);
 
 void waitPid(ProcessManagerADT processManager, pid_t childPid);
 

@@ -6,6 +6,7 @@
 #include <idtLoader.h>
 #include "memoryManager/memoryManager.h"
 #include "include/lib.h"
+#include "processManager/processManager.h"
 extern uint8_t text;
 extern uint8_t rodata;
 extern uint8_t data;
@@ -88,6 +89,8 @@ int main()
 
     // test muy basico del memory manager
     MemoryManagerADT mm = createMemoryManager();
+    ProcessManagerADT pm = createProcessManager(mm);
+
     printString("MM init ");
     newLine();
     if (mm == 0)
@@ -186,7 +189,8 @@ int main()
         newLine();
 
         // entry point a Userland
-        ((EntryPoint)sampleCodeModuleAddress)();
+        //((EntryPoint)sampleCodeModuleAddress)();
+        createProcess(pm, sampleCodeModuleAddress, 1, "UserlandProcess", 0, NULL);
 
         while (1)
             ;
