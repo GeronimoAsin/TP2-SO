@@ -2,6 +2,7 @@
 #include "list.h"
 #include "priorityQueue.h"
 #include "../include/time.h"
+#include <string.h>
 #define STACK_SIZE 0x4000 // 16 KiB
 
 typedef struct ProcessManagerCDT {
@@ -71,6 +72,37 @@ void createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int pr
 
 pid_t getPid(ProcessManagerADT processManager) {
     return processManager->currentPid;
+}
+
+pid_t getMaxPid(ProcessManagerADT processManager) {
+    return processManager->maxPid;
+}
+
+PriorityQueueADT getReadyQueue(ProcessManagerADT processManager) {
+    return processManager->readyQueue;
+}
+
+PCB* getCurrentProcess(ProcessManagerADT processManager) {
+    return processManager->currentProcess;
+}
+
+void clearAllProcesses(ProcessManagerADT processManager) {
+    while (!isListEmpty(processManager->allProcesses)) {
+        PCB *proc = removeFirstFromList(processManager->allProcesses);
+        if (proc) {
+            freeMemory(processManager->memoryManager, proc->stackBase);
+            freeMemory(processManager->memoryManager, proc);
+        }
+    }
+    while (!isEmpty(processManager->readyQueue)) {
+        dequeue(processManager->readyQueue);
+    }
+    while (!isListEmpty(processManager->blockedProcesses)) {
+        removeFirstFromList(processManager->blockedProcesses);
+    }
+    processManager->maxPid = 0;
+    processManager->currentPid = -1;
+    processManager->currentProcess = NULL;
 }
 
 void printProcesses(ProcessManagerADT processManager) {

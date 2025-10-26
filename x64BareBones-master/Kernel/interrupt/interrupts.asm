@@ -184,7 +184,7 @@ _irq00Handler:
     mov [savedRegisters + 0xA0], rax
     mov rax, [rsp +5*8] ;Align
     mov [savedRegisters + 0xA8], rax
-    
+
 	mov rdi, 0
     mov rsi, savedRegisters
     call irqDispatcher

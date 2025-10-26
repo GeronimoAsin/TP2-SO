@@ -144,6 +144,20 @@ int isEmptyList(ListADT list) {
     return (list == NULL || list->head == NULL);
 }
 
+PCB* removeFirstFromList(ListADT list) {
+    if (list == NULL || list->head == NULL) return NULL;
+    Node *first = list->head;
+    PCB *proc = first->process;
+    list->head = first->next;
+    if (list->head == NULL) list->tail = NULL;
+    freeMemory(list->memoryManager, first);
+    return proc;
+}
+
+int isListEmpty(ListADT list) {
+    return (list == NULL || list->head == NULL);
+}
+
 void destroyList(ListADT list) {
     Node *current = list->head;
     while (current != NULL) {

@@ -4,6 +4,7 @@
 #include <moduleLoader.h>
 #include <videoDriver.h>
 #include <idtLoader.h>
+#include <interrupts.h>
 #include "memoryManager/memoryManager.h"
 #include "include/lib.h"
 #include "processManager/processManager.h"
@@ -188,11 +189,154 @@ int main()
 
         newLine();
 
-        // entry point a Userland
-        //((EntryPoint)sampleCodeModuleAddress)();
-        createProcess(pm, sampleCodeModuleAddress, 1, "UserlandProcess", 0, NULL);
+        // ============================================
+        // Tests del Process Manager
+        // ============================================
+        printString("=== TESTS DE PROCESS MANAGER ===");
+        newLine();
 
-        while (1)
-            ;
-    }
+        // Test 1: Verificar que el Process Manager se creó correctamente
+        printString("Test 1: Process Manager creado ");
+        if (pm != NULL) {
+            printString("OK");
+        } else {
+            printString("FAIL");
+        }
+        newLine();
+
+        // Test 2: Verificar PID inicial
+        printString("Test 2: PID actual (deberia ser -1): ");
+        pid_t currentPid = getPid(pm);
+        if (currentPid < 0) {
+            printString("-");
+            printDec64((uint64_t)(-currentPid));
+        } else {
+            printDec64((uint64_t)currentPid);
+        }
+        newLine();
+
+        // Test 3: Crear un proceso de prueba simple
+        printString("Test 3: Creando proceso de prueba...");
+        newLine();
+
+        // Función de prueba simple que no hace nada
+        void testFunction() {
+            return;
+        }
+
+        createProcess(pm, testFunction, 5, "TestProcess", 0, NULL);
+        printString("  Proceso de prueba creado");
+        newLine();
+
+        // Test 4: Verificar que el maxPid aumentó
+        printString("Test 4: maxPid actual: ");
+        printDec64((uint64_t)getMaxPid(pm));
+        printString(" (deberia ser 1)");
+        newLine();
+
+        // Test 5: Verificar que hay procesos en la cola
+        printString("Test 5: Verificando cola de procesos...");
+        newLine();
+        if (getReadyQueue(pm) != 0) {
+            printString("  Cola de procesos ready: OK");
+        } else {
+            printString("  Cola de procesos ready: FAIL");
+        }
+        newLine();
+
+        // Test 6: Crear el proceso principal (shell)
+        printString("Test 6: Creando proceso principal (shell)...");
+        newLine();
+        createProcess(pm, sampleCodeModuleAddress, 1, "UserlandProcess", 0, NULL);
+        printString("  Proceso shell creado");
+        newLine();
+        printString("  maxPid actual: ");
+        printDec64((uint64_t)getMaxPid(pm));
+        printString(" (deberia ser 2)");
+        newLine();
+
+        // Test 7: Crear otro proceso de prueba para testear modificación de prioridad
+        printString("Test 7: Creando proceso para test de prioridad...");
+        newLine();
+        createProcess(pm, testFunction, 3, "PriorityTest", 0, NULL);
+        printString("  Proceso creado con prioridad 3, PID: ");
+        printDec64((uint64_t)getMaxPid(pm));
+        newLine();
+
+        // Test 8: Modificar prioridad del proceso 3
+        printString("Test 8: Modificando prioridad del proceso 3 a 10...");
+        newLine();
+        modifyPriority(pm, 3, 10);
+        printString("  Prioridad modificada");
+        newLine();
+
+        // Test 9: Crear proceso para test de bloqueo
+        printString("Test 9: Creando proceso para test de bloqueo...");
+        newLine();
+        createProcess(pm, testFunction, 2, "BlockTest", 0, NULL);
+        pid_t blockTestPid = getMaxPid(pm);
+        printString("  Proceso creado, PID: ");
+        printDec64((uint64_t)blockTestPid);
+        newLine();
+
+        // Test 10: Bloquear el proceso
+        printString("Test 10: Bloqueando proceso ");
+        printDec64((uint64_t)blockTestPid);
+        printString("...");
+        newLine();
+        block(pm, blockTestPid);
+        printString("  Proceso bloqueado");
+        newLine();
+
+        // Test 11: Desbloquear el proceso
+        printString("Test 11: Desbloqueando proceso ");
+        printDec64((uint64_t)blockTestPid);
+        printString("...");
+        newLine();
+        unblock(pm, blockTestPid);
+        printString("  Proceso desbloqueado");
+        newLine();
+
+        // Test 12: Verificar currentProcess
+        printString("Test 12: Proceso actual: ");
+        if (getCurrentProcess(pm) == NULL) {
+            printString("NULL (correcto - ningun proceso ejecutandose)");
+        } else {
+            printString("PID ");
+            printDec64((uint64_t)getCurrentProcess(pm)->pid);
+        }
+        newLine();
+
+        // Test 13: Verificar total de procesos creados
+        printString("Test 13: Total de procesos creados (maxPid): ");
+        printDec64((uint64_t)getMaxPid(pm));
+        printString(" (deberia ser 4)");
+        newLine();
+
+        printString("=== TESTS COMPLETADOS ===");
+        newLine();
+        newLine();
+
+        // ============================================
+        // Limpiar procesos de prueba
+        // ============================================
+        printString("Limpiando procesos de prueba...");
+        newLine();
+        clearAllProcesses(pm);
+        printString("Procesos de prueba eliminados de la cola");
+        newLine();
+        newLine();
+
+        // ============================================
+        // Crear e iniciar el proceso shell
+        // ============================================
+        printString("Creando proceso shell...");
+        newLine();
+        createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL);
+        printString("Proceso shell creado, PID: ");
+        printDec64((uint64_t)getMaxPid(pm));
+
+    return 0;
+}
+
 }

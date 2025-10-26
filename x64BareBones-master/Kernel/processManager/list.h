@@ -28,4 +28,7 @@ int isEmptyList(ListADT list);
 
 void destroyList(ListADT list);
 
+PCB* removeFirstFromList(ListADT list);
+int isListEmpty(ListADT list);
+
 #endif // LIST_H

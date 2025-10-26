@@ -3,6 +3,7 @@
 
 #include "pcb.h"
 #include "../memoryManager/memoryManager.h"
+#include "priorityQueue.h"
 
 typedef struct ProcessManagerCDT * ProcessManagerADT;
 
@@ -31,5 +32,10 @@ void waitPid(ProcessManagerADT processManager, pid_t childPid);
 void destroyProcessManager(ProcessManagerADT processManager);
 
 void context_switch(PCB *prev, PCB *next);
+
+pid_t getMaxPid(ProcessManagerADT processManager);
+PriorityQueueADT getReadyQueue(ProcessManagerADT processManager);
+PCB* getCurrentProcess(ProcessManagerADT processManager);
+void clearAllProcesses(ProcessManagerADT processManager);
 
 #endif // PROCESS_MANAGER_H
