@@ -169,6 +169,10 @@ void destroyMemoryManager(MemoryManagerADT memoryManager)
     buddyManager.heapSize = 0;
 }
 
+MemoryManagerADT meminfo() {
+    return (MemoryManagerADT)&buddyManager;
+}
+
 static unsigned int getSizeOrder(size_t size)
 {
     size_t adjustedSize = size + sizeof(BlockHeader);
