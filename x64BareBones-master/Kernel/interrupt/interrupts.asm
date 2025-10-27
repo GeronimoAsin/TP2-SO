@@ -1,5 +1,4 @@
 extern getStackBase
-
 extern printString
 GLOBAL _cli
 GLOBAL _sti
@@ -156,6 +155,8 @@ picSlaveMask:
 
 ;8254 Timer (Timer Tick)
 _irq00Handler:
+    mov rdi, msj
+    call printString
     mov [savedRegisters + 0x00], rax
     mov [savedRegisters + 0x08], rbx
     mov [savedRegisters + 0x10], rcx
@@ -334,3 +335,4 @@ SECTION .bss
 savedRegisters: resq 21    ; 21 registros de 8 bytes (uint64_t)
 temp_rbp: resq 1          ; Variable temporal para guardar RBP original
 
+msj db "TICK",0

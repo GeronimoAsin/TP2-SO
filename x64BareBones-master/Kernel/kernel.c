@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <string.h>
 #include <lib.h>
 #include <moduleLoader.h>
 #include <videoDriver.h>
@@ -87,6 +86,7 @@ void *initializeKernelBinary()
 int main()
 {
     load_idt();
+
 
     // test muy basico del memory manager
     MemoryManagerADT mm = createMemoryManager();
@@ -189,6 +189,7 @@ int main()
 
         newLine();
 
+        /*
         // ============================================
         // Tests del Process Manager
         // ============================================
@@ -220,7 +221,7 @@ int main()
         newLine();
 
         // Función de prueba simple que no hace nada
-        void testFunction() {
+        void testFunction(){
             return;
         }
 
@@ -326,16 +327,11 @@ int main()
         printString("Procesos de prueba eliminados de la cola");
         newLine();
         newLine();
-
+*/
         // ============================================
         // Crear e iniciar el proceso shell
         // ============================================
-        printString("Creando proceso shell...");
-        newLine();
-        createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL);
-        printString("Proceso shell creado, PID: ");
-        printDec64((uint64_t)getMaxPid(pm));
-
+        (EntryPoint)sampleCodeModuleAddress;
     return 0;
 }
 

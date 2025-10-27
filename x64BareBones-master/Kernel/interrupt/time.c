@@ -4,8 +4,10 @@
 
 static unsigned long ticks = 0;
 
+
 void timer_handler(uint64_t *savedContext) {
 	ticks++;
+	newLine();
 	ProcessManagerADT pm = getGlobalProcessManager();
 	if (pm){
 		scheduler_tick(pm, savedContext);

@@ -2,7 +2,7 @@
 #include "list.h"
 #include "priorityQueue.h"
 #include "../include/time.h"
-#include <string.h>
+
 #define STACK_SIZE 0x4000 // 16 KiB
 
 typedef struct ProcessManagerCDT {
@@ -253,5 +253,5 @@ void scheduler_tick(ProcessManagerADT pm, uint64_t *savedContext) {
         pm->currentPid = nextProcess->pid;
         loadContextFromPCB(nextProcess, savedContext);
     }
-    
+
 }
