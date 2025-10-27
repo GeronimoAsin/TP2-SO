@@ -222,6 +222,23 @@ void printf(const char *format, ...) {
     va_end(args);
 }
 
+
+static void printHex64(uint64_t value) {
+    char buf[19]; // "0x" + 16 hex + '\0'
+    buf[0] = '0';
+    buf[1] = 'x';
+    for (int i = 0; i < 16; i++) {
+        uint8_t nibble = (value >> ((15 - i) * 4)) & 0xF;
+        buf[2 + i] = (nibble < 10) ? ('0' + nibble) : ('A' + (nibble - 10));
+    }
+    buf[18] = '\0';
+    printf(buf);
+}
+
+
+
+
+
 // Convierte un uint64_t a string hexadecimal (en minúsculas)
 void unsigned_numtohex64(uint64_t num, char *str) {
     const char hexDigits[] = "0123456789abcdef";
@@ -321,4 +338,87 @@ void meminfo() {
     printf("----------------------------\n");
 
 
+}
+
+void user_echo(const char *input) {
+    // Salta espacios o tabs iniciales
+    while (*input == ' ' || *input == '\t') input++;
+    printf("%s", input);
+}
+
+void user_help(char * help_text) {
+    printf("%s", help_text);
+}
+
+void user_clear(void) {
+    clearScreen();
+}
+
+void user_time(void) {
+    printTime();
+}
+
+void user_registers(void) {
+    print_registers();
+}
+
+void user_memtest(void) {
+    printf("=== Prueba de memoria ===\n");
+    void *p1 = malloc(32);
+    if (p1 == NULL) {
+        printf("malloc(32) fallo\n");
+        return;
+    }
+    printf("malloc(32) = ");
+    printHex64((uint64_t)p1);
+    printf("\n");
+    void *p2 = malloc(64);
+    if (p2 == NULL) {
+        printf("malloc(64) fallo\n");
+        free(p1);
+        return;
+    }
+    printf("malloc(64) = ");
+    printHex64((uint64_t)p2);
+    printf("\n");
+    printf("Liberando ");
+    printHex64((uint64_t)p1);
+    printf("...\n");
+    free(p1);
+    void *p3 = malloc(16);
+    if (p3 == NULL) {
+        printf("malloc(16) fallo\n");
+        free(p2);
+        return;
+    }
+    printf("malloc(16) = ");
+    printHex64((uint64_t)p3);
+    printf("\n");
+    free(p2);
+    free(p3);
+    printf("=== Prueba completada ===\n");
+}
+
+void user_memchunks(void) {
+    printf("=== Prueba de chunks consecutivos ===\n");
+    void *ptrs[4];
+    int i;
+    for (i = 0; i < 4; i++) {
+        ptrs[i] = malloc(4096);
+        if (ptrs[i] == NULL) {
+            printf("malloc(4096) fallo en el bloque %d\n", i+1);
+            break;
+        }
+        printf("malloc(4096) bloque %d = ", i+1);
+        printHex64((uint64_t)ptrs[i]);
+        printf("\n");
+    }
+    for (int j = 0; j < i; j++) {
+        free(ptrs[j]);
+    }
+    printf("=== Prueba completada ===\n");
+}
+
+void user_meminfo(void) {
+    meminfo();
 }

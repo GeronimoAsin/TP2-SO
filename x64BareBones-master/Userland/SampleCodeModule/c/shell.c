@@ -117,104 +117,36 @@ void startShell() {
         int cmd = interpret(buffer);
         switch (cmd) {
             case 0: // help
-                printf(help_text);
+                user_help(help_text);
                 break;
             case 2: // clear screen
-                clearScreen();
+                user_clear();
                 break;
             case 3: { // echo
-                // Imprime lo que sigue después de "echo "
                 const char *toPrint = buffer + 4;
-                while (*toPrint == ' ' || *toPrint == '\t')
-                toPrint++;
-                printf(toPrint);
+                user_echo(toPrint);
                 break;
             }
-            case 4: { // time
-                printTime();
+            case 4: // time
+                user_time();
                 break;
-            }
-            case 5: { // registers
-                print_registers();
+            case 5: // registers
+                user_registers();
                 break;
-            }
-            case 6: { // memtest
-                printf("=== Prueba de memoria ===\n");
-
-                // Primera asignación
-                void *p1 = malloc(32);
-                if (p1 == NULL) {
-                    printf("malloc(32) fallo\n");
-                    break;
-                }
-                printf("malloc(32) = ");
-                printHex64((uint64_t)p1);
-                printf("\n");
-
-                // Segunda asignación
-                void *p2 = malloc(64);
-                if (p2 == NULL) {
-                    printf("malloc(64) fallo\n");
-                    free(p1);
-                    break;
-                }
-                printf("malloc(64) = ");
-                printHex64((uint64_t)p2);
-                printf("\n");
-
-                // Libero primera asignación
-                printf("Liberando ");
-                printHex64((uint64_t)p1);
-                printf("...\n");
-                free(p1);
-
-                // Nueva asignación
-                void *p3 = malloc(16);
-                if (p3 == NULL) {
-                    printf("malloc(16) fallo\n");
-                    free(p2);
-                    break;
-                }
-                printf("malloc(16) = ");
-                printHex64((uint64_t)p3);
-                print("\n");
-
-                // Limpieza
-                free(p2);
-                free(p3);
-                printf("=== Prueba completada ===\n");
+            case 6: // memtest
+                user_memtest();
                 break;
-            }
-            case 7: { // memchunks
-                printf("=== Prueba de chunks consecutivos ===\n");
-                void *ptrs[4];
-                int i;
-                for (i = 0; i < 4; i++) {
-                    ptrs[i] = malloc(4096);
-                    if (ptrs[i] == NULL) {
-                        printf("malloc(4096) fallo en el bloque %d\n", i+1);
-                        break;
-                    }
-                    printf("malloc(4096) bloque %d = ", i+1);
-                    printHex64((uint64_t)ptrs[i]);
-                    printf("\n");
-                }
-                // Liberar los bloques asignados
-                for (int j = 0; j < i; j++) {
-                    free(ptrs[j]);
-                }
-                printf("=== Prueba completada ===\n");
+            case 7: // memchunks
+                user_memchunks();
                 break;
-            }
             case 8: {
                  int a = 1;
                  int c = a / 0;
-				//genera una excepcion de division por cero
-				break;
-			}
-			case 9:
+                break;
+            }
+            case 9:
                 invalidOp();
-				break;
+                break;
             case 10: { // test_mm
                 // Buscar el primer token numérico tras el comando "test_mm"
                 char *p = buffer;
@@ -255,10 +187,8 @@ void startShell() {
                 break;
             }
             case 11:
-            {
-                meminfo();
+                user_meminfo();
                 break;
-            }
             default:
                 printf("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");
         }

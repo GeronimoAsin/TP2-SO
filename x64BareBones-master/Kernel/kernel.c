@@ -336,6 +336,10 @@ int main()
         printString("Proceso shell creado, PID: ");
         printDec64((uint64_t)getMaxPid(pm));
 
+         // entry point a Userland
+        ((EntryPoint)sampleCodeModuleAddress)();
+
+
     return 0;
 }
 
