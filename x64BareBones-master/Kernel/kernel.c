@@ -331,7 +331,16 @@ int main()
         // ============================================
         // Crear e iniciar el proceso shell
         // ============================================
-        (EntryPoint)sampleCodeModuleAddress;
+        printString("Creando proceso shell...");
+        newLine();
+        createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL);
+        printString("Proceso shell creado, PID: ");
+        printDec64((uint64_t)getMaxPid(pm));
+
+         // entry point a Userland
+        ((EntryPoint)sampleCodeModuleAddress)();
+
+
     return 0;
 }
 
