@@ -5,6 +5,26 @@
 #include "../include/lib.h"
 #include <string.h>
 
+static void printDec64(uint64_t value)
+{
+    char buf[21]; // 20 dígitos + null terminator
+    int i = 20;
+    buf[i] = '\0';
+    if (value == 0)
+    {
+        buf[--i] = '0';
+    }
+    else
+    {
+        while (value > 0 && i > 0)
+        {
+            buf[--i] = '0' + (value % 10);
+            value /= 10;
+        }
+    }
+    printString(&buf[i]);
+}
+
 static void printHex64(uint64_t value)
 {
     char buf[19]; // "0x" + 16 hex + '\0'
@@ -41,7 +61,7 @@ ProcessManagerADT createProcessManager(MemoryManagerADT memoryManager) {
     ProcessManagerADT pm = (ProcessManagerADT) allocateMemory(memoryManager, sizeof(ProcessManagerCDT));
     printHex64(pm);
     pm->maxPid = 0;
-    pm->currentPid = -1;
+    pm->currentPid = 0;
     pm->readyQueue = createPriorityQueue(memoryManager);
     pm->allProcesses = createList(memoryManager);
     pm->blockedProcesses = createList(memoryManager);
@@ -55,19 +75,19 @@ ProcessManagerADT getGlobalProcessManager() {
     return globalProcessManager;
 }
 
-void createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv){
+pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv){
     pm->maxPid += 1;
     PCB *newProcess = (PCB *) allocateMemory(pm->memoryManager, sizeof(PCB));
     
     newProcess->pid = pm->maxPid;
-    newProcess->parentPid = -1; // No parent for now
+    newProcess->parentPid = pm->currentPid ? pm->currentPid : -1; // No parent for now
     newProcess->priority = priority;
     newProcess->state = 1; // Ready state
     newProcess->foreground = 1; // Foreground process
     newProcess->name = name;
     newProcess->stackSize = PROCESS_STACK_SIZE;
     newProcess->stackBase = (uint64_t *) allocateMemory(pm->memoryManager, newProcess->stackSize);
-
+    newProcess->waitingToRead = 0;
     // Calcular el tope del stack (crece hacia abajo)
     uint64_t stack_top = (uint64_t)(newProcess->stackBase) + PROCESS_STACK_SIZE;
 
@@ -108,6 +128,7 @@ void createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int pr
     enqueue(pm->readyQueue, newProcess);
     addToList(pm->allProcesses, newProcess);
     schedules();
+    return newProcess->pid;
 }
 
 pid_t getPid(ProcessManagerADT processManager) {
@@ -146,8 +167,24 @@ void clearAllProcesses(ProcessManagerADT processManager) {
 }
 
 void printProcesses(ProcessManagerADT processManager) {
-    // TODO: Implementar listado de procesos
-    // Recorrer processManager->allProcesses e imprimir info de cada PCB
+    printString("All Processes:");
+    newLine();
+    for (int i = 0; i < listSize(processManager->allProcesses); i++) {
+        PCB *proc = getAt(processManager->allProcesses, i);
+        printString("PID: ");
+        printDec64(proc->pid);
+        printString(", Name: ");
+        printString(proc->name);
+        printString(", State: ");
+        printDec64(proc->state);
+        printString(", Priority: ");
+        printDec64(proc->priority);
+        printString(", Stack Pointer: ");
+        printHex64((uint64_t)(proc->stackPointer));
+        printString(", Parent PID: ");
+        printDec64(proc->parentPid);
+        newLine();
+    }
 }
 
 void kill(ProcessManagerADT processManager, pid_t processId) {
@@ -195,6 +232,23 @@ void unblock(ProcessManagerADT processManager, pid_t processId) {
         process->state = 1;  // READY
         removeFromListByProcess(processManager->blockedProcesses, process);
         enqueue(processManager->readyQueue, process);
+        schedules();
+    }
+}
+
+void waitingToRead(ProcessManagerADT processManager, pid_t processId) {
+    PCB *process = findInList(processManager->allProcesses, processId);  
+    if (process) {
+        process->waitingToRead = 1;
+        block(processManager, processId);
+    }
+}
+
+void unblockBecauseItRead(ProcessManagerADT processManager) {
+    PCB * process = findFirstWaitingToRead(processManager->blockedProcesses);
+    if (process) {
+        process->waitingToRead = 0;
+        unblock(processManager, process->pid);
     }
 }
 
@@ -214,6 +268,9 @@ void waitPid(ProcessManagerADT processManager, pid_t childPid) {
     if (child->state != 3) {  
         block(processManager, processManager->currentPid);  
     }
+    removeFromListByProcess(processManager->allProcesses, childPid);  
+    freeMemory(processManager->memoryManager, child->stackBase);
+    freeMemory(processManager->memoryManager, child);
 }
 
 void destroyProcessManager(ProcessManagerADT processManager) {
@@ -234,9 +291,6 @@ uint64_t schedule(uint64_t current_rsp) {
 
     // Guardar el RSP del proceso actual
     if (currentProcess && currentProcess->state == 2) { // RUNNING
-        printString("[SCHED] Guardando proceso actual PID: ");
-        printHex64(currentProcess->pid);
-        newLine();
         currentProcess->stackPointer = (uint64_t *)current_rsp;
         currentProcess->state = 1; // READY
         enqueue(pm->readyQueue, currentProcess);
@@ -245,8 +299,6 @@ uint64_t schedule(uint64_t current_rsp) {
     // Obtener el siguiente proceso
     PCB *nextProcess = dequeue(pm->readyQueue);
     if (!nextProcess) {
-        printString("[SCHED] No hay procesos en la cola");
-        newLine();
         // No hay procesos listos, continuar con el actual
         if (currentProcess && currentProcess->state == 1) {
             currentProcess->state = 2;
@@ -261,4 +313,14 @@ uint64_t schedule(uint64_t current_rsp) {
     pm->currentPid = nextProcess->pid;
 
     return (uint64_t)nextProcess->stackPointer;
+}
+
+void exitProcess(ProcessManagerADT pm, pid_t processId) {
+    PCB *process = findInList(pm->allProcesses, processId);  
+    if (process) {
+        process->state = 3;  // TERMINATED
+        removeFromQueue(pm->readyQueue, process); 
+        unblock(pm, process->parentPid);
+    }
+    printProcesses(pm);
 }

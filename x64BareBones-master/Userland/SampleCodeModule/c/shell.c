@@ -21,6 +21,9 @@ static char *help_text =
     "- meminfo: Informacion de la memoria \n"
     "- memtest: Test de asignacion y liberacion de memoria del memManager\n"
     "- memchunks: Test de asignacion de varios chunks consecutivos de memoria\n"
+    "- foo: Crea un proceso que imprime indefinidamente\n"
+    "- getPid: Muestra el PID del proceso actual\n"
+    "- ps: Lista informacion de todos los procesos\n"
     "- test_mm: Test de stress del memory manager de la catedra (requiere un argumento de cantidad maxima de memoria)\n";
 
 
@@ -94,6 +97,8 @@ static int interpret(const char *cmd) {
     if (strcmp(cmd, "memchunks\n") == 0) return 7;
     if (strcmp(cmd, "meminfo\n") == 0) return 11;
     if (strcmp(cmd, "foo\n") == 0) return 12;
+    if (strcmp(cmd, "getPid\n") == 0) return 13;
+    if (strcmp(cmd, "ps\n") == 0) return 14;
     // Acepta "test_mm" seguido de espacio/tab/newline, signo o dígito, o incluso sin separador antes del número
     if (strncmp(cmd, "test_mm", 7) == 0) {
         char c = cmd[7];
@@ -192,6 +197,14 @@ void startShell() {
                 break;
             case 12:
                 createProcess(&foo, "foo_process", 0, NULL);
+                break;
+            case 13: { // getPid
+                uint64_t pid = getPid();
+                printf("PID del proceso actual: %d\n", pid);
+                break;
+            }
+            case 14: // ps
+                printProcesses();
                 break;
             default:
                 printf("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");

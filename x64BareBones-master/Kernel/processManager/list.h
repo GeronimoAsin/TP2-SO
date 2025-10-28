@@ -31,4 +31,6 @@ void destroyList(ListADT list);
 PCB* removeFirstFromList(ListADT list);
 int isListEmpty(ListADT list);
 
+PCB * findFirstWaitingToRead(ListADT list);
+
 #endif // LIST_H

@@ -1,6 +1,7 @@
 #include "../include/keyboardDriver.h"
 #include <stdint.h>
 #include "../include/videoDriver.h"
+#include "../processManager/processManager.h"
 
 #define KEYBOARD_BUFFER_SIZE 128
 
@@ -38,6 +39,7 @@ void keyboard_buffer_push(char c) {
     if (next != kb_tail) { // buffer no lleno
         keyboard_buffer[kb_head] = c;
         kb_head = next;
+        //unblockBecauseItRead(getGlobalProcessManager());
        // printChar('*'); // DEBUG: imprime un asterisco cada vez que se guarda algo
     }
 }

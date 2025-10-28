@@ -79,7 +79,23 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 12:
             return (uint64_t) sys_meminfo();
         case 13:
-            createProcess(getGlobalProcessManager(), (void (*) (int, char**)) rbx, (int) rdx, (char *) rcx, (int) r8, (char **) r9);
+            return createProcess(getGlobalProcessManager(), (void (*) (int, char**)) rbx, (int) rdx, (char *) rcx, (int) r8, (char **) r9);
+        case 14:
+            return getPid(getGlobalProcessManager());
+        case 15:
+            printProcesses(getGlobalProcessManager());
+            return 1;
+        case 16:
+            waitingToRead(getGlobalProcessManager(), (pid_t) rbx);
+            return 1;
+        case 17:
+            unblockBecauseItRead(getGlobalProcessManager());
+            return 1;
+        case 18:
+            waitPid(getGlobalProcessManager(), (pid_t) rbx);
+            return 1;
+        case 19:
+            exitProcess(getGlobalProcessManager(), (pid_t) rbx);
             return 1;
         default:
             return -1;

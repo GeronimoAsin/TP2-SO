@@ -265,6 +265,7 @@ void unsigned_numtohex64(uint64_t num, char *str) {
 //Syscalls:
 
 int read(int fd, char *buffer, int count) {
+    //syscall(16, getPid(), 0, 0, 0, 0);
     return syscall(0, fd, (uint64_t)buffer, count, 0, 0);
 }
 
@@ -310,12 +311,17 @@ void free(void *ptr)
     syscall(11, (uint64_t)ptr, 0, 0, 0, 0);
 }
 
-int64_t my_getpid() {
-    return syscall(12, 0, 0, 0, 0, 0);
+uint64_t getPid() {
+    return syscall(14, 0, 0, 0, 0, 0);
 }
 
 void createProcess(void (*start_routine)(int, char**),char * name, int argc, char **argv) {
-    syscall(13, (uint64_t)start_routine, 1, name ,argc, (uint64_t)argv);
+    pid_t pid =syscall(13, (uint64_t)start_routine, 1, name ,argc, (uint64_t)argv);
+    waitPid(pid);
+}
+
+void printProcesses() {
+    syscall(15, 0, 0, 0, 0, 0);
 }
 
 void meminfo() {
@@ -428,8 +434,19 @@ void user_meminfo(void) {
 }
 
 void foo() {
-    while (1) {
-        for(int i= 0; i<100000000; i++); // Retardo
-        printf("Proceso foo (PID %d) ejecutandose...\n", my_getpid());
+    printf("Proceso foo (PID %d) ejecutandose...\n", getPid());
+    printProcesses();
+    for(int i= 0; i<100; i++){ // Retardo
+        
     }
+    printf("END\n");
+    exit(getPid());
+}
+
+void waitPid(pid_t pid) {
+    syscall(18, (uint64_t)pid, 0, 0, 0, 0);
+}
+
+void exit(pid_t pid) {
+    syscall(19, (uint64_t)pid, 0, 0, 0, 0);
 }

@@ -11,7 +11,7 @@ ProcessManagerADT createProcessManager(MemoryManagerADT memoryManager);
 
 ProcessManagerADT getGlobalProcessManager(); // para usar en time.c
 
-void createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv);
+pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv);
 
 pid_t getPid(ProcessManagerADT processManager);
 
