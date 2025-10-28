@@ -1,5 +1,5 @@
 extern getStackBase
-extern printString
+
 GLOBAL _cli
 GLOBAL _sti
 GLOBAL picMasterMask
@@ -19,6 +19,7 @@ GLOBAL _exception0Handler
 GLOBAL _exception6Handler
 
 global getGlobalSavedContext
+
 
 EXTERN irqDispatcher
 EXTERN exceptionDispatcher
@@ -155,8 +156,6 @@ picSlaveMask:
 
 ;8254 Timer (Timer Tick)
 _irq00Handler:
-    mov rdi, msj
-    call printString
     mov [savedRegisters + 0x00], rax
     mov [savedRegisters + 0x08], rbx
     mov [savedRegisters + 0x10], rcx

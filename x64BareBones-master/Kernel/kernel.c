@@ -338,7 +338,7 @@ int main()
         printDec64((uint64_t)getMaxPid(pm));
 
          // entry point a Userland
-        ((EntryPoint)sampleCodeModuleAddress)();
+        //((EntryPoint)sampleCodeModuleAddress)();
 
 
     return 0;

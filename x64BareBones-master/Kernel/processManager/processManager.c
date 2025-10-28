@@ -3,6 +3,22 @@
 #include "priorityQueue.h"
 #include "../include/time.h"
 
+static void printHex64(uint64_t value)
+{
+    char buf[19]; // "0x" + 16 hex + '\0'
+    buf[0] = '0';
+    buf[1] = 'x';
+    for (int i = 0; i < 16; i++)
+    {
+        uint8_t nibble = (value >> ((15 - i) * 4)) & 0xF;
+        buf[2 + i] = (nibble < 10) ? ('0' + nibble) : ('A' + (nibble - 10));
+    }
+    buf[18] = '\0';
+    printString(buf);
+}
+
+extern void schedules();
+
 #define STACK_SIZE 0x4000 // 16 KiB
 
 typedef struct ProcessManagerCDT {
@@ -19,6 +35,7 @@ static ProcessManagerADT globalProcessManager = NULL;
 
 ProcessManagerADT createProcessManager(MemoryManagerADT memoryManager) {
     ProcessManagerADT pm = (ProcessManagerADT) allocateMemory(memoryManager, sizeof(ProcessManagerCDT));
+    printHex64(pm);
     pm->maxPid = 0;
     pm->currentPid = -1;
     pm->readyQueue = createPriorityQueue(memoryManager);
@@ -48,6 +65,12 @@ void createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int pr
     newProcess->stackBase = (uint64_t *) allocateMemory(pm->memoryManager, STACK_SIZE); //CHEQUEAR
     newProcess->stackPointer = newProcess->stackBase + (STACK_SIZE/sizeof(uint64_t)) - 1;  // Final del stack
     newProcess->basePointer = newProcess->stackPointer;  // Inicialmente iguales
+
+    printHex64(newProcess->stackPointer);
+    newLine();
+    printHex64(newProcess->stackBase);
+    newLine();
+
     newProcess->argc = argc;
     newProcess->argv = argv;
     newProcess->instructionPointer = (uint64_t *) entryPoint;
@@ -67,7 +90,7 @@ void createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int pr
     
     enqueue(pm->readyQueue, newProcess);
     addToList(pm->allProcesses, newProcess);
-    schedule();
+    schedules();
 }
 
 pid_t getPid(ProcessManagerADT processManager) {
@@ -118,7 +141,7 @@ void kill(ProcessManagerADT processManager, pid_t processId) {
         removeFromListByProcess(processManager->allProcesses, process);  
         freeMemory(processManager->memoryManager, process->stackBase);
         freeMemory(processManager->memoryManager, process);
-        schedule();
+        schedules();
     }
 }
 
@@ -145,7 +168,7 @@ void block(ProcessManagerADT processManager, pid_t processId) {
         }
         
         addToList(processManager->blockedProcesses, process);  
-        schedule();
+        schedules();
     }
 }
 
@@ -228,10 +251,13 @@ void loadContextFromPCB(PCB *pcb, uint64_t *savedContext) {
     savedContext[18] = pcb->context.rflags;
     savedContext[19] = pcb->context.ss; 
     savedContext[20] = pcb->context.align;
+    
+
 }
 
 
 void scheduler_tick(ProcessManagerADT pm, uint64_t *savedContext) {
+    
     PCB *currentProcess = pm->currentProcess;
     if (currentProcess) {
         saveContextToPCB(currentProcess, savedContext);
@@ -247,11 +273,11 @@ void scheduler_tick(ProcessManagerADT pm, uint64_t *savedContext) {
             currentProcess->state = 1; // READY
             enqueue(pm->readyQueue, currentProcess); // Volver a la cola
         }
-        
         nextProcess->state = 2; // RUNNING
         pm->currentProcess = nextProcess;
         pm->currentPid = nextProcess->pid;
         loadContextFromPCB(nextProcess, savedContext);
+        for(int i=0; i<10000000000; i++); // Pequeña espera para visualizar cambios
     }
 
 }

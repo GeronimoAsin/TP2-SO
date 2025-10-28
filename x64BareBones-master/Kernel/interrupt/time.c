@@ -7,9 +7,9 @@ static unsigned long ticks = 0;
 
 void timer_handler(uint64_t *savedContext) {
 	ticks++;
-	newLine();
 	ProcessManagerADT pm = getGlobalProcessManager();
 	if (pm){
+		
 		scheduler_tick(pm, savedContext);
 	}
 }
@@ -22,9 +22,3 @@ int seconds_elapsed() {
 	return ticks / 18;
 }
 
-void schedule(){
-	ProcessManagerADT pm = getGlobalProcessManager();
-	if (pm){
-		scheduler_tick(pm, getGlobalSavedContext());
-	}
-}
