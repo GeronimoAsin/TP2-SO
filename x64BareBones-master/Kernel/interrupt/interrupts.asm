@@ -159,7 +159,6 @@ picSlaveMask:
 ;8254 Timer (Timer Tick)
 _irq00Handler:
     pushState
-
     ; Incrementar ticks
     xor rdi, rdi
     call timer_handler

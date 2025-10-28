@@ -85,7 +85,6 @@ void *initializeKernelBinary()
 
 int main()
 {
-    load_idt();
 
 
     // test muy basico del memory manager
@@ -336,14 +335,14 @@ int main()
         // Crear e iniciar el proceso shell
         // ============================================
        printString("Creando proceso shell...");
-        newLine();
+       newLine();
        createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL);
        printString("Proceso shell creado, PID: ");
        printDec64((uint64_t)getMaxPid(pm));
        newLine();
        newLine();
 
-
+        load_idt();
     return 0;
 }
 }

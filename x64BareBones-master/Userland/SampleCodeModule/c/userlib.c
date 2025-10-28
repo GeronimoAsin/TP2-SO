@@ -16,7 +16,7 @@ typedef struct MemoryManagerCDT {
 
 typedef MemoryManagerCDT * MemoryManagerADT;
 
-extern uint64_t syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
+extern uint64_t syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx, uint64_t r8, uint64_t r9);
 
 
 void unsigned_numtostr(unsigned int num, char *str) {
@@ -265,57 +265,61 @@ void unsigned_numtohex64(uint64_t num, char *str) {
 //Syscalls:
 
 int read(int fd, char *buffer, int count) {
-    return syscall(0, fd, (uint64_t)buffer, count);
+    return syscall(0, fd, (uint64_t)buffer, count, 0, 0);
 }
 
 int write(int fd, const char *buffer, int count) {
-    return syscall(1, fd, (uint64_t)buffer, count);
+    return syscall(1, fd, (uint64_t)buffer, count, 0, 0);
 }
 
 int clearScreen() {
-    return syscall(2, 0, 0, 0);
+    return syscall(2, 0, 0, 0, 0, 0);
 }
 
 int drawCursor() {
-    return syscall(7, 0, 0, 0);
+    return syscall(7, 0, 0, 0, 0, 0);
 }
 
 int clearCursor() {
-    return syscall(8, 0, 0, 0);
+    return syscall(8, 0, 0, 0, 0, 0);
 }
 
 int beep() {
-    return syscall(6, 0, 0, 0);
+    return syscall(6, 0, 0, 0, 0, 0);
 }
 
 int deleteLastChar() {
-    return syscall(5, 0, 0, 0);
+    return syscall(5, 0, 0, 0, 0, 0);
 }
 
 uint64_t getRegisters(uint64_t *regs) {
-    return syscall(4, (uint64_t)regs, 0, 0);
+    return syscall(4, (uint64_t)regs, 0, 0, 0, 0);
 }
 
 int getTime(uint64_t *t) {
-    return syscall(3, 0, (uint64_t)t, 0);
+    return syscall(3, 0, (uint64_t)t, 0, 0, 0);
 }
 
 void * malloc(size_t size)
 {
-    return (void *)syscall(10, (uint64_t)size, 0, 0);
+    return (void *)syscall(10, (uint64_t)size, 0, 0, 0, 0);
 }
 
 void free(void *ptr)
 {
-    syscall(11, (uint64_t)ptr, 0, 0);
+    syscall(11, (uint64_t)ptr, 0, 0, 0, 0);
 }
 
 int64_t my_getpid() {
-    return syscall(12, 0, 0, 0);
+    return syscall(12, 0, 0, 0, 0, 0);
+}
+
+void createProcess(void (*start_routine)(int, char**),char * name, int argc, char **argv) {
+    syscall(13, (uint64_t)start_routine, 1, name ,argc, (uint64_t)argv);
 }
 
 void meminfo() {
-    MemoryManagerADT mem = (MemoryManagerADT) syscall(12, 0, 0, 0);
+    MemoryManagerADT mem = (MemoryManagerADT) syscall(12, 0, 0, 0, 0, 0);
 
  if (!mem) {
        printf("No se pudo obtener información de memoria.\n");
@@ -421,4 +425,11 @@ void user_memchunks(void) {
 
 void user_meminfo(void) {
     meminfo();
+}
+
+void foo() {
+    while (1) {
+        for(int i= 0; i<100000000; i++); // Retardo
+        printf("Proceso foo (PID %d) ejecutandose...\n", my_getpid());
+    }
 }

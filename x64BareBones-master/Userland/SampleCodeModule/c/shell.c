@@ -93,6 +93,7 @@ static int interpret(const char *cmd) {
 	if (strcmp(cmd, "invalidOp\n") == 0) return 9;
     if (strcmp(cmd, "memchunks\n") == 0) return 7;
     if (strcmp(cmd, "meminfo\n") == 0) return 11;
+    if (strcmp(cmd, "foo\n") == 0) return 12;
     // Acepta "test_mm" seguido de espacio/tab/newline, signo o dígito, o incluso sin separador antes del número
     if (strncmp(cmd, "test_mm", 7) == 0) {
         char c = cmd[7];
@@ -188,6 +189,9 @@ void startShell() {
             }
             case 11:
                 user_meminfo();
+                break;
+            case 12:
+                createProcess(&foo, "foo_process", 0, NULL);
                 break;
             default:
                 printf("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");

@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "memoryManager/memoryManager.h"
+#include "processManager/processManager.h"
 #define REGISTERS 18
 
 typedef struct MemoryManagerCDT * MemoryManagerADT;
@@ -77,6 +78,9 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             return 1;
         case 12:
             return (uint64_t) sys_meminfo();
+        case 13:
+            createProcess(getGlobalProcessManager(), (void (*) (int, char**)) rbx, (int) rdx, (char *) rcx, (int) r8, (char **) r9);
+            return 1;
         default:
             return -1;
     }   

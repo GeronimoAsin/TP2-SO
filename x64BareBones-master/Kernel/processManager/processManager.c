@@ -231,10 +231,6 @@ uint64_t schedule(uint64_t current_rsp) {
 
     PCB *currentProcess = pm->currentProcess;
 
-    // DEBUG
-    printString("[SCHED] current_rsp: ");
-    printHex64(current_rsp);
-    newLine();
 
     // Guardar el RSP del proceso actual
     if (currentProcess && currentProcess->state == 2) { // RUNNING
@@ -259,12 +255,6 @@ uint64_t schedule(uint64_t current_rsp) {
         return current_rsp;
     }
 
-    // Cambiar al siguiente proceso
-    printString("[SCHED] Cambiando a PID: ");
-    printHex64(nextProcess->pid);
-    printString(" RSP: ");
-    printHex64((uint64_t)nextProcess->stackPointer);
-    newLine();
 
     nextProcess->state = 2; // RUNNING
     pm->currentProcess = nextProcess;
