@@ -80,7 +80,7 @@ pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int p
     PCB *newProcess = (PCB *) allocateMemory(pm->memoryManager, sizeof(PCB));
     
     newProcess->pid = pm->maxPid;
-    newProcess->parentPid = pm->currentPid ? pm->currentPid : -1; // No parent for now
+    newProcess->parentPid = pm->currentPid ? pm->currentPid : 0; // No parent for now
     newProcess->priority = priority;
     newProcess->state = 1; // Ready state
     newProcess->foreground = 1; // Foreground process
