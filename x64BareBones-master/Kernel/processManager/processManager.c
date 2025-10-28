@@ -2,6 +2,8 @@
 #include "list.h"
 #include "priorityQueue.h"
 #include "../include/time.h"
+#include "../include/lib.h"
+#include <string.h>
 
 static void printHex64(uint64_t value)
 {
@@ -18,8 +20,10 @@ static void printHex64(uint64_t value)
 }
 
 extern void schedules();
+extern uint64_t fill_stack(uint64_t stack_top, uint64_t entry_point, uint64_t argc, uint64_t argv);
 
-#define STACK_SIZE 0x4000 // 16 KiB
+// Stack size para procesos: debe ser <= 4096 bytes (tamaño de chunk del memory manager)
+#define PROCESS_STACK_SIZE 4096
 
 typedef struct ProcessManagerCDT {
     pid_t maxPid;
@@ -61,12 +65,13 @@ void createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int pr
     newProcess->state = 1; // Ready state
     newProcess->foreground = 1; // Foreground process
     newProcess->name = name;
-    newProcess->stackSize = STACK_SIZE;
-    newProcess->stackBase = (uint64_t *) allocateMemory(pm->memoryManager, STACK_SIZE); //CHEQUEAR
-    newProcess->stackPointer = newProcess->stackBase + (STACK_SIZE/sizeof(uint64_t)) - 1;  // Final del stack
-    newProcess->basePointer = newProcess->stackPointer;  // Inicialmente iguales
+    newProcess->stackSize = PROCESS_STACK_SIZE;
+    newProcess->stackBase = (uint64_t *) allocateMemory(pm->memoryManager, newProcess->stackSize);
 
-    printHex64(newProcess->stackPointer);
+    // Calcular el tope del stack (crece hacia abajo)
+    uint64_t stack_top = (uint64_t)(newProcess->stackBase) + PROCESS_STACK_SIZE;
+
+    printHex64(stack_top);
     newLine();
     printHex64(newProcess->stackBase);
     newLine();
@@ -75,14 +80,26 @@ void createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int pr
     newProcess->argv = argv;
     newProcess->instructionPointer = (uint64_t *) entryPoint;
     
+    printString("Entry point: ");
+    printHex64((uint64_t)entryPoint);
+    newLine();
 
+    // Usar fill_stack para inicializar el stack del proceso
+    uint64_t new_rsp = fill_stack(stack_top, (uint64_t)entryPoint, (uint64_t)argc, (uint64_t)argv);
+
+    printString("new_rsp returned: ");
+    printHex64(new_rsp);
+    newLine();
+
+    newProcess->stackPointer = (uint64_t *)new_rsp;
+    newProcess->basePointer = (uint64_t *)new_rsp;
 
     // Inicializar contexto básico
     memset(&newProcess->context, 0, sizeof(Context));
     newProcess->context.rip = (uint64_t)entryPoint;
-    newProcess->context.rsp = (uint64_t)newProcess->stackPointer;
-    newProcess->context.rbp = (uint64_t)newProcess->basePointer;
-    newProcess->context.rflags = 0x202;  
+    newProcess->context.rsp = new_rsp;
+    newProcess->context.rbp = new_rsp;
+    newProcess->context.rflags = 0x202;
     newProcess->context.cs = 0x08;       
     newProcess->context.ss = 0x00;       
     newProcess->context.rdi = argc;      
@@ -167,7 +184,7 @@ void block(ProcessManagerADT processManager, pid_t processId) {
             removeFromQueue(processManager->readyQueue, process); 
         }
         
-        addToList(processManager->blockedProcesses, process);  
+        addToList(processManager->blockedProcesses, process);
         schedules();
     }
 }
@@ -205,79 +222,53 @@ void destroyProcessManager(ProcessManagerADT processManager) {
     freeMemory(processManager->memoryManager, processManager);
 }
 
-void saveContextToPCB(PCB *pcb, uint64_t *savedContext) {
-    pcb->context.rax = savedContext[0];
-    pcb->context.rbx = savedContext[1];  
-    pcb->context.rcx = savedContext[2];
-    pcb->context.rdx = savedContext[3];
-    pcb->context.rsi = savedContext[4];
-    pcb->context.rdi = savedContext[5];
-    pcb->context.rsp = savedContext[6];
-    pcb->context.rbp = savedContext[7];
-    pcb->context.r8 = savedContext[8];
-    pcb->context.r9 = savedContext[9];
-    pcb->context.r10 = savedContext[10];
-    pcb->context.r11 = savedContext[11];
-    pcb->context.r12 = savedContext[12];
-    pcb->context.r13 = savedContext[13];
-    pcb->context.r14 = savedContext[14];
-    pcb->context.r15 = savedContext[15];
-    pcb->context.rip = savedContext[16];    
-    pcb->context.cs = savedContext[17];     
-    pcb->context.rflags = savedContext[18];
-    pcb->context.ss = savedContext[19];     
-    pcb->context.align = savedContext[20];  
-}
+// Nueva función schedule que maneja el context switch
+uint64_t schedule(uint64_t current_rsp) {
+    ProcessManagerADT pm = getGlobalProcessManager();
+    if (!pm) {
+        return current_rsp; // No hay process manager, continuar con el proceso actual
+    }
 
-void loadContextFromPCB(PCB *pcb, uint64_t *savedContext) {
-    savedContext[0] = pcb->context.rax;
-    savedContext[1] = pcb->context.rbx;
-    savedContext[2] = pcb->context.rcx;
-    savedContext[3] = pcb->context.rdx;
-    savedContext[4] = pcb->context.rsi;
-    savedContext[5] = pcb->context.rdi;
-    savedContext[6] = pcb->context.rsp;
-    savedContext[7] = pcb->context.rbp;
-    savedContext[8] = pcb->context.r8;
-    savedContext[9] = pcb->context.r9;
-    savedContext[10] = pcb->context.r10;
-    savedContext[11] = pcb->context.r11;
-    savedContext[12] = pcb->context.r12;
-    savedContext[13] = pcb->context.r13;
-    savedContext[14] = pcb->context.r14;
-    savedContext[15] = pcb->context.r15;
-    savedContext[16] = pcb->context.rip;
-    savedContext[17] = pcb->context.cs; 
-    savedContext[18] = pcb->context.rflags;
-    savedContext[19] = pcb->context.ss; 
-    savedContext[20] = pcb->context.align;
-    
-
-}
-
-
-void scheduler_tick(ProcessManagerADT pm, uint64_t *savedContext) {
-    
     PCB *currentProcess = pm->currentProcess;
-    if (currentProcess) {
-        saveContextToPCB(currentProcess, savedContext);
+
+    // DEBUG
+    printString("[SCHED] current_rsp: ");
+    printHex64(current_rsp);
+    newLine();
+
+    // Guardar el RSP del proceso actual
+    if (currentProcess && currentProcess->state == 2) { // RUNNING
+        printString("[SCHED] Guardando proceso actual PID: ");
+        printHex64(currentProcess->pid);
+        newLine();
+        currentProcess->stackPointer = (uint64_t *)current_rsp;
+        currentProcess->state = 1; // READY
+        enqueue(pm->readyQueue, currentProcess);
     }
     
+    // Obtener el siguiente proceso
     PCB *nextProcess = dequeue(pm->readyQueue);
     if (!nextProcess) {
-        return;
-    }
-    
-    if (nextProcess != currentProcess) {
-        if (currentProcess) {
-            currentProcess->state = 1; // READY
-            enqueue(pm->readyQueue, currentProcess); // Volver a la cola
+        printString("[SCHED] No hay procesos en la cola");
+        newLine();
+        // No hay procesos listos, continuar con el actual
+        if (currentProcess && currentProcess->state == 1) {
+            currentProcess->state = 2;
+            return current_rsp;
         }
-        nextProcess->state = 2; // RUNNING
-        pm->currentProcess = nextProcess;
-        pm->currentPid = nextProcess->pid;
-        loadContextFromPCB(nextProcess, savedContext);
-        for(int i=0; i<10000000000; i++); // Pequeña espera para visualizar cambios
+        return current_rsp;
     }
 
+    // Cambiar al siguiente proceso
+    printString("[SCHED] Cambiando a PID: ");
+    printHex64(nextProcess->pid);
+    printString(" RSP: ");
+    printHex64((uint64_t)nextProcess->stackPointer);
+    newLine();
+
+    nextProcess->state = 2; // RUNNING
+    pm->currentProcess = nextProcess;
+    pm->currentPid = nextProcess->pid;
+
+    return (uint64_t)nextProcess->stackPointer;
 }

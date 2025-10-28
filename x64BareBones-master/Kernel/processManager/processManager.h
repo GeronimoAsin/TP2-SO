@@ -38,4 +38,7 @@ PriorityQueueADT getReadyQueue(ProcessManagerADT processManager);
 PCB* getCurrentProcess(ProcessManagerADT processManager);
 void clearAllProcesses(ProcessManagerADT processManager);
 
+// Context switch functions
+uint64_t schedule(uint64_t current_rsp);
+
 #endif // PROCESS_MANAGER_H

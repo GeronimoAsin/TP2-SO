@@ -189,7 +189,7 @@ int main()
 
         newLine();
 
-        /*
+/*
         // ============================================
         // Tests del Process Manager
         // ============================================
@@ -216,13 +216,16 @@ int main()
         }
         newLine();
 
+
         // Test 3: Crear un proceso de prueba simple
         printString("Test 3: Creando proceso de prueba...");
         newLine();
 
+
         // Función de prueba simple que no hace nada
         void testFunction(){
-            return;
+               printString("hola");
+                      createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL);
         }
 
         createProcess(pm, testFunction, 5, "TestProcess", 0, NULL);
@@ -234,6 +237,7 @@ int main()
         printDec64((uint64_t)getMaxPid(pm));
         printString(" (deberia ser 1)");
         newLine();
+
 
         // Test 5: Verificar que hay procesos en la cola
         printString("Test 5: Verificando cola de procesos...");
@@ -331,17 +335,15 @@ int main()
         // ============================================
         // Crear e iniciar el proceso shell
         // ============================================
-        printString("Creando proceso shell...");
+       printString("Creando proceso shell...");
         newLine();
-        createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL);
-        printString("Proceso shell creado, PID: ");
-        printDec64((uint64_t)getMaxPid(pm));
-
-         // entry point a Userland
-        //((EntryPoint)sampleCodeModuleAddress)();
+       createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL);
+       printString("Proceso shell creado, PID: ");
+       printDec64((uint64_t)getMaxPid(pm));
+       newLine();
+       newLine();
 
 
     return 0;
 }
-
 }
