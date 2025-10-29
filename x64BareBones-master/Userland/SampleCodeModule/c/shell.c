@@ -9,22 +9,6 @@ extern void invalidOp();
 #define CMD_MAX_CHARS 100
 #define PROMPT "Shell $> "
 
-static char *help_text =
-    "Comandos disponibles:\n"
-    "- help: Muestra esta ayuda\n"
-    "- clear: Limpia la pantalla\n"
-    "- echo + [texto]: Imprime el texto en pantalla\n"
-    "- time: Muestra la hora actual\n"
-    "- registers: Muestra los registros\n"
-	"- zeroDiv: Genera una excepcion de division por cero\n"
-	"- invalidOp: Genera una excepcion de operacion invalida\n"
-    "- meminfo: Informacion de la memoria \n"
-    "- memtest: Test de asignacion y liberacion de memoria del memManager\n"
-    "- memchunks: Test de asignacion de varios chunks consecutivos de memoria\n"
-    "- foo: Crea un proceso que imprime indefinidamente\n"
-    "- getPid: Muestra el PID del proceso actual\n"
-    "- ps: Lista informacion de todos los procesos\n"
-    "- test_mm: Test de stress del memory manager de la catedra (requiere un argumento de cantidad maxima de memoria)\n";
 
 
 static const char *ascii_art =
@@ -123,7 +107,7 @@ void startShell() {
         int cmd = interpret(buffer);
         switch (cmd) {
             case 0: // help
-                user_help(help_text);
+                createProcess(&help, "help_process", 0, NULL);
                 break;
             case 2: // clear screen
                 user_clear();

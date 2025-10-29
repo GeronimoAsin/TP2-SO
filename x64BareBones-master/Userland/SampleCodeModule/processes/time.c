@@ -1,0 +1,4 @@
+void time(){
+    printTime();
+    exit();
+}

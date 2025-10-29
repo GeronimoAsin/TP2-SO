@@ -436,7 +436,7 @@ void user_meminfo(void) {
 void foo() {
     printf("Proceso foo (PID %d) ejecutandose...\n", getPid());
     printProcesses();
-    for(int i= 0; i<100; i++){ // Retardo
+    for(int i= 0; i<1000000000000000000; i++){ // Retardo
         
     }
     printf("END\n");

@@ -1,0 +1,4 @@
+void clear(){
+    clearScreen();
+    exit();
+}
