@@ -79,7 +79,9 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 12:
             return (uint64_t) sys_meminfo();
         case 13:
-            return createProcess(getGlobalProcessManager(), (void (*) (int, char**)) rbx, (int) rdx, (char *) rcx, (int) r8, (char **) r9);
+            // rbx=entryPoint, rdx=foreground, rcx=name, r8=argc, r9=argv
+            // priority se establece por defecto en el Process Manager
+            return createProcess(getGlobalProcessManager(), (void (*) (int, char**)) rbx, 1, (char *) rcx, (int) r8, (char **) r9, (int) rdx);
         case 14:
             return getPid(getGlobalProcessManager());
         case 15:
@@ -96,6 +98,23 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             return 1;
         case 19:
             exitProcess(getGlobalProcessManager(), (pid_t) rbx);
+            return 1;
+        case 20:
+            return (uint64_t) fg(getGlobalProcessManager());
+        case 21:
+            kill(getGlobalProcessManager(), (pid_t) rbx);
+            return 1;
+        case 22: // my_nice: pid en rbx, nueva prioridad en rdx
+            modifyPriority(getGlobalProcessManager(), (pid_t) rbx, (int) rdx);
+            return 1;
+        case 23: // my_block: pid en rbx
+            block(getGlobalProcessManager(), (pid_t) rbx);
+            return 1;
+        case 24: // my_unblock: pid en rbx
+            unblock(getGlobalProcessManager(), (pid_t) rbx);
+            return 1;
+        case 25: // my_yield
+            leaveCPU(getGlobalProcessManager());
             return 1;
         default:
             return -1;

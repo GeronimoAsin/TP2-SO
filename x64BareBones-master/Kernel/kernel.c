@@ -224,10 +224,10 @@ int main()
         // Función de prueba simple que no hace nada
         void testFunction(){
                printString("hola");
-                      createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL);
+                      createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL, 1);
         }
 
-        createProcess(pm, testFunction, 5, "TestProcess", 0, NULL);
+        createProcess(pm, testFunction, 5, "TestProcess", 0, NULL, 1);
         printString("  Proceso de prueba creado");
         newLine();
 
@@ -251,7 +251,7 @@ int main()
         // Test 6: Crear el proceso principal (shell)
         printString("Test 6: Creando proceso principal (shell)...");
         newLine();
-        createProcess(pm, sampleCodeModuleAddress, 1, "UserlandProcess", 0, NULL);
+        createProcess(pm, sampleCodeModuleAddress, 1, "UserlandProcess", 0, NULL, 1);
         printString("  Proceso shell creado");
         newLine();
         printString("  maxPid actual: ");
@@ -262,7 +262,7 @@ int main()
         // Test 7: Crear otro proceso de prueba para testear modificación de prioridad
         printString("Test 7: Creando proceso para test de prioridad...");
         newLine();
-        createProcess(pm, testFunction, 3, "PriorityTest", 0, NULL);
+        createProcess(pm, testFunction, 3, "PriorityTest", 0, NULL, 1);
         printString("  Proceso creado con prioridad 3, PID: ");
         printDec64((uint64_t)getMaxPid(pm));
         newLine();
@@ -277,7 +277,7 @@ int main()
         // Test 9: Crear proceso para test de bloqueo
         printString("Test 9: Creando proceso para test de bloqueo...");
         newLine();
-        createProcess(pm, testFunction, 2, "BlockTest", 0, NULL);
+        createProcess(pm, testFunction, 2, "BlockTest", 0, NULL, 1);
         pid_t blockTestPid = getMaxPid(pm);
         printString("  Proceso creado, PID: ");
         printDec64((uint64_t)blockTestPid);
@@ -336,7 +336,7 @@ int main()
         // ============================================
        printString("Creando proceso shell...");
        newLine();
-       createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL);
+       createProcess(pm, sampleCodeModuleAddress, 1, "Shell", 0, NULL, 1);
        printString("Proceso shell creado, PID: ");
        printDec64((uint64_t)getMaxPid(pm));
        newLine();

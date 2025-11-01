@@ -11,7 +11,7 @@ ProcessManagerADT createProcessManager(MemoryManagerADT memoryManager);
 
 ProcessManagerADT getGlobalProcessManager(); // para usar en time.c
 
-pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv);
+pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv, int foreground);
 
 pid_t getPid(ProcessManagerADT processManager);
 
@@ -28,6 +28,8 @@ void unblock(ProcessManagerADT processManager, pid_t processId);
 void leaveCPU(ProcessManagerADT processManager);
 
 void waitPid(ProcessManagerADT processManager, pid_t childPid);
+
+pid_t fg(ProcessManagerADT processManager);
 
 void destroyProcessManager(ProcessManagerADT processManager);
 

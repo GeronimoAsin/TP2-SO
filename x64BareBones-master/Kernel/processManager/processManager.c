@@ -75,7 +75,7 @@ ProcessManagerADT getGlobalProcessManager() {
     return globalProcessManager;
 }
 
-pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv){
+pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv, int foreground){
     pm->maxPid += 1;
     PCB *newProcess = (PCB *) allocateMemory(pm->memoryManager, sizeof(PCB));
     
@@ -83,7 +83,7 @@ pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int p
     newProcess->parentPid = (pm->currentProcess != NULL) ? pm->currentProcess->pid : 0;
     newProcess->priority = priority;
     newProcess->state = 1; // Ready state
-    newProcess->foreground = 1; // Foreground process
+    newProcess->foreground = foreground; // Foreground (1) o Background (0)
     newProcess->name = name;
     newProcess->stackSize = PROCESS_STACK_SIZE;
     newProcess->stackBase = (uint64_t *) allocateMemory(pm->memoryManager, newProcess->stackSize);
@@ -183,6 +183,8 @@ void printProcesses(ProcessManagerADT processManager) {
         printHex64((uint64_t)(proc->stackPointer));
         printString(", Parent PID: ");
         printDec64(proc->parentPid);
+        printString(", Foreground: ");
+        printDec64(proc->foreground);
         newLine();
     }
 }
@@ -191,10 +193,18 @@ void kill(ProcessManagerADT processManager, pid_t processId) {
     PCB *process = findInList(processManager->allProcesses, processId);  
     if (process) {
         process->state = 3;  // TERMINATED
-        removeFromQueue(processManager->readyQueue, process); 
-        removeFromListByProcess(processManager->allProcesses, process);  
-        freeMemory(processManager->memoryManager, process->stackBase);
-        freeMemory(processManager->memoryManager, process);
+        removeFromQueue(processManager->readyQueue, process);
+        
+        // Si el padre está esperando (bloqueado), desbloquearlo
+        if (process->parentPid > 0) {
+            PCB *parent = findInList(processManager->allProcesses, process->parentPid);
+            if (parent && parent->state == 0) {  // BLOCKED
+                unblock(processManager, process->parentPid);
+            }
+        }
+        
+        // El proceso queda en estado TERMINATED en allProcesses
+        // El padre será responsable de limpiarlo con waitPid
         schedules();
     }
 }
@@ -285,6 +295,28 @@ void waitPid(ProcessManagerADT processManager, pid_t childPid) {
     freeMemory(processManager->memoryManager, child);
 }
 
+// Trae el primer proceso en background a foreground
+// Retorna el PID del proceso, o -1 si no hay procesos en background
+pid_t fg(ProcessManagerADT processManager) {
+    // Buscar el primer proceso en background (foreground == 0) que esté en estado READY o RUNNING
+    for (int i = 0; i < listSize(processManager->allProcesses); i++) {
+        PCB *proc = getAt(processManager->allProcesses, i);
+        if (proc->foreground == 0 && (proc->state == 1 || proc->state == 2)) {
+            // Marcar como foreground
+            proc->foreground = 1;
+            
+            // Si el proceso actual (shell) está en foreground, esperar a que termine
+            if (processManager->currentProcess) {
+                waitPid(processManager, proc->pid);
+            }
+            
+            return proc->pid;
+        }
+    }
+    
+    return -1; // No hay procesos en background
+}
+
 void destroyProcessManager(ProcessManagerADT processManager) {
     destroyPriorityQueue(processManager->readyQueue);
     destroyList(processManager->allProcesses);
@@ -334,14 +366,18 @@ void exitProcess(ProcessManagerADT pm, pid_t processId) {
     if (process) {
         process->state = 3;  // TERMINATED
         removeFromQueue(pm->readyQueue, process);
-
-        // Desbloqueo al padre si está esperando
+        
+        // Si el padre está esperando (bloqueado), desbloquearlo
         if (process->parentPid > 0) {
             PCB *parent = findInList(pm->allProcesses, process->parentPid);
-            if (parent && parent->state == 0) {  // BLOCKED
+            if (parent && parent->state == 0) {  // BLOCKED (esperando en waitPid)
                 unblock(pm, process->parentPid);
             }
         }
+        
+        // El proceso queda en estado TERMINATED en allProcesses
+        // El padre será responsable de limpiarlo con waitPid
+        // (Ya sea proceso foreground o background)
     }
     schedules(); // Forzar cambio de contexto
 }
