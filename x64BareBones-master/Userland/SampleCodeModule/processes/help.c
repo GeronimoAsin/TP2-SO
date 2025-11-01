@@ -14,7 +14,7 @@ static char *help_text =
     "\nNota: Agrega '&' al final de un comando para ejecutarlo en background\n"
     "Ejemplo: foo & (ejecuta foo en background)\n";
 
-void help(){
+void help(int argc, char **argv){
     printf("%s", help_text);
     my_exit();
 }

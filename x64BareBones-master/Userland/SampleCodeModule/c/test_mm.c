@@ -1,4 +1,4 @@
-#include "syscall.h"
+/*#include "syscall.h"
 #include "test_util.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,7 +54,7 @@ uint64_t test_mm(uint64_t argc, char *argv[]) {
                            (int)alloc_try,
                            (int)mm_rqs[rq].size);
             }
-*/
+
             alloc_try++;
 
             if (mm_rqs[rq].address) {
@@ -98,4 +98,4 @@ uint64_t test_mm(uint64_t argc, char *argv[]) {
         }
 
     }
-}
+}*/

@@ -9,7 +9,26 @@ extern void invalidOp();
 #define CMD_MAX_CHARS 100
 #define PROMPT "Shell $> "
 
-extern void help();
+extern void echo(char *str);
+extern void help(int argc, char **argv);
+extern void block();
+extern void cat();
+extern void clear(int argc, char **argv);
+extern void filter();
+extern void kill();
+extern void loop();
+extern void mem();
+extern void mvar();
+extern void nice();
+extern void ps();
+extern void registers(int argc, char **argv);
+extern void time(int argc, char **argv);
+//extern void test_mm();
+extern uint64_t test_no_sync(uint64_t argc, char *argv[]);
+extern uint64_t test_sync(uint64_t argc, char *argv[]);
+extern uint64_t test_prio(uint64_t argc, char *argv[]);
+extern int64_t test_processes(uint64_t argc, char *argv[]);
+extern void wc();
 
 static const char *ascii_art =
 "+====================================================+\n"
@@ -142,12 +161,32 @@ static int interpret(const char *cmd) {
         char c = cmd[7];
         if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || c == '+' || c == '-' || (c >= '0' && c <= '9')) return 10;
     }
+    // test_processes
+    if (strncmp(cmd, "test_processes", 14) == 0) {
+        char c = cmd[14];
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 20;
+    }
+    // test_prio
+    if (strncmp(cmd, "test_prio", 9) == 0) {
+        char c = cmd[9];
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 21;
+    }
+    // test_synchro
+    if (strncmp(cmd, "test_synchro", 12) == 0) {
+        char c = cmd[12];
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 22;
+    }
+    // test_no_synchro
+    if (strncmp(cmd, "test_no_synchro", 15) == 0) {
+        char c = cmd[15];
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 23;
+    }
     return -1;
 }
 
 // Helper para crear procesos con manejo de foreground/background
-static void createProcessAndWait(void (*entryPoint)(int, char**), char *name, int bg) {
-    pid_t pid = createProcess(entryPoint, name, 0, NULL, !bg);
+static void createProcessAndWait(void (*entryPoint)(int, char**), char *name, int argc, char **argv, int bg) {
+    pid_t pid = createProcess(entryPoint, name, argc, argv, !bg);
     if (!bg) {
         waitPid(pid);
     }
@@ -171,10 +210,10 @@ void startShell() {
         int cmd = interpret(buffer);
         switch (cmd) {
             case 0: // help
-                createProcessAndWait(&help, "help_process", bg);
+                createProcessAndWait(&help, "help_process", 0, NULL, bg);
                 break;
-            case 2: // clear screen
-                user_clear();
+            case 2: // clear
+                createProcessAndWait(&clear, "clear_process", 0, NULL, bg);
                 break;
             case 3: { // echo
                 const char *toPrint = buffer + 4;
@@ -182,69 +221,49 @@ void startShell() {
                 break;
             }
             case 4: // time
-                user_time();
+                createProcessAndWait(&time, "time_process", 0, NULL, bg);
                 break;
             case 5: // registers
-                user_registers();
+                createProcessAndWait(&registers, "registers_process", 0, NULL, bg);
                 break;
-            case 6: // memtest
-                user_memtest();
+            case 10: { // test_mm con argumentos
+                // Parsear el argumento opcional (max_memory)
+                char *p = buffer;
+                // Avanzar hasta después de "test_mm" (7 caracteres)
+                for (int k = 0; k < 7 && *p; k++) p++;
+                
+                // Saltar espacios
+                while (*p == ' ' || *p == '\t') p++;
+                
+                // Si hay un argumento, parsearlo
+                char argbuf[32];
+                int ai = 0;
+                if (*p && *p != '\n' && *p != '\r' && *p != '&') {
+                    // Copiar el argumento
+                    while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && *p != '&' && ai < 31) {
+                        argbuf[ai++] = *p++;
+                    }
+                    argbuf[ai] = '\0';
+                    
+                    // Crear array de argumentos
+                    char *argv_local[1] = { argbuf };
+                    createProcessAndWait((void (*)(int, char**))&test_mm, "memtest_process", 1, argv_local, bg);
+                } else {
+                    // Sin argumentos - mostrar mensaje de ayuda
+                    printf("Error: test_mm requiere un argumento\n");
+                    printf("Uso: test_mm <max_memory>\n");
+                    printf("Ejemplo: test_mm 10240\n");
+                }
                 break;
+            }
             case 7: // memchunks
                 user_memchunks();
                 break;
-            case 8: {
-                 int a = 1;
-                 int c = a / 0;
-                break;
-            }
-            case 9:
-                invalidOp();
-                break;
-            case 10: { // test_mm
-                // Buscar el primer token numérico tras el comando "test_mm"
-                char *p = buffer;
-                // Avanzar hasta el final del nombre "test_mm" (7 caracteres)
-                for (int k = 0; k < 7 && *p; k++) p++;
-                //numero
-                while (*p && *p != '\n' && *p != '\r' && !((*p >= '0' && *p <= '9') || *p == '+' || *p == '-')) p++;
-
-                // Si terminamos o encontramos newline sin número, error
-                if (*p == '\0' || *p == '\n' || *p == '\r') {
-                    printf("Error: uso correcto -> test_mm <max_memory>\n");
-                    break;
-                }
-
-                // Copiar el token numérico (incluye signo opcional)
-                char argbuf[32];
-                int ai = 0;
-                if (*p == '+' || *p == '-') {
-                    argbuf[ai++] = *p++;
-                }
-                while (*p >= '0' && *p <= '9' && ai < (int)(sizeof(argbuf) - 1)) {
-                    argbuf[ai++] = *p++;
-                }
-                argbuf[ai] = '\0';
-
-                if (ai == 0 || (ai == 1 && (argbuf[0] == '+' || argbuf[0] == '-'))) {
-                    printf("Error: uso correcto -> test_mm <max_memory>\n");
-                    break;
-                }
-
-                // Llamar a test_mm
-                char *argv_local[1] = { argbuf };
-                printf("=== Test de stress de memoria (test_mm) ===\n");
-                uint64_t res = test_mm(1, argv_local);
-                if (res == (uint64_t)-1) {
-                    printf("Error: uso correcto -> test_mm <max_memory>\n");
-                }
-                break;
-            }
             case 11:
                 user_meminfo();
                 break;
             case 12: // foo
-                createProcessAndWait(&foo, "foo_process", bg);
+                createProcessAndWait(&foo, "foo_process", 0, NULL, bg);
                 break;
             case 13: { // getPid
                 uint64_t pid = getPid();
@@ -376,6 +395,22 @@ void startShell() {
                 printf("Desbloqueando proceso con PID %d...\n", pidToUnblock);
                 my_unblock(pidToUnblock);
                 printf("Proceso desbloqueado\n");
+                break;
+            }
+            case 20: { // test_processes
+                //createProcessAndWait((void (*)(int, char**))&test_processes, "test_processes", 0, NULL, bg);
+                break;
+            }
+            case 21: { // test_prio
+                //createProcessAndWait((void (*)(int, char**))&test_prio, "test_prio", 0, NULL, bg);
+                break;
+            }
+            case 22: { // test_synchro
+                //createProcessAndWait((void (*)(int, char**))&test_sync, "test_synchro", 0, NULL, bg);
+                break;
+            }
+            case 23: { 
+                //createProcessAndWait((void (*)(int, char**))&test_no_synchro, "test_no_synchro", 0, NULL, bg);
                 break;
             }
             default:

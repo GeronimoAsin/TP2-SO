@@ -105,7 +105,7 @@ pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int p
     newLine();
 
     // Usar fill_stack para inicializar el stack del proceso
-    uint64_t new_rsp = fill_stack(stack_top, (uint64_t)entryPoint, (uint64_t)argc, (uint64_t)argv);
+    uint64_t new_rsp = fill_stack(stack_top, (uint64_t)entryPoint, (uint64_t)argc, (uint64_t *)argv);
 
     printString("new_rsp returned: ");
     printHex64(new_rsp);

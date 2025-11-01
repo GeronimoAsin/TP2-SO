@@ -1,8 +1,6 @@
-/*#include "syscall.h"
+#include "syscall.h"
 #include "test_util.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "userlib.h"
 
 #define MAX_BLOCKS 128
 
@@ -13,16 +11,17 @@ typedef struct MM_rq {
 
 uint64_t test_mm(uint64_t argc, char *argv[]) {
 
+  printf("Starting test_mm..., argv=%d\n", satoi(argv[0]));
   mm_rq mm_rqs[MAX_BLOCKS];
   uint8_t rq;
   uint32_t total;
   uint64_t max_memory;
 
   if (argc != 1)
-    return -1;
+    my_exit();
 
   if ((max_memory = satoi(argv[0])) <= 0)
-    return -1;
+    my_exit();
 
   while (1) {
     rq = 0;
@@ -50,12 +49,15 @@ uint64_t test_mm(uint64_t argc, char *argv[]) {
       if (mm_rqs[i].address)
         if (!memcheck(mm_rqs[i].address, i, mm_rqs[i].size)) {
           printf("test_mm ERROR\n");
-          return -1;
+          my_exit();
         }
 
     // Free
     for (i = 0; i < rq; i++)
       if (mm_rqs[i].address)
         free(mm_rqs[i].address);
+    printf("Exito parcial!");
   }
-}*/
+  printf("Exito!");
+  my_exit();
+}
