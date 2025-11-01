@@ -315,9 +315,9 @@ uint64_t getPid() {
     return syscall(14, 0, 0, 0, 0, 0);
 }
 
-void createProcess(void (*start_routine)(int, char**),char * name, int argc, char **argv) {
+pid_t createProcess(void (*start_routine)(int, char**),char * name, int argc, char **argv) {
     pid_t pid =syscall(13, (uint64_t)start_routine, 1, name ,argc, (uint64_t)argv);
-    waitPid(pid);
+    return pid;
 }
 
 void printProcesses() {
@@ -436,17 +436,18 @@ void user_meminfo(void) {
 void foo() {
     printf("Proceso foo (PID %d) ejecutandose...\n", getPid());
     printProcesses();
-    for(int i= 0; i<1000000000000000000; i++){ // Retardo
+    for(int i= 0; i<100000; i++){ // Retardo
         
     }
     printf("END\n");
-    exit(getPid());
+    my_exit();
 }
 
 void waitPid(pid_t pid) {
     syscall(18, (uint64_t)pid, 0, 0, 0, 0);
 }
 
-void exit(pid_t pid) {
-    syscall(19, (uint64_t)pid, 0, 0, 0, 0);
+void my_exit() {
+    pid_t currentPid = getPid();
+    syscall(19, (uint64_t)currentPid, 0, 0, 0, 0);
 }

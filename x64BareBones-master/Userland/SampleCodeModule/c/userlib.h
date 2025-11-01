@@ -5,7 +5,9 @@ typedef int pid_t ;
 void *malloc(size_t size);
 void free(void *ptr);
 uint64_t getPid(void);
-void createProcess(void (*start_routine)(int, char**), char *name, int argc, char **argv);
+pid_t createProcess(void (*start_routine)(int, char**), char *name, int argc, char **argv);
+void waitPid(pid_t pid);
+void my_exit(void);
 void printProcesses(void);
 void meminfo(void);
 

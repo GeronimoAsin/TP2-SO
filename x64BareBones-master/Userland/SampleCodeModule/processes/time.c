@@ -1,4 +1,4 @@
 void time(){
     printTime();
-    exit();
+    my_exit();
 }

@@ -7,5 +7,5 @@ static char *help_text =
 
 void help(){
     printf("%s", help_text);
-    exit();
+    my_exit();
 }

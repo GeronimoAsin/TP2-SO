@@ -2,5 +2,5 @@
 
 void ps() {
     printProcesses();
-    exit();
+    my_exit();
 }

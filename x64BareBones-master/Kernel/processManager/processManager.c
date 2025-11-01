@@ -228,36 +228,13 @@ void block(ProcessManagerADT processManager, pid_t processId) {
 
 void unblock(ProcessManagerADT processManager, pid_t processId) {
     PCB *process = findInList(processManager->blockedProcesses, processId);  
-    if (!process) {
-        printString("[DEBUG] unblock: Proceso PID ");
-        printDec64(processId);
-        printString(" no encontrado en lista de bloqueados");
-        newLine();
+    if (!process || process->state != 0) {
         return;
     }
-
-    if (process->state != 0) {
-        printString("[DEBUG] unblock: Proceso PID ");
-        printDec64(processId);
-        printString(" no estaba bloqueado (estado: ");
-        printDec64(process->state);
-        printString(")");
-        newLine();
-        return;
-    }
-
-    printString("[DEBUG] unblock: Desbloqueando proceso PID ");
-    printDec64(processId);
-    newLine();
 
     process->state = 1;  // READY
     removeFromListByProcess(processManager->blockedProcesses, process);
     enqueue(processManager->readyQueue, process);
-
-    printString("[DEBUG] unblock: Proceso PID ");
-    printDec64(processId);
-    printString(" ahora en READY");
-    newLine();
 }
 
 void waitingToRead(ProcessManagerADT processManager, pid_t processId) {
@@ -288,33 +265,24 @@ void leaveCPU(ProcessManagerADT processManager) {
 void waitPid(ProcessManagerADT processManager, pid_t childPid) {
     PCB *child = findInList(processManager->allProcesses, childPid);  
     if (!child) {
-        printString("[DEBUG] waitPid: Hijo PID ");
-        printDec64(childPid);
-        printString(" no encontrado");
-        newLine();
         return;
     }
 
-    printString("[DEBUG] waitPid: Padre PID ");
-    printDec64(processManager->currentPid);
-    printString(" esperando hijo PID ");
-    printDec64(childPid);
-    printString(" (estado hijo: ");
-    printDec64(child->state);
-    printString(")");
-    newLine();
-
-    if (child->state != 3) {  
-        // Hijo no terminó, bloqueo al padre
+    // Loop hasta que el hijo termine
+    while (child->state != 3) {  
         block(processManager, processManager->currentPid);
-    } else {
-        // el hijo termino, limpiamos
-        printString("[DEBUG] waitPid: Hijo ya terminado, limpiando...");
-        newLine();
-        removeFromListByProcess(processManager->allProcesses, childPid);
-        freeMemory(processManager->memoryManager, child->stackBase);
-        freeMemory(processManager->memoryManager, child);
+        
+        // Cuando se desbloquea, verificar de nuevo el estado del hijo
+        child = findInList(processManager->allProcesses, childPid);
+        if (!child) {
+            return;
+        }
     }
+    
+    // El hijo terminó, limpiamos recursos
+    removeFromListByProcess(processManager->allProcesses, child);
+    freeMemory(processManager->memoryManager, child->stackBase);
+    freeMemory(processManager->memoryManager, child);
 }
 
 void destroyProcessManager(ProcessManagerADT processManager) {
@@ -332,18 +300,17 @@ uint64_t schedule(uint64_t current_rsp) {
 
     PCB *currentProcess = pm->currentProcess;
 
-    // Guardamos el RSP del proceso actual si se esta ejecutando (RUNNING)
-    if (currentProcess && currentProcess->state == 2) { // RUNNING
+    // Guardamos el RSP del proceso actual
+    if (currentProcess) {
         currentProcess->stackPointer = (uint64_t *)current_rsp;
-        // Solo vuelve a encolar si no termino ni esta bloqueado
-        if (currentProcess->state != 3 && currentProcess->state != 0) {
+        
+        // Si está en estado RUNNING, lo volvemos a READY y encolamos
+        if (currentProcess->state == 2) { // RUNNING
             currentProcess->state = 1; // READY
             enqueue(pm->readyQueue, currentProcess);
-        } else {
-            // El proceso termino o se bloqueo, no lo vuelvo a encolar
-            pm->currentProcess = NULL;
-            pm->currentPid = 0;
-        }
+        } 
+        // Si está BLOCKED (0) o TERMINATED (3), no lo encolamos
+        // El stackPointer ya fue guardado para cuando se desbloquee o se limpie
     }
     
     // Obtener el siguiente proceso
@@ -365,34 +332,16 @@ uint64_t schedule(uint64_t current_rsp) {
 void exitProcess(ProcessManagerADT pm, pid_t processId) {
     PCB *process = findInList(pm->allProcesses, processId);  
     if (process) {
-        printString("[DEBUG] exitProcess: Proceso PID ");
-        printDec64(processId);
-        printString(" terminando. Parent PID: ");
-        printDec64(process->parentPid);
-        newLine();
-
         process->state = 3;  // TERMINATED
         removeFromQueue(pm->readyQueue, process);
 
-        // Desbloqueo al padre
+        // Desbloqueo al padre si está esperando
         if (process->parentPid > 0) {
             PCB *parent = findInList(pm->allProcesses, process->parentPid);
-            if (parent && parent->state == 0) {
-                printString("[DEBUG] exitProcess: Desbloqueando padre PID ");
-                printDec64(process->parentPid);
-                newLine();
+            if (parent && parent->state == 0) {  // BLOCKED
                 unblock(pm, process->parentPid);
             }
         }
-
-        // Limpiamos recursos del proceso terminado
-        removeFromListByProcess(pm->allProcesses, processId);
-        freeMemory(pm->memoryManager, process->stackBase);
-        freeMemory(pm->memoryManager, process);
-
-        printString("[DEBUG] exitProcess: Recursos liberados. Forzando context switch...");
-        newLine();
     }
-    printProcesses(pm);
     schedules(); // Forzar cambio de contexto
 }

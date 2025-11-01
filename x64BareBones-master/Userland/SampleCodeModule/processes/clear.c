@@ -1,4 +1,4 @@
 void clear(){
     clearScreen();
-    exit();
+    my_exit();
 }

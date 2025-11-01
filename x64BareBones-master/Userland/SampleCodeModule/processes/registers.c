@@ -1,4 +1,4 @@
 void registers(){
     print_registers();
-    exit();
+    my_exit();
 }

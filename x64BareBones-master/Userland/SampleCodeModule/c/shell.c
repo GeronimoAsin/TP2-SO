@@ -9,7 +9,7 @@ extern void invalidOp();
 #define CMD_MAX_CHARS 100
 #define PROMPT "Shell $> "
 
-
+extern void help();
 
 static const char *ascii_art =
 "+====================================================+\n"
@@ -107,7 +107,8 @@ void startShell() {
         int cmd = interpret(buffer);
         switch (cmd) {
             case 0: // help
-                createProcess(&help, "help_process", 0, NULL);
+                pid_t childPid = createProcess(&help, "help_process", 0, NULL);
+                waitPid(childPid); // Bloquea la shell hasta que el hijo termine
                 break;
             case 2: // clear screen
                 user_clear();
@@ -180,7 +181,8 @@ void startShell() {
                 user_meminfo();
                 break;
             case 12:
-                createProcess(&foo, "foo_process", 0, NULL);
+                pid_t child = createProcess(&foo, "foo_process", 0, NULL);
+                waitPid(child);
                 break;
             case 13: { // getPid
                 uint64_t pid = getPid();
