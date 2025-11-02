@@ -23,3 +23,7 @@ void user_memchunks(void);
 void user_meminfo(void);
 
 void foo(void);
+uint64_t my_sem_open(char *sem_id, uint64_t initialValue) ;
+uint64_t my_sem_wait(char *sem_id) ;
+uint64_t my_sem_post(char *sem_id) ;
+uint64_t my_sem_close(char *sem_id) ;

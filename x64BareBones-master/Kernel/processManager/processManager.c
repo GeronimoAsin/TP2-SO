@@ -41,6 +41,7 @@ static void printHex64(uint64_t value)
 
 extern void schedules();
 extern uint64_t fill_stack(uint64_t stack_top, uint64_t entry_point, uint64_t argc, uint64_t argv);
+extern void idle();
 
 // Stack size para procesos: debe ser <= 4096 bytes (tamaño de chunk del memory manager)
 #define PROCESS_STACK_SIZE 4096
@@ -53,6 +54,7 @@ typedef struct ProcessManagerCDT {
     ListADT blockedProcesses;
     MemoryManagerADT memoryManager;
     PCB * currentProcess;
+    PCB * idleProcess;
 } ProcessManagerCDT;
 
 static ProcessManagerADT globalProcessManager = NULL;
@@ -67,7 +69,32 @@ ProcessManagerADT createProcessManager(MemoryManagerADT memoryManager) {
     pm->blockedProcesses = createList(memoryManager);
     pm->memoryManager = memoryManager;
     pm->currentProcess = NULL;
+    pm->idleProcess = NULL;
     globalProcessManager = pm;
+    
+    // Crear el proceso idle (PID 0, prioridad 0 - la más baja)
+    PCB *idleProc = (PCB *) allocateMemory(memoryManager, sizeof(PCB));
+    idleProc->pid = 0;
+    idleProc->parentPid = 0;
+    idleProc->priority = 0;
+    idleProc->state = 1; // READY
+    idleProc->foreground = 0;
+    idleProc->name = "Idle";
+    idleProc->stackSize = PROCESS_STACK_SIZE;
+    idleProc->stackBase = (uint64_t *) allocateMemory(memoryManager, PROCESS_STACK_SIZE);
+    idleProc->waitingToRead = 0;
+    idleProc->argc = 0;
+    idleProc->argv = NULL;
+    
+    // Preparar el stack del proceso idle
+    uint64_t idle_stack_top = (uint64_t)(idleProc->stackBase) + PROCESS_STACK_SIZE;
+    idleProc->stackPointer = (uint64_t *)fill_stack(idle_stack_top, (uint64_t)idle, 0, 0);
+    
+    pm->idleProcess = idleProc;
+    
+    // Agregar idle a la lista de todos los procesos pero NO a la ready queue
+    addToList(pm->allProcesses, idleProc);
+    
     return pm;
 }
 
@@ -348,10 +375,8 @@ uint64_t schedule(uint64_t current_rsp) {
     // Obtener el siguiente proceso
     PCB *nextProcess = dequeue(pm->readyQueue);
     if (!nextProcess) {
-        // No hay procesos listos
-        pm->currentProcess = NULL;
-        pm->currentPid = 0;
-        return current_rsp;
+        // No hay procesos listos, usar el proceso idle
+        nextProcess = pm->idleProcess;
     }
 
     nextProcess->state = 2; // RUNNING

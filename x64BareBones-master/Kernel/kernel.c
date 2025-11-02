@@ -7,6 +7,7 @@
 #include "memoryManager/memoryManager.h"
 #include "include/lib.h"
 #include "processManager/processManager.h"
+#include "semaphores/semaphores.h"
 extern uint8_t text;
 extern uint8_t rodata;
 extern uint8_t data;
@@ -90,6 +91,8 @@ int main()
     // test muy basico del memory manager
     MemoryManagerADT mm = createMemoryManager();
     ProcessManagerADT pm = createProcessManager(mm);
+    SemaphoresADT sems = semaphores_create(mm, pm);
+    sem_open(sems, "waiting_to_read", 0);
 
     printString("MM init ");
     newLine();
@@ -99,7 +102,7 @@ int main()
     }
     else
     {
-
+/*
         // se inicializo bien la memoria
         printString("OK ");
         newLine();
@@ -188,7 +191,7 @@ int main()
 
         newLine();
 
-/*
+
         // ============================================
         // Tests del Process Manager
         // ============================================
@@ -342,7 +345,7 @@ int main()
        newLine();
        newLine();
 
-        load_idt();
+    load_idt();
     return 0;
 }
 }

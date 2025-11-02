@@ -53,4 +53,25 @@ void * memcpy(void * destination, const void * source, uint64_t length)
 	return destination;
 }
 
+int strcmp(const char *s1, const char *s2)
+{
+    int i, toReturn = 0, checked = 0;
+    for (i = 0; s1[i] && s2[i]; i++)
+    {
+        if (!checked)
+        {
+            toReturn += (s1[i] - s2[i]);
+            checked = toReturn == 0 ? 0 : 1;
+        }
+    }
+    if (s1[i])
+    {
+        toReturn = s1[i];
+    }
+    else if (s2[i])
+    {
+        toReturn = s2[i];
+    }
+    return toReturn;
+}
 

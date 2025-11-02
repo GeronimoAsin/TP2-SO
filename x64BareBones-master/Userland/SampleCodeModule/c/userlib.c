@@ -265,7 +265,7 @@ void unsigned_numtohex64(uint64_t num, char *str) {
 //Syscalls:
 
 int read(int fd, char *buffer, int count) {
-    //syscall(16, getPid(), 0, 0, 0, 0);
+    my_sem_wait("waiting_to_read");
     return syscall(0, fd, (uint64_t)buffer, count, 0, 0);
 }
 
@@ -474,4 +474,20 @@ void waitPid(pid_t pid) {
 void my_exit() {
     pid_t currentPid = getPid();
     syscall(19, (uint64_t)currentPid, 0, 0, 0, 0);
+}
+
+uint64_t my_sem_open(char *sem_id, uint64_t initialValue) {
+  return syscall(26, (uint64_t)sem_id, initialValue, 0, 0, 0);
+}
+
+uint64_t my_sem_wait(char *sem_id) {
+  return syscall(27, (uint64_t)sem_id, 0, 0, 0, 0);
+}
+
+uint64_t my_sem_post(char *sem_id) {
+  return syscall(28, (uint64_t)sem_id, 0, 0, 0, 0);
+}
+
+uint64_t my_sem_close(char *sem_id) {
+  return syscall(29, (uint64_t)sem_id, 0, 0, 0, 0);
 }

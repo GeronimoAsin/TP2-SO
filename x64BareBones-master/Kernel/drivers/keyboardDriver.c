@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "../include/videoDriver.h"
 #include "../processManager/processManager.h"
+#include "../semaphores/semaphores.h"
 
 #define KEYBOARD_BUFFER_SIZE 128
 
@@ -66,7 +67,6 @@ void readAndProcess() {
         return;
     }
     if (data == 0x01) { // ESC
-        //saveRegisters();
         return;
     }
     else if (data < 0x80) {
@@ -76,6 +76,8 @@ void readAndProcess() {
         }
         if ((ascii >= 32 && ascii <= 126) || ascii == '\n' || ascii == '\b') {
             keyboard_buffer_push(ascii);
+            // Solo hacer post cuando se agrega un carácter al buffer
+            sem_post(getGlobalSemaphoresManager(), "waiting_to_read");
         }
     }
 }

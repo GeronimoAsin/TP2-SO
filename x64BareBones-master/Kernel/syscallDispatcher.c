@@ -116,6 +116,18 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 25: // my_yield
             leaveCPU(getGlobalProcessManager());
             return 1;
+        case 26: //my_sem_open
+            sem_open(getGlobalSemaphoresManager(), (char *) rbx, (int) rdx);
+            return 1;
+        case 27: //my_sem_wait
+            sem_wait(getGlobalSemaphoresManager(), (char *) rbx);
+            return 1;
+        case 28: //my_sem_post
+            sem_post(getGlobalSemaphoresManager(), (char *) rbx);
+            return 1;
+        case 29: //my_sem_close
+            sem_close(getGlobalSemaphoresManager(), (char *) rbx);
+            return 1;
         default:
             return -1;
     }   

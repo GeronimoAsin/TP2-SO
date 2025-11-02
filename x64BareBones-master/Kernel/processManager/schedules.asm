@@ -1,6 +1,7 @@
 global schedules
 global fill_stack
 
+global idle
 extern schedule
 
 section .text
@@ -102,3 +103,8 @@ fill_stack:
     mov rsp, rbp
     pop rbp
     ret
+
+
+idle:
+    hlt
+    jmp idle
