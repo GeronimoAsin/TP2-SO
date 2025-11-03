@@ -74,22 +74,22 @@ fill_stack:
     push r11            ; RIP (entry point del proceso)
 
     ; Ahora guardar el contexto de registros como lo hace pushState
-    ; pushState guarda: rax, rbx, rcx, rdx, rbp, rdi, rsi, r8-r15
-    push 0              ; r15
-    push 0              ; r14
-    push 0              ; r13
-    push 0              ; r12
-    push 0              ; r11
-    push 0              ; r10
-    push 0              ; r9
-    push 0              ; r8
-    push r13            ; rsi = argv (popState lo restaurará)
-    push r12            ; rdi = argc (popState lo restaurará)
-    push r10            ; rbp = stack_top inicial
-    push 0              ; rdx
-    push 0              ; rcx
-    push 0              ; rbx
+    ; pushState guarda (en este orden): rax, rbx, rcx, rdx, rbp, rdi, rsi, r8-r15
     push 0              ; rax
+    push 0              ; rbx
+    push 0              ; rcx
+    push 0              ; rdx
+    push r10            ; rbp = stack_top inicial
+    push r12            ; rdi = argc (popState lo restaurará)
+    push r13            ; rsi = argv (popState lo restaurará)
+    push 0              ; r8
+    push 0              ; r9
+    push 0              ; r10
+    push 0              ; r11
+    push 0              ; r12
+    push 0              ; r13
+    push 0              ; r14
+    push 0              ; r15
 
     ; rsp apunta al inicio del contexto guardado
     ; hay que actualizar el RSP en el frame de IRETQ
