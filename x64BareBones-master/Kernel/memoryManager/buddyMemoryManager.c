@@ -1,3 +1,4 @@
+/*
 #include "memoryManager.h"
 #include "../include/lib.h"
 #include <stdint.h>
@@ -115,7 +116,7 @@ static int buddy_is_valid_pointer(BuddyMemoryManagerCDT* mm, void* ptr) {
  mm: Memory manager
  block: Bloque a eliminar
  order: Orden del bloque
-*/
+
 static void buddy_remove_from_free_list(BuddyMemoryManagerCDT* mm, BuddyBlockHeader* block, uint8_t order) {
     if (!block || order > MAX_ORDER) {
         return;
@@ -423,4 +424,6 @@ void destroyMemoryManager(MemoryManagerADT memoryManager) {
 MemoryManagerADT meminfo() {
     return (MemoryManagerADT)&buddyMemoryManagerInstance;
 }
+*/
+
 
