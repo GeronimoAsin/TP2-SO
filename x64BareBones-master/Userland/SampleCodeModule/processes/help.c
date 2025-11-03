@@ -1,3 +1,6 @@
+#include "../include/userlib.h"
+#include "../include/syscall.h"
+
 static char *help_text =
     "Comandos disponibles:\n"
     "- help: Muestra esta ayuda\n"
@@ -14,7 +17,7 @@ static char *help_text =
     "\nNota: Agrega '&' al final de un comando para ejecutarlo en background\n"
     "Ejemplo: foo & (ejecuta foo en background)\n";
 
-void help(int argc, char **argv){
+void help(uint64_t argc, char **argv){
     printf("%s", help_text);
     my_exit();
 }

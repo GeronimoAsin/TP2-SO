@@ -3,32 +3,33 @@
 #include "getTime.h"
 #include "printRegisters.h"
 #include <unistd.h>
-extern uint64_t test_mm(uint64_t argc, char *argv[]);
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 extern void invalidOp();
 #define CMD_MAX_CHARS 100
 #define PROMPT "Shell $> "
 
-extern void echo(char *str);
-extern void help(int argc, char **argv);
-extern void block();
-extern void cat();
-extern void clear(int argc, char **argv);
-extern void filter();
-extern void kill();
-extern void loop();
-extern void mem();
-extern void mvar();
-extern void nice();
-extern void ps();
-extern void registers(int argc, char **argv);
-extern void time(int argc, char **argv);
-//extern void test_mm();
-extern uint64_t test_no_sync(uint64_t argc, char *argv[]);
-extern uint64_t test_sync(uint64_t argc, char *argv[]);
-extern uint64_t test_prio(uint64_t argc, char *argv[]);
-extern int64_t test_processes(uint64_t argc, char *argv[]);
-extern void wc();
+void echo(uint64_t argc, char **argv);
+void help(uint64_t argc, char **argv);
+void block(uint64_t argc, char **argv);
+void cat(uint64_t argc, char **argv);
+void clear(uint64_t argc, char **argv);
+void filter(uint64_t argc, char **argv);
+void kill(uint64_t argc, char **argv);
+void loop(uint64_t argc, char **argv);
+void mem(uint64_t argc, char **argv);
+void mvar(uint64_t argc, char **argv);
+void nice(uint64_t argc, char **argv);
+void ps(uint64_t argc, char **argv);
+void registers(uint64_t argc, char **argv);
+void time(uint64_t argc, char **argv);
+void getMyPid(uint64_t argc, char **argv);
+void foreground(uint64_t arcg, char **argv);
+uint64_t test_mm(uint64_t argc, char *argv[]);
+uint64_t test_no_sync(uint64_t argc, char *argv[]);
+uint64_t test_sync(uint64_t argc, char *argv[]);
+uint64_t test_prio(uint64_t argc, char *argv[]);
+uint64_t test_processes(uint64_t argc, char *argv[]);
+void wc(uint64_t argc, char **argv);
 
 static const char *ascii_art =
 "+====================================================+\n"
@@ -128,9 +129,14 @@ static int interpret(const char *cmd) {
     if (strcmp(cmd, "time\n") == 0) return 4;
     if (strcmp(cmd, "registers\n") == 0) return 5;
     if (strcmp(cmd, "memtest\n") == 0) return 6;
+    if (strcmp(cmd, "memchunks\n") == 0) return 7;
 	if (strcmp(cmd, "zeroDiv\n") == 0) return 8;
 	if (strcmp(cmd, "invalidOp\n") == 0) return 9;
-    if (strcmp(cmd, "memchunks\n") == 0) return 7;
+    // Acepta "test_mm" seguido de espacio/tab/newline, signo o dígito, o incluso sin separador antes del número
+    if (strncmp(cmd, "test_mm", 7) == 0) {
+        char c = cmd[7];
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || c == '+' || c == '-' || (c >= '0' && c <= '9')) return 10;
+    }
     if (strcmp(cmd, "meminfo\n") == 0) return 11;
     if (strcmp(cmd, "foo\n") == 0) return 12;
     if (strcmp(cmd, "getPid\n") == 0) return 13;
@@ -155,11 +161,6 @@ static int interpret(const char *cmd) {
     if (strncmp(cmd, "unblock", 7) == 0) {
         char c = cmd[7];
         if (c == ' ' || c == '\t' || (c >= '0' && c <= '9')) return 19;
-    }
-    // Acepta "test_mm" seguido de espacio/tab/newline, signo o dígito, o incluso sin separador antes del número
-    if (strncmp(cmd, "test_mm", 7) == 0) {
-        char c = cmd[7];
-        if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || c == '+' || c == '-' || (c >= '0' && c <= '9')) return 10;
     }
     // test_processes
     if (strncmp(cmd, "test_processes", 14) == 0) {
@@ -217,7 +218,8 @@ void startShell() {
                 break;
             case 3: { // echo
                 const char *toPrint = buffer + 4;
-                user_echo(toPrint);
+                char * argv[2] = { "1", toPrint };
+                createProcessAndWait(&echo, "echo_process", 2, argv, bg);
                 break;
             }
             case 4: // time
@@ -225,6 +227,9 @@ void startShell() {
                 break;
             case 5: // registers
                 createProcessAndWait(&registers, "registers_process", 0, NULL, bg);
+                break;
+            case 7: // memchunks
+                user_memchunks();
                 break;
             case 10: { // test_mm con argumentos
                 // Parsear el argumento opcional (max_memory)
@@ -256,9 +261,6 @@ void startShell() {
                 }
                 break;
             }
-            case 7: // memchunks
-                user_memchunks();
-                break;
             case 11:
                 user_meminfo();
                 break;
@@ -266,20 +268,14 @@ void startShell() {
                 createProcessAndWait(&foo, "foo_process", 0, NULL, bg);
                 break;
             case 13: { // getPid
-                uint64_t pid = getPid();
-                printf("PID del proceso actual: %d\n", pid);
+                createProcessAndWait(&getMyPid, "getPid_process", 0, NULL, bg);
                 break;
             }
             case 14: // ps
-                printProcesses();
+                createProcessAndWait(&ps, "ps_process", 0, NULL, bg);
                 break;
             case 15: { // fg
-                pid_t fgPid = fg();
-                if (fgPid == -1) {
-                    printf("No hay procesos en background\n");
-                } else {
-                    printf("Proceso %d traido a foreground\n", fgPid);
-                }
+                createProcessAndWait(&foreground, "fg_process", 0, NULL, bg);
                 break;
             }
             case 16: { // kill

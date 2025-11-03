@@ -113,6 +113,17 @@ int strcmp(const char *s1, const char *s2)
 }
 
 
+
+
+int strlen(const char *str) {
+    int length = 0;
+    while (str[length] != '\0') {
+        length++;
+    }
+    return length;
+}
+
+
 void putChar(char c) {
     char buffer[2];
       buffer[0] = c;
