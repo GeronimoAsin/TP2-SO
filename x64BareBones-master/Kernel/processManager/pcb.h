@@ -45,7 +45,8 @@ typedef struct PCB {
     size_t stackSize;
     size_t argc;
     char **argv;
-    size_t waitingToRead;
+    int write_fd;
+    int read_fd;
 } PCB;
 
 #endif // PCB_H

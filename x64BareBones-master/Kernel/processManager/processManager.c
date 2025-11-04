@@ -82,9 +82,10 @@ ProcessManagerADT createProcessManager(MemoryManagerADT memoryManager) {
     idleProc->name = "Idle";
     idleProc->stackSize = PROCESS_STACK_SIZE;
     idleProc->stackBase = (uint64_t *) allocateMemory(memoryManager, PROCESS_STACK_SIZE);
-    idleProc->waitingToRead = 0;
     idleProc->argc = 0;
     idleProc->argv = NULL;
+    idleProc->read_fd = 1;
+    idleProc->write_fd = 1;
     
     // Preparar el stack del proceso idle
     uint64_t idle_stack_top = (uint64_t)(idleProc->stackBase) + PROCESS_STACK_SIZE;
@@ -114,7 +115,8 @@ pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int p
     newProcess->name = name;
     newProcess->stackSize = PROCESS_STACK_SIZE;
     newProcess->stackBase = (uint64_t *) allocateMemory(pm->memoryManager, newProcess->stackSize);
-    newProcess->waitingToRead = 0;
+    newProcess->read_fd = 1;  // Default read fd
+    newProcess->write_fd = 1; // Default write fd
     // Calcular el tope del stack (crece hacia abajo)
     uint64_t stack_top = (uint64_t)(newProcess->stackBase) + PROCESS_STACK_SIZE;
 
@@ -156,6 +158,36 @@ pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int p
     addToList(pm->allProcesses, newProcess);
     schedules();
     return newProcess->pid;
+}
+
+void setWriteFd(ProcessManagerADT processManager, pid_t processId, int write_fd) {
+    PCB *process = findInList(processManager->allProcesses, processId);  
+    if (process) {
+        process->write_fd = write_fd;
+    }
+}
+
+void setReadFd(ProcessManagerADT processManager, pid_t processId, int read_fd) {
+    PCB *process = findInList(processManager->allProcesses, processId);  
+    if (process) {
+        process->read_fd = read_fd;
+    }
+}
+
+int getWriteFd(ProcessManagerADT processManager, pid_t processId) {
+    PCB *process = findInList(processManager->allProcesses, processId);  
+    if (process) {
+        return process->write_fd;
+    }
+    return -1; // Indicar que no se encontró el proceso
+}
+
+int getReadFd(ProcessManagerADT processManager, pid_t processId) {
+    PCB *process = findInList(processManager->allProcesses, processId);  
+    if (process) {
+        return process->read_fd;
+    }
+    return -1; // Indicar que no se encontró el proceso
 }
 
 pid_t getPid(ProcessManagerADT processManager) {
@@ -272,22 +304,6 @@ void unblock(ProcessManagerADT processManager, pid_t processId) {
     process->state = 1;  // READY
     removeFromListByProcess(processManager->blockedProcesses, process);
     enqueue(processManager->readyQueue, process);
-}
-
-void waitingToRead(ProcessManagerADT processManager, pid_t processId) {
-    PCB *process = findInList(processManager->allProcesses, processId);  
-    if (process) {
-        process->waitingToRead = 1;
-        block(processManager, processId);
-    }
-}
-
-void unblockBecauseItRead(ProcessManagerADT processManager) {
-    PCB * process = findFirstWaitingToRead(processManager->blockedProcesses);
-    if (process) {
-        process->waitingToRead = 0;
-        unblock(processManager, process->pid);
-    }
 }
 
 void leaveCPU(ProcessManagerADT processManager) {

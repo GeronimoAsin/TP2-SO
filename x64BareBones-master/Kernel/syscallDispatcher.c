@@ -4,6 +4,7 @@
 #include <string.h>
 #include "memoryManager/memoryManager.h"
 #include "processManager/processManager.h"
+#include "pipes/pipeManager.h"
 #define REGISTERS 18
 
 typedef struct MemoryManagerCDT * MemoryManagerADT;
@@ -87,12 +88,6 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 15:
             printProcesses(getGlobalProcessManager());
             return 1;
-        case 16:
-            waitingToRead(getGlobalProcessManager(), (pid_t) rbx);
-            return 1;
-        case 17:
-            unblockBecauseItRead(getGlobalProcessManager());
-            return 1;
         case 18:
             waitPid(getGlobalProcessManager(), (pid_t) rbx);
             return 1;
@@ -128,6 +123,18 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 29: //my_sem_close
             sem_close(getGlobalSemaphoresManager(), (char *) rbx);
             return 1;
+        case 30: //setWriteFd
+            setWriteFd(getGlobalProcessManager(), (pid_t) rbx, (int) rdx);
+            return 1;
+        case 31: //setReadFd
+            setReadFd(getGlobalProcessManager(), (pid_t) rbx, (int) rdx);
+            return 1;
+        case 32: //pipeCreate
+            addPipe(getGlobalPipeManager(), (int *) rbx);
+            return 1;
+        case 33://closePipe
+            closePipe(getGlobalPipeManager(), (int *) rbx);
+            return 1;
         default:
             return -1;
     }   
@@ -136,35 +143,46 @@ uint64_t syscallDispatcher(uint64_t id, ...)
 
 uint64_t sys_read(uint64_t fd, char *buff, uint64_t count)
 {
-    if (fd != 0)
-        return -1;
 
     uint64_t i = 0;
-    char character;
+    if(fd==0){
+        char character;
 
-    while (i < count && (character = nextFromBuffer()) != 0) {
-        // Espera hasta que haya un caracter disponible
-        //while ((character = nextFromBuffer()) == 0);
-        buff[i++] = character;
+        while (i < count && (character = nextFromBuffer()) != 0) {
+            // Espera hasta que haya un caracter disponible
+            //while ((character = nextFromBuffer()) == 0);
+            buff[i++] = character;
+        }
+    }else{
+        ProcessManagerADT pm = getGlobalProcessManager();
+        pid_t currentPid = getPid(pm);
+        PipeManagerADT pipeManager = getGlobalPipeManager();
+        i = readFromPipe(pipeManager, fd, buff, count);
     }
+    
     return i;
 }
 
 
 uint64_t sys_write(uint64_t fd, const char *buffer, uint64_t count)
 {
-    if (fd != 1)
-        return -1;
 
     uint64_t i;
-    for (i = 0; i < count; i++) {
-        if (buffer[i] == '\n') {
-            newLine();
-        } else if (buffer[i] == '\b') {
-            deleteLastChar();
-        } else {
-            printChar(buffer[i]);
+    if(fd==1){
+        for (i = 0; i < count; i++) {
+            if (buffer[i] == '\n') {
+                newLine();
+            } else if (buffer[i] == '\b') {
+                deleteLastChar();
+            } else {
+                printChar(buffer[i]);
+            }
         }
+    }else{
+        ProcessManagerADT pm = getGlobalProcessManager();
+        pid_t currentPid = getPid(pm);
+        PipeManagerADT pipeManager = getGlobalPipeManager();
+        i = writeToPipe(pipeManager, fd, (uint64_t *)buffer);
     }
 
     return i; // Retorna la cantidad de caracteres escritos

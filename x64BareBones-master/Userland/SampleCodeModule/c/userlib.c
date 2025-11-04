@@ -502,3 +502,35 @@ uint64_t my_sem_post(char *sem_id) {
 uint64_t my_sem_close(char *sem_id) {
   return syscall(29, (uint64_t)sem_id, 0, 0, 0, 0);
 }
+
+void setWriteFd(pid_t pid, int write_fd) {
+    syscall(30, (uint64_t)pid, (uint64_t)write_fd, 0, 0, 0);
+}
+
+void setReadFd(pid_t pid, int read_fd) {
+    syscall(31, (uint64_t)pid, (uint64_t)read_fd, 0, 0, 0);
+}
+
+void createProcessAndWaitWithPipeW(void (*entryPoint)(int, char**), char *name, int argc, char **argv, int bg, int write_fd) {
+    pid_t pid = createProcess(entryPoint, name, argc, argv, !bg);
+    setWriteFd(pid, write_fd);
+    if (!bg) {
+        waitPid(pid);
+    }
+}
+
+void createProcessAndWaitWithPipeR(void (*entryPoint)(int, char**), char *name, int argc, char **argv, int bg, int read_fd) {
+    pid_t pid = createProcess(entryPoint, name, argc, argv, !bg);
+    setReadFd(pid, read_fd);
+    if (!bg) {
+        waitPid(pid);
+    }
+}
+
+void pipe(int fd[2]) {
+    syscall(32, (uint64_t)fd, 0, 0, 0, 0);
+}
+
+void closePipe(int fd[2]) {
+    syscall(33, (uint64_t)fd, 0, 0, 0, 0);
+}
