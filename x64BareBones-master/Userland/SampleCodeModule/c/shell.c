@@ -285,36 +285,59 @@ void startShell() {
                 break;
             }
             case 16: { // kill
-                // Parsear el PID del comando "kill <pid>"
                 char *p = buffer;
-                // Avanzar hasta después de "kill"
-                for (int k = 0; k < 4 && *p; k++) p++;
-                // Saltar espacios
-                while (*p && (*p == ' ' || *p == '\t')) p++;
-                
-                // Si no hay número, error
+                for (int k = 0; k < 4 && *p; k++) {
+                    p++;
+                }
+                while (*p && (*p == ' ' || *p == '\t')) {
+                    p++;
+                }
+
                 if (*p == '\0' || *p == '\n' || !(*p >= '0' && *p <= '9')) {
                     printf("Error: uso correcto -> kill <pid>\n");
                     break;
                 }
-                
-                // Parsear el PID
+
                 pid_t pidToKill = 0;
                 while (*p >= '0' && *p <= '9') {
                     pidToKill = pidToKill * 10 + (*p - '0');
                     p++;
                 }
-                
-                // Verificar que no intente matar la shell
+
+                while (*p == ' ' || *p == '\t') {
+                    p++;
+                }
+                if (*p != '\0' && *p != '\n' && *p != '&') {
+                    printf("Error: uso correcto -> kill <pid>\n");
+                    break;
+                }
+
                 pid_t currentPid = getPid();
                 if (pidToKill == currentPid) {
                     printf("Error: no puedes matar la shell\n");
                     break;
                 }
-                
-                printf("Matando proceso con PID %d...\n", pidToKill);
-                my_kill(pidToKill);
-                printf("Proceso terminado\n");
+
+                static char killArg[16];
+                int len = 0;
+                pid_t tempPid = pidToKill;
+                if (tempPid == 0) {
+                    killArg[len++] = '0';
+                } else {
+                    char rev[16];
+                    int r = 0;
+                    while (tempPid > 0 && r < (int)(sizeof(rev))) {
+                        rev[r++] = (char)('0' + (tempPid % 10));
+                        tempPid /= 10;
+                    }
+                    while (r > 0 && len < (int)(sizeof(killArg) - 1)) {
+                        killArg[len++] = rev[--r];
+                    }
+                }
+                killArg[len] = '\0';
+
+                char *argv_local[1] = { killArg };
+                createProcessAndWait(&kill, "kill_process", 1, argv_local, bg);
                 break;
             }
             case 17: { // nice <pid> <priority>
