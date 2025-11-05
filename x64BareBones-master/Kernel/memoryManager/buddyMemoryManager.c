@@ -420,6 +420,25 @@ void destroyMemoryManager(MemoryManagerADT memoryManager) {
 }
 
 
-MemoryManagerADT meminfo() {
-    return (MemoryManagerADT)&buddyMemoryManagerInstance;
+MemoryInfo *meminfo(void) {
+    BuddyMemoryManagerCDT *mm = &buddyMemoryManagerInstance;
+
+    if (mm->heapStart == NULL || mm->heapSize == 0) {
+        createMemoryManager();
+    }
+
+    mm = &buddyMemoryManagerInstance;
+    static MemoryInfo info;
+
+    info.heapStart = (uint64_t)mm->heapStart;
+    info.heapSize = mm->heapSize;
+    info.chunkSize = mm->chunkSize;
+    info.chunkCount = mm->chunkCount;
+    info.usedBytes = mm->allocated_bytes;
+    info.freeBytes = mm->heapSize - mm->allocated_bytes;
+    info.totalAllocations = mm->total_allocations;
+    info.totalFrees = mm->total_frees;
+    info.failedAllocations = mm->failed_allocations;
+
+    return &info;
 }

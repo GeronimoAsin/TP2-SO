@@ -2,19 +2,10 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include "../include/memoryInfo.h"
 
 #define CHUNK_SIZE 4096
 
-typedef struct MemoryManagerCDT {
-    uint8_t * heapStart;
-    unsigned int heapSize;
-    unsigned int chunkSize;
-    unsigned int chunkCount;
-    unsigned int nextFreeIndex;
-    uint8_t * freeChunkStack[]; // flexible array, no se usa aquí
-} MemoryManagerCDT;
-
-typedef MemoryManagerCDT * MemoryManagerADT;
 
 extern uint64_t syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx, uint64_t r8, uint64_t r9);
 
@@ -359,30 +350,46 @@ int64_t my_yield() {
     return syscall(25, 0, 0, 0, 0, 0);
 }
 
-void meminfo() {
-    MemoryManagerADT mem = (MemoryManagerADT) syscall(12, 0, 0, 0, 0, 0);
-
- if (!mem) {
-       printf("No se pudo obtener información de memoria.\n");
+void meminfo(void) {
+    MemoryInfo *kernelInfo = (MemoryInfo *)syscall(12, 0, 0, 0, 0, 0);
+    if (kernelInfo == NULL) {
+        printf("No se pudo obtener información de memoria.\n");
         return;
     }
 
-    unsigned int usados = mem->chunkCount - mem->nextFreeIndex;
-    unsigned int libres = mem->nextFreeIndex;
-    unsigned int usado_bytes = usados * mem->chunkSize;
-    unsigned int libre_bytes = libres * mem->chunkSize;
+    MemoryInfo info = *kernelInfo; // tomar snapshot local
+    uint64_t usedChunks = 0;
+    uint64_t freeChunks = 0;
+    if (info.chunkSize != 0) {
+        usedChunks = (info.usedBytes + info.chunkSize - 1) / info.chunkSize;
+        if (info.chunkCount > usedChunks) {
+            freeChunks = info.chunkCount - usedChunks;
+        } else {
+            freeChunks = (info.freeBytes + info.chunkSize - 1) / info.chunkSize;
+        }
+    }
+
+    uint64_t usedPercent = info.heapSize ? (info.usedBytes * 100) / info.heapSize : 0;
+    uint64_t freePercent = info.heapSize ? (info.freeBytes * 100) / info.heapSize : 0;
+
     printf("--- Estado de la memoria ---\n");
-    printf("Direccion base del heap: 0x%x\n", mem->heapStart);
-    printf("Dimension total del heap: %d bytes\n", mem->heapSize);
-    printf("Dimension de chunk: %d bytes\n", mem->chunkSize);
-    printf("Cantidad total de chunks: %u\n", mem->chunkCount);
-    printf("Chunks libres: %d\n", libres);
-    printf("Chunks usados: %d\n", usados);
-    printf("Memoria libre: %d bytes\n", libre_bytes);
-    printf("Memoria usada: %d bytes\n", usado_bytes);
+    printf("Direccion base del heap: 0x%d\n", (unsigned long long)info.heapStart);
+    printf("Dimension total del heap: %d bytes\n", (unsigned long long)info.heapSize);
+    printf("Dimension de chunk: %d bytes\n", (unsigned long long)info.chunkSize);
+    printf("Cantidad total de chunks: %d\n", (unsigned long long)info.chunkCount);
+    printf("Chunks usados: %d\n", (unsigned long long)usedChunks);
+    printf("Chunks libres: %d\n", (unsigned long long)freeChunks);
+    printf("Memoria usada: %d bytes\n", (unsigned long long)info.usedBytes);
+    printf("Memoria libre: %d bytes\n", (unsigned long long)info.freeBytes);
+    printf("Uso de memoria: %d%% usados / %d%% libres\n", (unsigned long long)usedPercent, (unsigned long long)freePercent);
+    printf("Asignaciones totales: %d\n", (unsigned long long)info.totalAllocations);
+    printf("Liberaciones totales: %d\n", (unsigned long long)info.totalFrees);
+    printf("Asignaciones fallidas: %d\n", (unsigned long long)info.failedAllocations);
     printf("----------------------------\n");
+}
 
-
+void user_meminfo(void) {
+    meminfo();
 }
 
 void user_echo(const char *input) {
@@ -462,10 +469,6 @@ void user_memchunks(void) {
         free(ptrs[j]);
     }
     printf("=== Prueba completada ===\n");
-}
-
-void user_meminfo(void) {
-    meminfo();
 }
 
 void foo() {

@@ -2,6 +2,7 @@
 #define MEMORY_MANAGER_H
 #include <stddef.h>
 #include <stdint.h>
+#include "../../Userland/SampleCodeModule/include/memoryInfo.h"
 
 #define MEM_START 0x100000ULL                // dir base de memoria Pure64
 #define STACK_SIZE 0x8000ULL                 // 32 KiB de stackBase fijos
@@ -44,7 +45,7 @@ void freeMemory(MemoryManagerADT memoryManager, void *ptr);
 //destruye el memory manager
 void destroyMemoryManager(MemoryManagerADT memoryManager);
 
-MemoryManagerADT meminfo();
+MemoryInfo *meminfo(void);
 
 
 #endif // MEMORY_MANAGER_H

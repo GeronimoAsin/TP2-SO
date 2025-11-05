@@ -2,8 +2,12 @@
 #include "memoryManager.h"
 #include <stdint.h>
 #include <stddef.h>
+#include "../../Userland/SampleCodeModule/include/memoryInfo.h"
 
 static MemoryManagerCDT memoryManagerInstance;
+static uint64_t totalAllocations = 0;
+static uint64_t totalFrees = 0;
+static uint64_t failedAllocations = 0;
 
 MemoryManagerADT createMemoryManager()
 {
@@ -28,17 +32,20 @@ MemoryManagerADT createMemoryManager()
 
 void * allocateMemory(MemoryManagerADT memoryManager, size_t size) {
     if (memoryManager == NULL || size == 0) {
-       //no existe el memory manager o el size es 0
+        // no existe el memory manager o el size es 0
+        failedAllocations++;
         return NULL;
     }
 
     // Si piden más que un chunk, retornar NULL (no podemos satisfacer la solicitud)
     if (size > memoryManager->chunkSize) {
+        failedAllocations++;
         return NULL;
     }
 
     // Verificar si hay chunks disponibles (stack no vacío)
     if (memoryManager->nextFreeIndex == 0) {
+        failedAllocations++;
         return NULL; // No hay chunks libres
     }
 
@@ -56,6 +63,7 @@ void * allocateMemory(MemoryManagerADT memoryManager, size_t size) {
         if (memoryManager->nextFreeIndex == 0) {
             // Restauro el índice porque no pudimos usar este chunk
             memoryManager->nextFreeIndex++;
+            failedAllocations++;
             return NULL;
         }
 
@@ -74,9 +82,12 @@ void * allocateMemory(MemoryManagerADT memoryManager, size_t size) {
             memoryManager->nextFreeIndex++;
             memoryManager->freeChunkStack[memoryManager->nextFreeIndex] = candidate;
             memoryManager->nextFreeIndex++;
+            failedAllocations++;
             return NULL;
         }
     }
+
+    totalAllocations++;
 
     return (void *)aligned;
 }
@@ -106,6 +117,7 @@ void freeMemory(MemoryManagerADT memoryManager, void *ptr) {
     // Push al stack: agregar el chunk en nextFreeIndex y luego incrementar
     memoryManager->freeChunkStack[memoryManager->nextFreeIndex] = chunkStart;
     memoryManager->nextFreeIndex++;
+    totalFrees++;
 }
 
 void destroyMemoryManager(MemoryManagerADT memoryManager) {
@@ -117,9 +129,29 @@ void destroyMemoryManager(MemoryManagerADT memoryManager) {
 }
 
 
-MemoryManagerADT meminfo()
+MemoryInfo *meminfo(void)
 {
-    return &memoryManagerInstance;
+    if (memoryManagerInstance.heapStart == NULL || memoryManagerInstance.heapSize == 0) {
+        createMemoryManager();
+    }
+
+    MemoryManagerADT mm = &memoryManagerInstance;
+    static MemoryInfo info;
+
+    uint64_t usedChunks = (uint64_t)(mm->chunkCount - mm->nextFreeIndex);
+    uint64_t freeChunks = (uint64_t)mm->nextFreeIndex;
+
+    info.heapStart = (uint64_t)mm->heapStart;
+    info.heapSize = mm->heapSize;
+    info.chunkSize = mm->chunkSize;
+    info.chunkCount = mm->chunkCount;
+    info.usedBytes = usedChunks * mm->chunkSize;
+    info.freeBytes = freeChunks * mm->chunkSize;
+    info.totalAllocations = totalAllocations;
+    info.totalFrees = totalFrees;
+    info.failedAllocations = failedAllocations;
+
+    return &info;
 }
 
 

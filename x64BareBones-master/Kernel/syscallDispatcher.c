@@ -8,7 +8,7 @@
 #define REGISTERS 18
 
 typedef struct MemoryManagerCDT * MemoryManagerADT;
-MemoryManagerADT sys_meminfo();
+MemoryInfo *sys_meminfo(void);
 
 
 //struct para obtener el tiempo
@@ -226,7 +226,7 @@ void sys_free(void *ptr)
     freeMemory(kernelMemoryManager, ptr);
 }
 
-MemoryManagerADT sys_meminfo()
+MemoryInfo *sys_meminfo()
 {
     return meminfo();
 }
