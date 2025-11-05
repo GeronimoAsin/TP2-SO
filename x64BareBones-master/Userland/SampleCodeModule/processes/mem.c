@@ -2,6 +2,6 @@
 #include "../include/syscall.h"
 
 void mem(uint64_t argc, char **argv) {
-	user_meminfo();
+	meminfo();
 	my_exit();
 }

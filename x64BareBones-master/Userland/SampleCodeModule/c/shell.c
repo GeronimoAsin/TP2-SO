@@ -142,6 +142,12 @@ static int interpret(const char *cmd) {
     if (strcmp(cmd, "getPid\n") == 0) return 13;
     if (strcmp(cmd, "ps\n") == 0) return 14;
     if (strcmp(cmd, "fg\n") == 0) return 15;
+    if (strncmp(cmd, "loop", 4) == 0) {
+        char c = cmd[4];
+        if (c == '\n' || c == '\0' || c == ' ' || c == '\t' || c == '+' || c == '-' || (c >= '0' && c <= '9')) {
+            return 24;
+        }
+    }
     // Acepta "kill" seguido de espacio y un número
     if (strncmp(cmd, "kill", 4) == 0) {
         char c = cmd[4];
@@ -261,8 +267,8 @@ void startShell() {
                 }
                 break;
             }
-            case 11:
-                user_meminfo();
+            case 11: //meminfo
+                createProcessAndWait(&user_meminfo, "meminfo_process", 0, NULL, bg);
                 break;
             case 12: // foo
                 createProcessAndWait(&foo, "foo_process", 0, NULL, bg);
@@ -407,6 +413,30 @@ void startShell() {
             }
             case 23: { 
                 //createProcessAndWait((void (*)(int, char**))&test_no_synchro, "test_no_synchro", 0, NULL, bg);
+                break;
+            }
+            case 24: { // loop
+                char *p = buffer;
+                for (int k = 0; k < 4 && *p; k++) p++;
+                while (*p == ' ' || *p == '\t') {
+                    p++;
+                }
+
+                char *argv_local[1] = { NULL };
+                int argc_local = 0;
+
+                if (*p && *p != '\n' && *p != '&') {
+                    static char loopArg[32];
+                    int idx = 0;
+                    while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '&' && idx < (int)(sizeof(loopArg) - 1)) {
+                        loopArg[idx++] = *p++;
+                    }
+                    loopArg[idx] = '\0';
+                    argv_local[0] = loopArg;
+                    argc_local = 1;
+                }
+
+                createProcessAndWait(&loop, "loop_process", argc_local, argv_local, bg);
                 break;
             }
             default:
