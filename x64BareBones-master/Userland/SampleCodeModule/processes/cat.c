@@ -1,5 +1,7 @@
 #include "../include/userlib.h"
 
+#define CAT_LINE_BUFFER 256
+
 void cat(uint64_t argc, char **argv) {
 	(void)argc;
 	(void)argv;
@@ -7,18 +9,20 @@ void cat(uint64_t argc, char **argv) {
 	pid_t pid = getPid();
 	int readFd = getReadFd(pid);
 	int writeFd = getWriteFd(pid);
-    printf("cat: readFd=%d, writeFd=%d\n", readFd, writeFd);
 
-	if (readFd <= 0) {
+	if (readFd <= 0 || readFd == 1) {
 		readFd = 0; // usar teclado si no hay descriptor asociado
 	}
 	if (writeFd <= 0) {
 		writeFd = 1; // fallback a pantalla
 	}
 
-	char buffer;
+	char line[CAT_LINE_BUFFER];
+	int lineIndex = 0;
+
 	while (1) {
-		int bytes = read(readFd, &buffer, 1);
+		char ch;
+		int bytes = read(readFd, &ch, 1);
 		if (bytes <= 0) {
 			if (readFd == 0) {
 				continue; // stdin espera nuevos datos
@@ -26,10 +30,33 @@ void cat(uint64_t argc, char **argv) {
 			break; // pipe/padre cerró el descriptor
 		}
 
-		write(writeFd, &buffer, 1);
-		if (buffer == '\n') {
-			break;
+		if (ch == '\n') {
+			write(writeFd, &ch, 1); // echo del enter
+			if (lineIndex > 0) {
+				write(writeFd, line, lineIndex);
+			}
+			write(writeFd, "\n", 1);
+			lineIndex = 0;
+			continue;
 		}
+
+		write(writeFd, &ch, 1); // mostrar el carácter a medida que se escribe
+		if (lineIndex < CAT_LINE_BUFFER - 1) {
+			line[lineIndex++] = ch;
+		} else {
+			// Línea demasiado larga: volcar lo acumulado y reiniciar
+			write(writeFd, "\n", 1);
+			write(writeFd, line, lineIndex);
+			write(writeFd, "\n", 1);
+			line[0] = ch;
+			lineIndex = 1;
+		}
+	}
+
+	if (lineIndex > 0) {
+		write(writeFd, "\n", 1);
+		write(writeFd, line, lineIndex);
+		write(writeFd, "\n", 1);
 	}
 
 	my_exit();

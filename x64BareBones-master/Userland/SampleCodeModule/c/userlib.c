@@ -267,7 +267,9 @@ void unsigned_numtohex64(uint64_t num, char *str) {
 //Syscalls:
 
 int read(int fd, char *buffer, int count) {
-    my_sem_wait("waiting_to_read");
+    if (fd == 0) {
+        my_sem_wait("waiting_to_read");
+    }
     return syscall(0, fd, (uint64_t)buffer, count, 0, 0);
 }
 
