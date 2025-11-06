@@ -15,6 +15,7 @@ static char *help_text =
     "- nice <pid> <priority>: Cambia la prioridad del proceso\n"
     "- block <pid>: Bloquea el proceso con el PID especificado\n"
     "- unblock <pid>: Desbloquea el proceso con el PID especificado\n"
+    "- mvar <escritores> <lectores>: Demo de sincronizacion\n"
     "\nNota: Agrega '&' al final de un comando para ejecutarlo en background\n"
     "Ejemplo: foo & (ejecuta foo en background)\n";
 

@@ -2,7 +2,6 @@
 #include "userlib.h"
 #include "getTime.h"
 #include "printRegisters.h"
-#include <unistd.h>
 extern void syscall(uint64_t rax, uint64_t rbx, uint64_t rdx, uint64_t rcx);
 extern void invalidOp();
 #define CMD_MAX_CHARS 100
@@ -136,6 +135,12 @@ static int interpret(const char *cmd) {
     if (strcmp(cmd, "cat\n") == 0) return 25;
     if (strcmp(cmd, "wc\n") == 0) return 26;
     if (strcmp(cmd, "filter\n") == 0) return 27;
+
+    // mvar con argumentos
+    if (strncmp(cmd, "mvar", 4) == 0) {
+        char c = cmd[4];
+        if (c == ' ' || c == '\t' || (c >= '0' && c <= '9')) return 28;
+    }
     // Acepta "test_mm" seguido de espacio/tab/newline, signo o dígito, o incluso sin separador antes del número
     if (strncmp(cmd, "test_mm", 7) == 0) {
         char c = cmd[7];
@@ -442,7 +447,7 @@ void startShell() {
                 break;
             }
             case 22: { // test_synchro
-                //createProcessAndWait((void (*)(int, char**))&test_sync, "test_synchro", 0, NULL, bg);
+                createProcessAndWait((void (*)(int, char**))&test_sync, "test_synchro", 0, NULL, bg);
                 break;
             }
             case 23: { 
@@ -483,6 +488,46 @@ void startShell() {
             }
             case 27: { // filter
                 createProcessAndWait(&filter, "filter_process", 0, NULL, bg);
+                break;
+            }
+            case 28: { // mvar <num_escritores> <num_lectores>
+                char *p = buffer;
+                // Avanzar hasta después de "mvar" (4 caracteres)
+                for (int k = 0; k < 4 && *p; k++) p++;
+
+                // Saltar espacios
+                while (*p == ' ' || *p == '\t') p++;
+
+                static char mvarArgs[2][16];
+                char *argv_local[2] = { NULL, NULL };
+                int argc_local = 0;
+
+                // Parsear argumentos (num_escritores num_lectores)
+                for (int arg = 0; arg < 2; arg++) {
+                    if (*p == '\0' || *p == '\n' || *p == '&') {
+                        break;
+                    }
+
+                    int idx = 0;
+                    while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '&' && idx < (int)(sizeof(mvarArgs[arg]) - 1)) {
+                        mvarArgs[arg][idx++] = *p++;
+                    }
+                    mvarArgs[arg][idx] = '\0';
+                    argv_local[arg] = mvarArgs[arg];
+                    argc_local++;
+
+                    while (*p == ' ' || *p == '\t') {
+                        p++;
+                    }
+                }
+
+                if (argc_local < 2) {
+                    printf("Error: uso correcto -> mvar <num_escritores> <num_lectores>\n");
+                    printf("Ejemplo: mvar 2 2\n");
+                    break;
+                }
+
+                createProcessAndWait(&mvar, "mvar_process", argc_local, argv_local, bg);
                 break;
             }
             default:
