@@ -134,6 +134,8 @@ static int interpret(const char *cmd) {
 	if (strcmp(cmd, "zeroDiv\n") == 0) return 8;
 	if (strcmp(cmd, "invalidOp\n") == 0) return 9;
     if (strcmp(cmd, "cat\n") == 0) return 25;
+    if (strcmp(cmd, "wc\n") == 0) return 26;
+    if (strcmp(cmd, "filter\n") == 0) return 27;
     // Acepta "test_mm" seguido de espacio/tab/newline, signo o dígito, o incluso sin separador antes del número
     if (strncmp(cmd, "test_mm", 7) == 0) {
         char c = cmd[7];
@@ -473,6 +475,14 @@ void startShell() {
             }
             case 25: { // cat
                 createProcessAndWait(&cat, "cat_process", 0, NULL, bg);
+                break;
+            }
+            case 26: { // wc
+                createProcessAndWait(&wc, "wc_process", 0, NULL, bg);
+                break;
+            }
+            case 27: { // filter
+                createProcessAndWait(&filter, "filter_process", 0, NULL, bg);
                 break;
             }
             default:
