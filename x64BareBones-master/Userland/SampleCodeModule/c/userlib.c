@@ -149,15 +149,36 @@ void printf(const char *format, ...) {
     while (*format) {
         if (*format == '%') {
             format++;
-            if (*format == 'l' && *(format+1) == 'l' && *(format+2) == 'x') {
-                format += 2;
-                uint64_t num = va_arg(args, uint64_t);
-                char hex_buffer[17];
-                unsigned_numtohex64(num, hex_buffer);
-                const char *str = hex_buffer;
-                while (*str) {
-                    char buffer[2] = {*str++, '\0'};
-                    write(1, buffer, 1);
+            if (*format == 'l' && *(format+1) == 'l') {
+                if (*(format+2) == 'x') {
+                    format += 2;
+                    uint64_t num = va_arg(args, uint64_t);
+                    char hex_buffer[17];
+                    unsigned_numtohex64(num, hex_buffer);
+                    const char *str = hex_buffer;
+                    while (*str) {
+                        char buffer[2] = {*str++, '\0'};
+                        write(1, buffer, 1);
+                    }
+                } else if (*(format+2) == 'u') {
+                    format += 2;
+                    uint64_t num = va_arg(args, uint64_t);
+                    char num_buffer[21]; // Buffer para uint64_t max (20 dígitos + '\0')
+                    int num_len = 0;
+                    if (num == 0) {
+                        num_buffer[num_len++] = '0';
+                    } else {
+                        while (num > 0) {
+                            num_buffer[num_len++] = (num % 10) + '0';
+                            num /= 10;
+                        }
+                    }
+                    while (num_len > 0) {
+                        char buffer[2] = {num_buffer[--num_len], '\0'};
+                        write(1, buffer, 1);
+                    }
+                } else {
+                    format++;
                 }
             } else {
                 switch (*format) {
@@ -375,19 +396,19 @@ void meminfo(void) {
     uint64_t freePercent = info.heapSize ? (info.freeBytes * 100) / info.heapSize : 0;
 
     printf("--- Estado de la memoria ---\n");
-    printf("Direccion base del heap: 0x%d\n", (unsigned long long)info.heapStart);
-    printf("Dimension total del heap: %d bytes\n", (unsigned long long)info.heapSize);
-    printf("Dimension de chunk: %d bytes\n", (unsigned long long)info.chunkSize);
-    printf("Cantidad total de chunks: %d\n", (unsigned long long)info.chunkCount);
-    printf("Chunks usados: %d\n", (unsigned long long)usedChunks);
-    printf("Chunks libres: %d\n", (unsigned long long)freeChunks);
-    printf("Memoria usada: %d bytes\n", (unsigned long long)info.usedBytes);
-    printf("Memoria libre: %d bytes\n", (unsigned long long)info.freeBytes);
-    printf("Uso de memoria: %d%% usados / %d%% libres\n", (unsigned long long)usedPercent, (unsigned long long)freePercent);
-    printf("Asignaciones totales: %d\n", (unsigned long long)info.totalAllocations);
-    printf("Liberaciones totales: %d\n", (unsigned long long)info.totalFrees);
-    printf("Asignaciones fallidas: %d\n", (unsigned long long)info.failedAllocations);
-    printf("----------------------------\n");
+    printf("Direccion base del heap: 0x%llx\n", (unsigned long long)info.heapStart);
+    printf("Dimension total del heap: %llu bytes\n", (unsigned long long)info.heapSize);
+    printf("Dimension de chunk: %llu bytes\n", (unsigned long long)info.chunkSize);
+    printf("Cantidad total de chunks: %llu\n", (unsigned long long)info.chunkCount);
+    printf("Chunks usados: %llu\n", (unsigned long long)usedChunks);
+    printf("Chunks libres: %llu\n", (unsigned long long)freeChunks);
+    printf("Memoria usada: %llu bytes\n", (unsigned long long)info.usedBytes);
+    printf("Memoria libre: %llu bytes\n", (unsigned long long)info.freeBytes);
+    printf("Uso de memoria: %llu%% usados / %llu%% libres\n", (unsigned long long)usedPercent, (unsigned long long)freePercent);
+    printf("Asignaciones totales: %llu\n", (unsigned long long)info.totalAllocations);
+    printf("Liberaciones totales: %llu\n", (unsigned long long)info.totalFrees);
+    printf("Asignaciones fallidas: %llu\n", (unsigned long long)info.failedAllocations);
+	printf("----------------------------\n");
 }
 
 void user_meminfo(void) {
