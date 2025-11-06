@@ -1,3 +1,4 @@
+
 #include "memoryManager.h"
 #include "../include/lib.h"
 #include <stdint.h>
@@ -110,7 +111,7 @@ static int buddy_is_valid_pointer(BuddyMemoryManagerCDT* mm, void* ptr) {
     return (addr >= start && addr < end);
 }
 
-/**
+/*
  Elimina un bloque de su lista libre
  mm: Memory manager
  block: Bloque a eliminar
@@ -442,3 +443,5 @@ MemoryInfo *meminfo(void) {
 
     return &info;
 }
+
+

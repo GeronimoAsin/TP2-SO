@@ -141,7 +141,7 @@ static int interpret(const char *cmd) {
         char c = cmd[7];
         if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || c == '+' || c == '-' || (c >= '0' && c <= '9')) return 10;
     }
-    if (strcmp(cmd, "meminfo\n") == 0) return 11;
+    if (strcmp(cmd, "mem\n") == 0) return 11;
     if (strcmp(cmd, "foo\n") == 0) return 12;
     if (strcmp(cmd, "getPid\n") == 0) return 13;
     if (strcmp(cmd, "ps\n") == 0) return 14;
@@ -272,7 +272,7 @@ void startShell() {
                 break;
             }
             case 11: //meminfo
-                createProcessAndWait(&user_meminfo, "meminfo_process", 0, NULL, bg);
+                createProcessAndWait(&mem, "mem_process", 0, NULL, bg);
                 break;
             case 12: // foo
                 createProcessAndWait(&foo, "foo_process", 0, NULL, bg);

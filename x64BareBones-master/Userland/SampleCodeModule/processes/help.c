@@ -9,6 +9,7 @@ static char *help_text =
     "- time: Muestra la hora actual\n"
     "- ps: Lista todos los procesos\n"
     "- foo: Ejecuta un proceso de ejemplo\n"
+    "- mem: Muestra el estado actual de la memoria \n"
     "- fg: Trae el primer proceso en background a foreground\n"
     "- kill <pid>: Termina el proceso con el PID especificado\n"
     "- nice <pid> <priority>: Cambia la prioridad del proceso\n"
