@@ -385,8 +385,8 @@ pid_t fg() {
     return (pid_t) syscall(20, 0, 0, 0, 0, 0);
 }
 
-void my_kill(pid_t pid) {
-    syscall(21, (uint64_t)pid, 0, 0, 0, 0);
+int64_t my_kill(pid_t pid) {
+    return syscall(21, (uint64_t)pid, 0, 0, 0, 0);
 }
 
 int64_t my_nice(uint64_t pid, uint64_t newPrio) {

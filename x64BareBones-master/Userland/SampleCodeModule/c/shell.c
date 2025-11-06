@@ -26,7 +26,7 @@ void getMyPid(uint64_t argc, char **argv);
 void foreground(uint64_t arcg, char **argv);
 uint64_t test_mm(uint64_t argc, char *argv[]);
 uint64_t test_no_sync(uint64_t argc, char *argv[]);
-uint64_t test_sync(uint64_t argc, char *argv[]);
+// uint64_t test_sync(uint64_t argc, char *argv[]); // No implementado
 uint64_t test_prio(uint64_t argc, char *argv[]);
 uint64_t test_processes(uint64_t argc, char *argv[]);
 void wc(uint64_t argc, char **argv);
@@ -187,11 +187,11 @@ static int interpret(const char *cmd) {
         char c = cmd[9];
         if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 21;
     }
-    // test_synchro
-    if (strncmp(cmd, "test_synchro", 12) == 0) {
-        char c = cmd[12];
-        if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 22;
-    }
+    // test_synchro - NO IMPLEMENTADO
+    // if (strncmp(cmd, "test_synchro", 12) == 0) {
+    //     char c = cmd[12];
+    //     if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 22;
+    // }
     // test_no_synchro
     if (strncmp(cmd, "test_no_synchro", 15) == 0) {
         char c = cmd[15];
@@ -442,15 +442,15 @@ void startShell() {
                 //createProcessAndWait((void (*)(int, char**))&test_processes, "test_processes", 0, NULL, bg);
                 break;
             }
-            case 21: { // test_prio
+            case 21: {
                 //createProcessAndWait((void (*)(int, char**))&test_prio, "test_prio", 0, NULL, bg);
                 break;
             }
-            case 22: { // test_synchro
-                createProcessAndWait((void (*)(int, char**))&test_sync, "test_synchro", 0, NULL, bg);
-                break;
-            }
-            case 23: { 
+            // case 22: { // test_synchro - NO IMPLEMENTADO
+            //     createProcessAndWait((void (*)(int, char**))&test_sync, "test_synchro", 0, NULL, bg);
+            //     break;
+            // }
+            case 23: {
                 //createProcessAndWait((void (*)(int, char**))&test_no_synchro, "test_no_synchro", 0, NULL, bg);
                 break;
             }
