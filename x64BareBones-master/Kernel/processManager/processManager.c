@@ -115,7 +115,7 @@ pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int p
     newProcess->name = name;
     newProcess->stackSize = PROCESS_STACK_SIZE;
     newProcess->stackBase = (uint64_t *) allocateMemory(pm->memoryManager, newProcess->stackSize);
-    newProcess->read_fd = 1;  // Default read fd
+    newProcess->read_fd = 0;  // Default read fd
     newProcess->write_fd = 1; // Default write fd
     // Calcular el tope del stack (crece hacia abajo)
     uint64_t stack_top = (uint64_t)(newProcess->stackBase) + PROCESS_STACK_SIZE;
