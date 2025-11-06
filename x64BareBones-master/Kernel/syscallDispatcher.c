@@ -138,6 +138,9 @@ uint64_t syscallDispatcher(uint64_t id, ...)
             return (uint64_t)getWriteFd(getGlobalProcessManager(), (pid_t) rbx);
         case 35: //getReadFd
             return (uint64_t)getReadFd(getGlobalProcessManager(), (pid_t) rbx);
+        case 36: //printCharWithColor: rbx=char, rdx=color
+            printCharWithColor((char)rbx, (uint32_t)rdx);
+            return 1;
         default:
             return -1;
     }   

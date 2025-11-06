@@ -600,3 +600,7 @@ void pipe(int fd[2]) {
 void closePipe(int fd[2]) {
     syscall(33, (uint64_t)fd, 0, 0, 0, 0);
 }
+
+void printCharWithColor(char c, uint32_t color) {
+    syscall(36, (uint64_t)c, (uint64_t)color, 0, 0, 0);
+}

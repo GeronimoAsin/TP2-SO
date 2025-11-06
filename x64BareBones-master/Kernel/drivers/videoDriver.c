@@ -112,6 +112,30 @@ void printChar(char c) {
 	currentX += fontWidth;
 }
 
+// Función para imprimir un carácter con un color específico
+void printCharWithColor(char c, uint32_t textColor) {
+	if (currentX + fontWidth > VBE_mode_info->width) {
+		newLine();
+	}
+
+	if (bufferRows < MAX_ROWS && bufferCols[bufferRows] < MAX_COLS) {
+		screenBuffer[bufferRows][bufferCols[bufferRows]++] = c;
+	}
+
+	uint8_t *glyph = font_bitmap + 16 * (c - 32);
+	for (int cy = 0; cy < fontHeight; cy++) {
+		uint8_t row = glyph[cy * 16 / fontHeight];
+		for (int cx = 0; cx < fontWidth; cx++) {
+			if (row & (0x80 >> (cx * 8 / fontWidth))) {
+				putPixel(textColor, currentX + cx, currentY + cy);
+			} else {
+				putPixel(currentBackgroundColor, currentX + cx, currentY + cy);
+			}
+		}
+	}
+	currentX += fontWidth;
+}
+
 // Modifica printString para no recibir color
 void printString(const char *str) {
     while (*str) {

@@ -4,6 +4,7 @@
 void putPixel(uint32_t hexColor, uint64_t x, uint64_t y);
 uint32_t getAdaptiveTextColor(uint32_t backgroundColor);
 void printChar(char c);
+void printCharWithColor(char c, uint32_t textColor);
 void printString(const char *str);
 void deleteLastChar();
 void clearScreen(uint32_t backgroundColor);
