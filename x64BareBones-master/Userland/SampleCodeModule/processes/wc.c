@@ -15,17 +15,15 @@ void wc(uint64_t argc, char **argv) {
 		writeFd = 1;
 	}
 
-	int lines = 0;
+	int lines = 1;
 	int lineHasContent = 0;
 	int isKeyboard = (readFd == 0);
 
 	while (1) {
 		char ch;
 		int bytes = read(readFd, &ch, 1);
-		if (bytes <= 0) {
-			if (isKeyboard) {
-				continue;
-			}
+		if (bytes == 0) {
+			//EOF
 			break;
 		}
 
@@ -36,9 +34,6 @@ void wc(uint64_t argc, char **argv) {
 		if (ch == '\n') {
 			if (isKeyboard) {
 				write(writeFd, "\n", 1);
-				if (!lineHasContent) {
-					break;
-				}
 			}
 			lines++;
 			lineHasContent = 0;
@@ -52,6 +47,6 @@ void wc(uint64_t argc, char **argv) {
 		lines++;
 	}
 
-	printf("Lineas: %d\n", lines);
+	printf("\nLineas: %d\n", lines);
 	my_exit();
 }

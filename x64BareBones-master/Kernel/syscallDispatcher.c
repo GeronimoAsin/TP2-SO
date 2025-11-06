@@ -86,8 +86,7 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 14:
             return getPid(getGlobalProcessManager());
         case 15:
-            printProcesses(getGlobalProcessManager());
-            return 1;
+            return (uint64_t) getProcesses(getGlobalProcessManager(), (size_t *) rbx);
         case 18:
             waitPid(getGlobalProcessManager(), (pid_t) rbx);
             return 1;
@@ -153,8 +152,9 @@ uint64_t sys_read(uint64_t fd, char *buff, uint64_t count)
         char character;
 
         while (i < count && (character = nextFromBuffer()) != 0) {
-            // Espera hasta que haya un caracter disponible
-            //while ((character = nextFromBuffer()) == 0);
+            if(character == -1) { // EOF
+                return 0;;
+            }
             buff[i++] = character;
         }
     }else{

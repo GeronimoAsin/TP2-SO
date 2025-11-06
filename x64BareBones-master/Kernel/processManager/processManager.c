@@ -84,7 +84,7 @@ ProcessManagerADT createProcessManager(MemoryManagerADT memoryManager) {
     idleProc->stackBase = (uint64_t *) allocateMemory(memoryManager, PROCESS_STACK_SIZE);
     idleProc->argc = 0;
     idleProc->argv = NULL;
-    idleProc->read_fd = 1;
+    idleProc->read_fd = 0;
     idleProc->write_fd = 1;
     
     // Preparar el stack del proceso idle
@@ -225,27 +225,33 @@ void clearAllProcesses(ProcessManagerADT processManager) {
     processManager->currentProcess = NULL;
 }
 
-void printProcesses(ProcessManagerADT processManager) {
-    printString("All Processes:");
-    newLine();
-    for (int i = 0; i < listSize(processManager->allProcesses); i++) {
+typedef struct ProcessInfo {
+    pid_t pid;
+    char *name;
+    size_t state;
+    size_t priority;
+    uint64_t *stackPointer;
+    pid_t parentPid;
+    size_t foreground;
+} ProcessInfo;
+
+
+ProcessInfo * getProcesses(ProcessManagerADT processManager, size_t *outCount) {
+    size_t count = listSize(processManager->allProcesses);
+    *outCount = count;  // Guardar el count en el puntero de salida
+    
+    ProcessInfo *toReturn = (ProcessInfo *) allocateMemory(processManager->memoryManager, sizeof(ProcessInfo) * count);
+    for(int i = 0; i < count; i++) {
         PCB *proc = getAt(processManager->allProcesses, i);
-        printString("PID: ");
-        printDec64(proc->pid);
-        printString(", Name: ");
-        printString(proc->name);
-        printString(", State: ");
-        printDec64(proc->state);
-        printString(", Priority: ");
-        printDec64(proc->priority);
-        printString(", Stack Pointer: ");
-        printHex64((uint64_t)(proc->stackPointer));
-        printString(", Parent PID: ");
-        printDec64(proc->parentPid);
-        printString(", Foreground: ");
-        printDec64(proc->foreground);
-        newLine();
+        toReturn[i].pid = proc->pid;
+        toReturn[i].name = proc->name;
+        toReturn[i].state = proc->state;
+        toReturn[i].priority = proc->priority;
+        toReturn[i].stackPointer = proc->stackPointer;
+        toReturn[i].parentPid = proc->parentPid;
+        toReturn[i].foreground = proc->foreground;
     }
+    return toReturn;
 }
 
 void kill(ProcessManagerADT processManager, pid_t processId) {
