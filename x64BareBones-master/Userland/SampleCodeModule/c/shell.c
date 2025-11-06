@@ -11,6 +11,7 @@ extern void invalidOp();
 void echo(uint64_t argc, char **argv);
 void help(uint64_t argc, char **argv);
 void block(uint64_t argc, char **argv);
+void unblock(uint64_t argc, char **argv);
 void cat(uint64_t argc, char **argv);
 void clear(uint64_t argc, char **argv);
 void filter(uint64_t argc, char **argv);
@@ -341,85 +342,92 @@ void startShell() {
                 break;
             }
             case 17: { // nice <pid> <priority>
-                // Parsear el comando "nice <pid> <priority>"
                 char *p = buffer;
-                for (int k = 0; k < 4 && *p; k++) p++; // Saltar "nice"
-                while (*p && (*p == ' ' || *p == '\t')) p++;
-                
-                if (*p == '\0' || *p == '\n' || !(*p >= '0' && *p <= '9')) {
+                for (int k = 0; k < 4 && *p; k++) {
+                    p++;
+                }
+                while (*p == ' ' || *p == '\t') {
+                    p++;
+                }
+
+                static char niceArgs[2][16];
+                char *argv_local[2] = { NULL, NULL };
+                int argc_local = 0;
+
+                for (int arg = 0; arg < 2; arg++) {
+                    if (*p == '\0' || *p == '\n' || *p == '&') {
+                        break;
+                    }
+
+                    int idx = 0;
+                    while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '&' && idx < (int)(sizeof(niceArgs[arg]) - 1)) {
+                        niceArgs[arg][idx++] = *p++;
+                    }
+                    niceArgs[arg][idx] = '\0';
+                    argv_local[arg] = niceArgs[arg];
+                    argc_local++;
+
+                    while (*p == ' ' || *p == '\t') {
+                        p++;
+                    }
+                }
+
+                if (argc_local < 2) {
                     printf("Error: uso correcto -> nice <pid> <priority>\n");
                     break;
                 }
-                
-                // Parsear el PID
-                pid_t pidToNice = 0;
-                while (*p >= '0' && *p <= '9') {
-                    pidToNice = pidToNice * 10 + (*p - '0');
-                    p++;
-                }
-                
-                // Saltar espacios
-                while (*p && (*p == ' ' || *p == '\t')) p++;
-                
-                if (*p == '\0' || *p == '\n' || !(*p >= '0' && *p <= '9')) {
-                    printf("Error: uso correcto -> nice <pid> <priority>\n");
-                    break;
-                }
-                
-                // Parsear la prioridad
-                uint64_t newPriority = 0;
-                while (*p >= '0' && *p <= '9') {
-                    newPriority = newPriority * 10 + (*p - '0');
-                    p++;
-                }
-                
-                printf("Cambiando prioridad del proceso %d a %d...\n", pidToNice, newPriority);
-                my_nice(pidToNice, newPriority);
-                printf("Prioridad cambiada\n");
+
+                createProcessAndWait(&nice, "nice_process", argc_local, argv_local, bg);
                 break;
             }
-            case 18: { // block
-                // Parsear el PID del comando "block <pid>"
+            case 18: { // block <pid>
                 char *p = buffer;
-                for (int k = 0; k < 5 && *p; k++) p++; // Saltar "block"
-                while (*p && (*p == ' ' || *p == '\t')) p++;
-                
-                if (*p == '\0' || *p == '\n' || !(*p >= '0' && *p <= '9')) {
+                for (int k = 0; k < 5 && *p; k++) {
+                    p++;
+                }
+                while (*p == ' ' || *p == '\t') {
+                    p++;
+                }
+
+                if (*p == '\0' || *p == '\n' || *p == '&') {
                     printf("Error: uso correcto -> block <pid>\n");
                     break;
                 }
-                
-                pid_t pidToBlock = 0;
-                while (*p >= '0' && *p <= '9') {
-                    pidToBlock = pidToBlock * 10 + (*p - '0');
-                    p++;
+
+                static char blockArg[16];
+                int idx = 0;
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '&' && idx < (int)(sizeof(blockArg) - 1)) {
+                    blockArg[idx++] = *p++;
                 }
-                
-                printf("Bloqueando proceso con PID %d...\n", pidToBlock);
-                my_block(pidToBlock);
-                printf("Proceso bloqueado\n");
+                blockArg[idx] = '\0';
+
+                char *argv_local[1] = { blockArg };
+                createProcessAndWait(&block, "block_process", 1, argv_local, bg);
                 break;
             }
-            case 19: { // unblock
-                // Parsear el PID del comando "unblock <pid>"
+            case 19: { // unblock <pid>
                 char *p = buffer;
-                for (int k = 0; k < 7 && *p; k++) p++; // Saltar "unblock"
-                while (*p && (*p == ' ' || *p == '\t')) p++;
-                
-                if (*p == '\0' || *p == '\n' || !(*p >= '0' && *p <= '9')) {
+                for (int k = 0; k < 7 && *p; k++) {
+                    p++;
+                }
+                while (*p == ' ' || *p == '\t') {
+                    p++;
+                }
+
+                if (*p == '\0' || *p == '\n' || *p == '&') {
                     printf("Error: uso correcto -> unblock <pid>\n");
                     break;
                 }
-                
-                pid_t pidToUnblock = 0;
-                while (*p >= '0' && *p <= '9') {
-                    pidToUnblock = pidToUnblock * 10 + (*p - '0');
-                    p++;
+
+                static char unblockArg[16];
+                int idx = 0;
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '&' && idx < (int)(sizeof(unblockArg) - 1)) {
+                    unblockArg[idx++] = *p++;
                 }
-                
-                printf("Desbloqueando proceso con PID %d...\n", pidToUnblock);
-                my_unblock(pidToUnblock);
-                printf("Proceso desbloqueado\n");
+                unblockArg[idx] = '\0';
+
+                char *argv_local[1] = { unblockArg };
+                createProcessAndWait(&unblock, "unblock_process", 1, argv_local, bg);
                 break;
             }
             case 20: { // test_processes
