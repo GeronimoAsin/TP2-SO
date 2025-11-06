@@ -133,6 +133,7 @@ static int interpret(const char *cmd) {
     if (strcmp(cmd, "memchunks\n") == 0) return 7;
 	if (strcmp(cmd, "zeroDiv\n") == 0) return 8;
 	if (strcmp(cmd, "invalidOp\n") == 0) return 9;
+    if (strcmp(cmd, "cat\n") == 0) return 25;
     // Acepta "test_mm" seguido de espacio/tab/newline, signo o dígito, o incluso sin separador antes del número
     if (strncmp(cmd, "test_mm", 7) == 0) {
         char c = cmd[7];
@@ -468,6 +469,10 @@ void startShell() {
                 }
 
                 createProcessAndWait(&loop, "loop_process", argc_local, argv_local, bg);
+                break;
+            }
+            case 25: { // cat
+                createProcessAndWait(&cat, "cat_process", 0, NULL, bg);
                 break;
             }
             default:

@@ -135,6 +135,10 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 33://closePipe
             closePipe(getGlobalPipeManager(), (int *) rbx);
             return 1;
+        case 34: //getWriteFd
+            return (uint64_t)getWriteFd(getGlobalProcessManager(), (pid_t) rbx);
+        case 35: //getReadFd
+            return (uint64_t)getReadFd(getGlobalProcessManager(), (pid_t) rbx);
         default:
             return -1;
     }   

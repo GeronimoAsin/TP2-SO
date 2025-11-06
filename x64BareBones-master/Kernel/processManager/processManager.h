@@ -25,6 +25,11 @@ void block(ProcessManagerADT processManager, pid_t processId);
 
 void unblock(ProcessManagerADT processManager, pid_t processId);
 
+void setWriteFd(ProcessManagerADT processManager, pid_t processId, int write_fd);
+void setReadFd(ProcessManagerADT processManager, pid_t processId, int read_fd);
+int getWriteFd(ProcessManagerADT processManager, pid_t processId);
+int getReadFd(ProcessManagerADT processManager, pid_t processId);
+
 void leaveCPU(ProcessManagerADT processManager);
 
 void waitPid(ProcessManagerADT processManager, pid_t childPid);

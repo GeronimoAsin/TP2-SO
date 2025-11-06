@@ -514,6 +514,14 @@ void setReadFd(pid_t pid, int read_fd) {
     syscall(31, (uint64_t)pid, (uint64_t)read_fd, 0, 0, 0);
 }
 
+int getWriteFd(pid_t pid) {
+    return (int)syscall(34, (uint64_t)pid, 0, 0, 0, 0);
+}
+
+int getReadFd(pid_t pid) {
+    return (int)syscall(35, (uint64_t)pid, 0, 0, 0, 0);
+}
+
 void createProcessAndWaitWithPipeW(void (*entryPoint)(int, char**), char *name, int argc, char **argv, int bg, int write_fd) {
     pid_t pid = createProcess(entryPoint, name, argc, argv, !bg);
     setWriteFd(pid, write_fd);

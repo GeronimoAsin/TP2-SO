@@ -13,6 +13,8 @@ void my_exit(void);
 void my_kill(pid_t pid);
 void printProcesses(void);
 void meminfo(void);
+int getWriteFd(pid_t pid);
+int getReadFd(pid_t pid);
 
 void user_echo(const char *input);
 void user_help(char *help_text);
