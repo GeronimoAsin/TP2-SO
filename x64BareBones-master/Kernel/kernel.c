@@ -8,6 +8,7 @@
 #include "include/lib.h"
 #include "processManager/processManager.h"
 #include "semaphores/semaphores.h"
+#include "pipes/pipeManager.h"
 extern uint8_t text;
 extern uint8_t rodata;
 extern uint8_t data;
@@ -92,6 +93,7 @@ int main()
     MemoryManagerADT mm = createMemoryManager();
     ProcessManagerADT pm = createProcessManager(mm);
     SemaphoresADT sems = semaphores_create(mm, pm);
+    PipeManagerADT  pipes = createPipeManager(mm);
     sem_open(sems, "waiting_to_read", 0);
 
     printString("MM init ");

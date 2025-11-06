@@ -27,10 +27,7 @@ void filter(uint64_t argc, char **argv) {
 	while (1) {
 		char ch;
 		int bytes = read(readFd, &ch, 1);
-		if (bytes <= 0) {
-			if (isKeyboard) {
-				continue;
-			}
+		if (bytes == 0) {
 			break;
 		}
 

@@ -86,6 +86,13 @@ void readAndProcess() {
             }
             return;
         }
+        if (ctrl && data == 0x20) {
+            //EOF
+            keyboard_buffer_push(-1);
+            sem_post(getGlobalSemaphoresManager(), "waiting_to_read");
+            return;
+        }
+        
         char ascii = scancode_to_ascii[data];
 		if(shift) {
             ascii = scancode_to_ascii_shift[data];

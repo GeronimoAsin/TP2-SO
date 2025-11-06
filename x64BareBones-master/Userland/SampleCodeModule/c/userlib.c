@@ -324,8 +324,40 @@ pid_t createProcess(void (*start_routine)(int, char**),char * name, int argc, ch
     return pid;
 }
 
+typedef struct ProcessInfo {
+    pid_t pid;
+    char *name;
+    size_t state;
+    size_t priority;
+    uint64_t *stackPointer;
+    pid_t parentPid;
+    size_t foreground;
+} ProcessInfo;
+
+
 void printProcesses() {
-    syscall(15, 0, 0, 0, 0, 0);
+    size_t count;
+    ProcessInfo *processes = syscall(15, &count, 0, 0, 0, 0);
+    for (size_t i = 0; i < count; i++) {
+        char *stateStr;
+        if(processes[i].state == 0) {
+            stateStr = "BLOCKED";
+        } else if(processes[i].state == 1) {
+            stateStr = "READY";
+        } else if(processes[i].state == 2) {
+            stateStr = "RUNNING";
+        } else if(processes[i].state == 3) {
+            stateStr = "TERMINATED";
+        }
+        printf("PID: %d, Name: %s, State: %s, Priority: %d, Parent PID: %d, Foreground: %d\n",
+               processes[i].pid,
+               processes[i].name,
+               stateStr,
+               processes[i].priority,
+               processes[i].parentPid,
+               processes[i].foreground);
+    }
+    free(processes);
 }
 
 pid_t fg() {

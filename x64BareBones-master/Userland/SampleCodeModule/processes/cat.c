@@ -10,12 +10,6 @@ void cat(uint64_t argc, char **argv) {
 	int readFd = getReadFd(pid);
 	int writeFd = getWriteFd(pid);
 
-	if (readFd <= 0 || readFd == 1) {
-		readFd = 0; // usar teclado si no hay descriptor asociado
-	}
-	if (writeFd <= 0) {
-		writeFd = 1; // fallback a pantalla
-	}
 
 	char line[CAT_LINE_BUFFER];
 	int lineIndex = 0;
@@ -23,11 +17,9 @@ void cat(uint64_t argc, char **argv) {
 	while (1) {
 		char ch;
 		int bytes = read(readFd, &ch, 1);
-		if (bytes <= 0) {
-			if (readFd == 0) {
-				continue; // stdin espera nuevos datos
-			}
-			break; // pipe/padre cerró el descriptor
+		if (bytes == 0) {
+			// EOF
+			break;
 		}
 
 		if (ch == '\n') {
