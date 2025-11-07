@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 #define MIN_BLOCK_SIZE 32
-#define MAX_ORDER 12                // 2^12 = 4096 bytes
+#define MAX_ORDER 17
 #define BUDDY_MAGIC 0xBDD7BA8E      // magic number para que validemos si hay corrupcion de memoria
 
 
@@ -226,7 +226,7 @@ MemoryManagerADT createMemoryManager() {
         test_size <<= 1;
         mm->max_order++;
     }
-    mm->max_order--;  // Ajuste al último orden válido
+   mm->max_order--;  // Ajuste al último orden válido
 
     // estadisticas
     mm->allocated_bytes = 0;
