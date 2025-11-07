@@ -1,4 +1,4 @@
-/*
+
 #include "memoryManager.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -156,5 +156,5 @@ MemoryInfo *meminfo(void)
 
 
 
-*/
+
 

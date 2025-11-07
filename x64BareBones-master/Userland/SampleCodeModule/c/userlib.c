@@ -604,3 +604,41 @@ void closePipe(int fd[2]) {
 void printCharWithColor(char c, uint32_t color) {
     syscall(36, (uint64_t)c, (uint64_t)color, 0, 0, 0);
 }
+
+// Forward declarations para funciones de tests
+void endless_loop(int argc, char *argv[]);
+void zero_to_max(int argc, char *argv[]);
+void my_process_inc(int argc, char *argv[]);
+
+// Wrappers para compatibilidad con tests
+int64_t my_getpid() {
+    return (int64_t)getPid();
+}
+
+int64_t my_wait(int64_t pid) {
+    waitPid((pid_t)pid);
+    return 0;
+}
+
+// Wrapper para my_create_process: toma nombre de proceso como string
+// y busca la función correspondiente
+int64_t my_create_process(char *name, uint64_t argc, char *argv[]) {
+    void (*func)(int, char**) = NULL;
+    
+    // Mapeo de nombres a funciones
+    if (strcmp(name, "endless_loop") == 0) {
+        func = endless_loop;
+    } else if (strcmp(name, "zero_to_max") == 0) {
+        func = zero_to_max;
+    } else if (strcmp(name, "my_process_inc") == 0) {
+        func = my_process_inc;
+    }
+    
+    if (func == NULL) {
+        return -1; // Función no encontrada
+    }
+    
+    // Crear el proceso con foreground=0 (background)
+    return (int64_t)createProcess(func, name, (int)argc, argv, 0);
+}
+

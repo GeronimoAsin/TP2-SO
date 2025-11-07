@@ -9,6 +9,8 @@
         "type_traits": "c",
         "utility": "c",
         "pipes.h": "c",
-        "memory_resource": "c"
+        "memory_resource": "c",
+        "lib.h": "c",
+        "stdint.h": "c"
     }
 }

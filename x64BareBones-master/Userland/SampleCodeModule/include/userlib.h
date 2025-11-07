@@ -49,3 +49,9 @@ int deleteLastChar(void);
 void printTime(void);
 void print_registers(void);
 void printCharWithColor(char c, uint32_t color);
+
+// Wrappers para test compatibility
+int64_t my_create_process(char *name, uint64_t argc, char *argv[]);
+int64_t my_wait(int64_t pid);
+int64_t my_getpid();
+

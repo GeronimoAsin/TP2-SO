@@ -1,7 +1,7 @@
-/*#include <stdint.h>
-#include "userlib.h"
-#include "syscall.h"
-#include "test_util.h"
+#include <stdint.h>
+#include "../include/userlib.h"
+#include "../include/syscall.h"
+#include "../include/test_util.h"
 
 #define TOTAL_PROCESSES 3
 
@@ -13,12 +13,13 @@ int64_t prio[TOTAL_PROCESSES] = {LOWEST, MEDIUM, HIGHEST};
 
 uint64_t max_value = 0;
 
-void zero_to_max() {
+void zero_to_max(int argc, char *argv[]) {
   uint64_t value = 0;
 
   while (value++ != max_value);
 
   printf("PROCESS %d DONE!\n", my_getpid());
+  my_exit();
 }
 
 uint64_t test_prio(uint64_t argc, char *argv[]) {
@@ -71,4 +72,6 @@ uint64_t test_prio(uint64_t argc, char *argv[]) {
 
   for (i = 0; i < TOTAL_PROCESSES; i++)
     my_wait(pids[i]);
-}*/
+
+  my_exit();
+}

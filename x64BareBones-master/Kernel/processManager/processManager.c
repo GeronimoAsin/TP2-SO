@@ -120,25 +120,12 @@ pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int p
     // Calcular el tope del stack (crece hacia abajo)
     uint64_t stack_top = (uint64_t)(newProcess->stackBase) + PROCESS_STACK_SIZE;
 
-    printHex64(stack_top);
-    newLine();
-    printHex64(newProcess->stackBase);
-    newLine();
-
     newProcess->argc = argc;
     newProcess->argv = argv;
     newProcess->instructionPointer = (uint64_t *) entryPoint;
-    
-    printString("Entry point: ");
-    printHex64((uint64_t)entryPoint);
-    newLine();
 
     // Usar fill_stack para inicializar el stack del proceso
     uint64_t new_rsp = fill_stack(stack_top, (uint64_t)entryPoint, (uint64_t)argc, (uint64_t *)argv);
-
-    printString("new_rsp returned: ");
-    printHex64(new_rsp);
-    newLine();
 
     newProcess->stackPointer = (uint64_t *)new_rsp;
     newProcess->basePointer = (uint64_t *)new_rsp;

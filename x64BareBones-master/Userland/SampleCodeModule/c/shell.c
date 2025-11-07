@@ -26,7 +26,7 @@ void getMyPid(uint64_t argc, char **argv);
 void foreground(uint64_t arcg, char **argv);
 uint64_t test_mm(uint64_t argc, char *argv[]);
 uint64_t test_no_sync(uint64_t argc, char *argv[]);
-// uint64_t test_sync(uint64_t argc, char *argv[]); // No implementado
+uint64_t test_sync(uint64_t argc, char *argv[]); // No implementado
 uint64_t test_prio(uint64_t argc, char *argv[]);
 uint64_t test_processes(uint64_t argc, char *argv[]);
 void wc(uint64_t argc, char **argv);
@@ -187,15 +187,9 @@ static int interpret(const char *cmd) {
         char c = cmd[9];
         if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 21;
     }
-    // test_synchro - NO IMPLEMENTADO
-    // if (strncmp(cmd, "test_synchro", 12) == 0) {
-    //     char c = cmd[12];
-    //     if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 22;
-    // }
-    // test_no_synchro
-    if (strncmp(cmd, "test_no_synchro", 15) == 0) {
-        char c = cmd[15];
-        if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 23;
+    if (strncmp(cmd, "test_synchro", 12) == 0) {
+         char c = cmd[12];
+         if (c == ' ' || c == '\t' || c == '\n' || c == '\0' || (c >= '0' && c <= '9')) return 22;
     }
     return -1;
 }
@@ -438,18 +432,114 @@ void startShell() {
                 createProcessAndWait(&unblock, "unblock_process", 1, argv_local, bg);
                 break;
             }
-            case 20: { // test_processes
-                //createProcessAndWait((void (*)(int, char**))&test_processes, "test_processes", 0, NULL, bg);
+            case 20: { // test_processes <max_processes>
+                // Parsear el argumento (max_processes)
+                char *p = buffer;
+                // Avanzar hasta después de "test_processes" (14 caracteres)
+                for (int k = 0; k < 14 && *p; k++) p++;
+                
+                // Saltar espacios
+                while (*p == ' ' || *p == '\t') p++;
+                
+                // Si hay un argumento, parsearlo
+                char argbuf[32];
+                int ai = 0;
+                if (*p && *p != '\n' && *p != '\r' && *p != '&') {
+                    // Copiar el argumento
+                    while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && *p != '&' && ai < 31) {
+                        argbuf[ai++] = *p++;
+                    }
+                    argbuf[ai] = '\0';
+                    
+                    // Crear array de argumentos
+                    char *argv_local[1] = { argbuf };
+                    createProcessAndWait((void (*)(int, char**))&test_processes, "test_processes", 1, argv_local, bg);
+                } else {
+                    // Sin argumentos - mostrar mensaje de ayuda
+                    printf("Error: test_processes requiere un argumento\n");
+                    printf("Uso: test_processes <max_processes>\n");
+                    printf("Ejemplo: test_processes 5\n");
+                }
                 break;
             }
-            case 21: {
-                //createProcessAndWait((void (*)(int, char**))&test_prio, "test_prio", 0, NULL, bg);
+            case 21: { // test_prio <max_value>
+                // Parsear el argumento (max_value)
+                char *p = buffer;
+                // Avanzar hasta después de "test_prio" (9 caracteres)
+                for (int k = 0; k < 9 && *p; k++) p++;
+                
+                // Saltar espacios
+                while (*p == ' ' || *p == '\t') p++;
+                
+                // Si hay un argumento, parsearlo
+                char argbuf[32];
+                int ai = 0;
+                if (*p && *p != '\n' && *p != '\r' && *p != '&') {
+                    // Copiar el argumento
+                    while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && *p != '&' && ai < 31) {
+                        argbuf[ai++] = *p++;
+                    }
+                    argbuf[ai] = '\0';
+                    
+                    // Crear array de argumentos
+                    char *argv_local[1] = { argbuf };
+                    createProcessAndWait((void (*)(int, char**))&test_prio, "test_prio", 1, argv_local, bg);
+                } else {
+                    // Sin argumentos - mostrar mensaje de ayuda
+                    printf("Error: test_prio requiere un argumento\n");
+                    printf("Uso: test_prio <max_value>\n");
+                    printf("Ejemplo: test_prio 100000\n");
+                }
                 break;
             }
-            // case 22: { // test_synchro - NO IMPLEMENTADO
-            //     createProcessAndWait((void (*)(int, char**))&test_sync, "test_synchro", 0, NULL, bg);
-            //     break;
-            // }
+            case 22: { // test_synchro <n> <use_sem>
+                // Parsear los argumentos (n, use_sem)
+                char *p = buffer;
+                // Avanzar hasta después de "test_synchro" (12 caracteres)
+                for (int k = 0; k < 12 && *p; k++) p++;
+                
+                // Saltar espacios
+                while (*p == ' ' || *p == '\t') p++;
+                
+                // Parsear primer argumento (n)
+                char argbuf1[32];
+                int ai1 = 0;
+                if (*p && *p != '\n' && *p != '\r' && *p != '&') {
+                    while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && *p != '&' && ai1 < 31) {
+                        argbuf1[ai1++] = *p++;
+                    }
+                    argbuf1[ai1] = '\0';
+                    
+                    // Saltar espacios entre argumentos
+                    while (*p == ' ' || *p == '\t') p++;
+                    
+                    // Parsear segundo argumento (use_sem)
+                    char argbuf2[32];
+                    int ai2 = 0;
+                    if (*p && *p != '\n' && *p != '\r' && *p != '&') {
+                        while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && *p != '&' && ai2 < 31) {
+                            argbuf2[ai2++] = *p++;
+                        }
+                        argbuf2[ai2] = '\0';
+                        
+                        // Crear array de argumentos
+                        char *argv_local[2] = { argbuf1, argbuf2 };
+                        createProcessAndWait((void (*)(int, char**))&test_sync, "test_synchro", 2, argv_local, bg);
+                    } else {
+                        printf("Error: test_synchro requiere dos argumentos\n");
+                        printf("Uso: test_synchro <n> <use_sem>\n");
+                        printf("Ejemplo: test_synchro 1000 1 (con semaforo)\n");
+                        printf("Ejemplo: test_synchro 1000 0 (sin semaforo)\n");
+                    }
+                } else {
+                    // Sin argumentos - mostrar mensaje de ayuda
+                    printf("Error: test_synchro requiere dos argumentos\n");
+                    printf("Uso: test_synchro <n> <use_sem>\n");
+                    printf("Ejemplo: test_synchro 1000 1 (con semaforo)\n");
+                    printf("Ejemplo: test_synchro 1000 0 (sin semaforo)\n");
+                }
+                break;
+             }
             case 23: {
                 //createProcessAndWait((void (*)(int, char**))&test_no_synchro, "test_no_synchro", 0, NULL, bg);
                 break;

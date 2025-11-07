@@ -174,9 +174,6 @@ PCB * findFirstWaitingToRead(ListADT list) {
     
     Node *current = list->head;
     while (current != NULL) {
-        if (current->process->waitingToRead) {
-            return current->process;
-        }
         current = current->next;
     }
     return NULL; 
