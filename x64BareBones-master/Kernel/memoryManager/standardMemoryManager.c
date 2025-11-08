@@ -11,7 +11,12 @@ static uint64_t failedAllocations = 0;
 
 MemoryManagerADT createMemoryManager()
 {
+    static int initialized = 0;
     MemoryManagerADT newMem = &memoryManagerInstance;
+
+    if (initialized) {
+        return newMem;
+    }
 
     uintptr_t alignedStart = ALIGN_POINTER(HEAP_START, WORD_ALIGN);
     newMem->heapStart = (uint8_t *)alignedStart;
@@ -27,6 +32,7 @@ MemoryManagerADT createMemoryManager()
         newMem->freeChunkStack[i] = newMem->heapStart + (i * newMem->chunkSize);
     }
 
+    initialized = 1;
     return newMem;
 }
 
@@ -49,47 +55,10 @@ void * allocateMemory(MemoryManagerADT memoryManager, size_t size) {
         return NULL; // No hay chunks libres
     }
 
-    // Pop del stack: tomar el chunk en nextFreeIndex - 1
-    memoryManager->nextFreeIndex--;
-    uint8_t *candidate = memoryManager->freeChunkStack[memoryManager->nextFreeIndex];
-    uintptr_t aligned = ALIGN_POINTER(candidate, WORD_ALIGN);
-
-    // Verificar que después del alineamiento el tamaño cabe
-    uintptr_t chunkStart = (uintptr_t)candidate;
-    uintptr_t chunkEnd = chunkStart + memoryManager->chunkSize;
-
-    if (aligned + size > chunkEnd) {
-        // No cabe después del alineamiento, intento con el proximo chunk
-        if (memoryManager->nextFreeIndex == 0) {
-            // Restauro el índice porque no pudimos usar este chunk
-            memoryManager->nextFreeIndex++;
-            failedAllocations++;
-            return NULL;
-        }
-
-        // Devuelvo el chunk al stack y pruebo con el siguiente
-        memoryManager->freeChunkStack[memoryManager->nextFreeIndex] = candidate;
-        memoryManager->nextFreeIndex--;
-
-        candidate = memoryManager->freeChunkStack[memoryManager->nextFreeIndex];
-        aligned = ALIGN_POINTER(candidate, WORD_ALIGN);
-
-        chunkStart = (uintptr_t)candidate;
-        chunkEnd = chunkStart + memoryManager->chunkSize;
-
-        if (aligned + size > chunkEnd) {
-            // Tampoco cabe en este, devolver ambos al stack
-            memoryManager->nextFreeIndex++;
-            memoryManager->freeChunkStack[memoryManager->nextFreeIndex] = candidate;
-            memoryManager->nextFreeIndex++;
-            failedAllocations++;
-            return NULL;
-        }
-    }
-
+    // Pop del stack y devuelve el inicio del chunk
+    uint8_t *chunk = memoryManager->freeChunkStack[--memoryManager->nextFreeIndex];
     totalAllocations++;
-
-    return (void *)aligned;
+    return (void *)chunk;
 }
 
 void freeMemory(MemoryManagerADT memoryManager, void *ptr) {
@@ -153,8 +122,3 @@ MemoryInfo *meminfo(void)
 
     return &info;
 }
-
-
-
-
-
