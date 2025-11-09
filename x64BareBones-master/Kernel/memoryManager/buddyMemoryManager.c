@@ -206,7 +206,15 @@ static BuddyBlockHeader* buddy_coalesce(BuddyMemoryManagerCDT* mm, BuddyBlockHea
 MemoryManagerADT createMemoryManager() {
     printString("Usando Buddy Memory Manager");
     newLine();
+	static int initialized = 0;
+
     BuddyMemoryManagerCDT* mm = &buddyMemoryManagerInstance;
+
+
+	if(initialized)
+	{
+		return (MemoryManagerADT)mm;
+	}
 
     //inicializo los campos
     uintptr_t alignedStart = ALIGN_POINTER(HEAP_START, WORD_ALIGN);
@@ -266,6 +274,7 @@ MemoryManagerADT createMemoryManager() {
         }
     }
 
+	initialized=1;
     return (MemoryManagerADT)mm;
 }
 
