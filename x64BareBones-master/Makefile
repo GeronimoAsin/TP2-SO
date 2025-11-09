@@ -1,6 +1,8 @@
+KERNEL_TARGET ?= all
 
 all:  bootloader kernel userland image
 
+buddy: KERNEL_TARGET=buddy
 buddy: bootloader kernel_buddy userland image
 
 bootloader:
@@ -15,8 +17,8 @@ kernel_buddy:
 userland:
 	cd Userland; make all
 
-image: kernel bootloader userland
-	cd Image; make all
+image: bootloader userland
+	cd Image; $(MAKE) all KERNEL_TARGET=$(KERNEL_TARGET)
 
 clean:
 	cd Bootloader; make clean

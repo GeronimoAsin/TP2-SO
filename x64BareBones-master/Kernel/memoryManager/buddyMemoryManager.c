@@ -204,6 +204,8 @@ static BuddyBlockHeader* buddy_coalesce(BuddyMemoryManagerCDT* mm, BuddyBlockHea
 
 
 MemoryManagerADT createMemoryManager() {
+    printString("Usando Buddy Memory Manager");
+    newLine();
     BuddyMemoryManagerCDT* mm = &buddyMemoryManagerInstance;
 
     //inicializo los campos

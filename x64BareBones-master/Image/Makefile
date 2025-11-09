@@ -1,3 +1,5 @@
+KERNEL_TARGET ?= all
+
 BOOTLOADER_PATH=../Bootloader
 BMFS=$(BOOTLOADER_PATH)/BMFS/bmfs.bin
 MBR=$(BOOTLOADER_PATH)/Pure64/bmfs_mbr.sys
@@ -16,7 +18,7 @@ IMGSIZE=6291456
 all: $(IMG) $(VMDK) $(QCOW2)
 
 $(KERNEL):
-	cd ../Kernel; make
+	cd ../Kernel; $(MAKE) $(KERNEL_TARGET)
 
 $(PACKEDKERNEL): $(KERNEL) $(USERLAND)
 	$(MP) $(KERNEL) $(USERLAND) -o $(PACKEDKERNEL)
