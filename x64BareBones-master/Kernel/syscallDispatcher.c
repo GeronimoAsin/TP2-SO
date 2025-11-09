@@ -141,6 +141,11 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 36: //printCharWithColor: rbx=char, rdx=color
             printCharWithColor((char)rbx, (uint32_t)rdx);
             return 1;
+        case 37: { // createProcessWithFds: rbx=entry, rdx=foreground, rcx=name, r8=ptr args
+            typedef struct { int argc; char **argv; int read_fd; int write_fd; } ProcArgs;
+            ProcArgs *pa = (ProcArgs *) r8;
+            return createProcessWithFds(getGlobalProcessManager(), (void (*)(int, char**)) rbx, 1, (char *) rcx, pa->argc, (char **)pa->argv, (int) rdx, pa->read_fd, pa->write_fd);
+        }
         default:
             return -1;
     }   
@@ -161,8 +166,6 @@ uint64_t sys_read(uint64_t fd, char *buff, uint64_t count)
             buff[i++] = character;
         }
     }else{
-        ProcessManagerADT pm = getGlobalProcessManager();
-        pid_t currentPid = getPid(pm);
         PipeManagerADT pipeManager = getGlobalPipeManager();
         i = readFromPipe(pipeManager, fd, buff, count);
     }
@@ -186,10 +189,8 @@ uint64_t sys_write(uint64_t fd, const char *buffer, uint64_t count)
             }
         }
     }else{
-        ProcessManagerADT pm = getGlobalProcessManager();
-        pid_t currentPid = getPid(pm);
         PipeManagerADT pipeManager = getGlobalPipeManager();
-        i = writeToPipe(pipeManager, fd, (uint64_t *)buffer);
+        i = writeToPipe(pipeManager, fd, buffer, count);
     }
 
     return i; // Retorna la cantidad de caracteres escritos

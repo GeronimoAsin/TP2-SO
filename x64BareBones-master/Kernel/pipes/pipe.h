@@ -5,5 +5,5 @@
 typedef struct Pipe{
     int write_fd;
     int read_fd;
-    uint64_t buffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE];
 }Pipe;

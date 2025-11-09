@@ -147,6 +147,47 @@ pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int p
     return newProcess->pid;
 }
 
+pid_t createProcessWithFds(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv, int foreground, int initial_read_fd, int initial_write_fd){
+    pm->maxPid += 1;
+    PCB *newProcess = (PCB *) allocateMemory(pm->memoryManager, sizeof(PCB));
+
+    newProcess->pid = pm->maxPid;
+    newProcess->parentPid = (pm->currentProcess != NULL) ? pm->currentProcess->pid : 0;
+    newProcess->priority = priority;
+    newProcess->state = 1; // Ready state
+    newProcess->foreground = foreground; // Foreground (1) o Background (0)
+    newProcess->name = name;
+    newProcess->stackSize = PROCESS_STACK_SIZE;
+    newProcess->stackBase = (uint64_t *) allocateMemory(pm->memoryManager, newProcess->stackSize);
+    newProcess->read_fd = (initial_read_fd >= 0) ? initial_read_fd : 0;
+    newProcess->write_fd = (initial_write_fd >= 0) ? initial_write_fd : 1;
+
+    uint64_t stack_top = (uint64_t)(newProcess->stackBase) + PROCESS_STACK_SIZE;
+    newProcess->argc = argc;
+    newProcess->argv = argv;
+    newProcess->instructionPointer = (uint64_t *) entryPoint;
+
+    uint64_t new_rsp = fill_stack(stack_top, (uint64_t)entryPoint, (uint64_t)argc, (uint64_t *)argv);
+
+    newProcess->stackPointer = (uint64_t *)new_rsp;
+    newProcess->basePointer = (uint64_t *)new_rsp;
+
+    memset(&newProcess->context, 0, sizeof(Context));
+    newProcess->context.rip = (uint64_t)entryPoint;
+    newProcess->context.rsp = new_rsp;
+    newProcess->context.rbp = new_rsp;
+    newProcess->context.rflags = 0x202;
+    newProcess->context.cs = 0x08;
+    newProcess->context.ss = 0x00;
+    newProcess->context.rdi = argc;
+    newProcess->context.rsi = (uint64_t)argv;
+
+    enqueue(pm->readyQueue, newProcess);
+    addToList(pm->allProcesses, newProcess);
+    schedules();
+    return newProcess->pid;
+}
+
 void setWriteFd(ProcessManagerADT processManager, pid_t processId, int write_fd) {
     PCB *process = findInList(processManager->allProcesses, processId);  
     if (process) {

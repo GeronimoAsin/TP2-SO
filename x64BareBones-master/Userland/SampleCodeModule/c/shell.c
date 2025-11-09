@@ -653,6 +653,35 @@ pid_t my_switch(int cmd, char *buffer, int bg) {
         return -1;
 }
 
+static int resolvePipelineCommand(char *cmd, void (**entry)(int, char**), int *argc, char ***argv) {
+    int code = interpret(cmd);
+    *argc = 0; *argv = NULL; *entry = NULL;
+    switch (code) {
+        case 3: { // echo <texto>
+            *entry = &echo;
+
+            char *p = cmd;
+            // saltar 'echo'
+            for (int k = 0; k < 4 && *p; k++) p++;
+            // saltar espacios
+            while (*p == ' ' || *p == '\t') p++;
+            static char *localArgv[1];
+            localArgv[0] = p; // texto ya dentro de cmd
+            *argv = localArgv;
+            *argc = 1;
+            return 1;
+        }
+        case 25: // cat
+            *entry = &cat; return 1;
+        case 26: // wc
+            *entry = &wc; return 1;
+        case 27: // filter
+            *entry = &filter; return 1;
+        default:
+            return 0;
+    }
+}
+
 void startShell() {
     beep();
     printTime();
@@ -673,12 +702,30 @@ void startShell() {
         char cmd2[CMD_MAX_CHARS];
         if (hasPipe(buffer, cmd1, cmd2, CMD_MAX_CHARS)) {
             int fd[2];
-            pipe(fd);
-            pid_t pid1 = my_switch(interpret(cmd1), cmd1, bg); // Primer comando en background
-            setWriteFd(pid1, fd[0]);
+            pipe(fd); // fd[0] = read end, fd[1] = write end
 
-            pid_t pid2 = my_switch(interpret(cmd2), cmd2, bg); // Segundo comando en foreground
-            setReadFd(pid2, fd[1]);
+            void (*entry1)(int,char**) = NULL; int argc1=0; char **argv1=NULL;
+            void (*entry2)(int,char**) = NULL; int argc2=0; char **argv2=NULL;
+            if (!resolvePipelineCommand(cmd1, &entry1, &argc1, &argv1)) {
+                printf("Error: comando izquierdo del pipe no soportado en pipeline.\n");
+                continue;
+            }
+            if (!resolvePipelineCommand(cmd2, &entry2, &argc2, &argv2)) {
+                printf("Error: comando derecho del pipe no soportado en pipeline.\n");
+                continue;
+            }
+
+            // mandamos los procesos en background para ejecutar concurrentemente
+			//despues esperamos si responden
+            int foregroundFlag = 0;
+            pid_t pid1 = createProcessWithFdsSys(entry1, "pipe_left", argc1, argv1, foregroundFlag, -1, fd[1]);
+            pid_t pid2 = createProcessWithFdsSys(entry2, "pipe_right", argc2, argv2, foregroundFlag, fd[0], -1);
+
+            if (!bg) {
+                waitPid(pid1);
+                waitPid(pid2);
+            }
+            closePipe(fd);
             printf("\n");
             continue;
         }

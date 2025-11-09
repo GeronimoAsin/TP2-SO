@@ -13,6 +13,8 @@ ProcessManagerADT getGlobalProcessManager(); // para usar en time.c
 
 pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv, int foreground);
 
+pid_t createProcessWithFds(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv, int foreground, int initial_read_fd, int initial_write_fd);
+
 pid_t getPid(ProcessManagerADT processManager);
 
 void printProcesses(ProcessManagerADT processManager);

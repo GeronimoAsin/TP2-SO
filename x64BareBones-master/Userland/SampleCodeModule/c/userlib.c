@@ -643,3 +643,19 @@ int64_t my_create_process(char *name, uint64_t argc, char *argv[]) {
     return (int64_t)createProcess(func, name, (int)argc, argv, 0);
 }
 
+pid_t createProcessWithFds(void (*start_routine)(int, char**), char *name, int argc, char **argv, int foreground, int initial_read_fd, int initial_write_fd) {
+    pid_t pid = createProcess(start_routine, name, argc, argv, foreground);
+    if (initial_read_fd >= 0) {
+        setReadFd(pid, initial_read_fd);
+    }
+    if (initial_write_fd >= 0) {
+        setWriteFd(pid, initial_write_fd);
+    }
+    return pid;
+}
+
+pid_t createProcessWithFdsSys(void (*start_routine)(int, char**), char *name, int argc, char **argv, int foreground, int read_fd, int write_fd) {
+    struct ProcArgs { int argc; char **argv; int read_fd; int write_fd; } pa;
+    pa.argc = argc; pa.argv = argv; pa.read_fd = read_fd; pa.write_fd = write_fd;
+    return (pid_t) syscall(37, (uint64_t)start_routine, foreground, (uint64_t)name, (uint64_t)&pa, 0);
+}

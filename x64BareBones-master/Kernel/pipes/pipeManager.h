@@ -10,9 +10,8 @@ void destroyPipeManager(PipeManagerADT pipeManager, MemoryManagerADT memoryManag
 
 void addPipe(PipeManagerADT pipeManager, int fd[2]);
 
-int writeToPipe(PipeManagerADT pipeManager, int write_fd, uint64_t *data);
+int writeToPipe(PipeManagerADT pipeManager, int write_fd, const char *data, int size);
 
-int readFromPipe(PipeManagerADT pipeManager, int read_fd, uint64_t * buffer, int size);
+int readFromPipe(PipeManagerADT pipeManager, int read_fd, char * buffer, int size);
 
 void closePipe(PipeManagerADT pipeManager, int fd[2]);
-

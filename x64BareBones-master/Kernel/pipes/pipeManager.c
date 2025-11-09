@@ -36,43 +36,49 @@ void addPipe(PipeManagerADT pipeManager, int fd[2]) {
         newPipe->buffer[i] = 0;
     }
     addPipeToList(pipeManager->pipeList, newPipe, pipeManager->memoryManager);
-    fd[0] = newPipe->read_fd;
-    fd[1] = newPipe->write_fd;
+    fd[0] = newPipe->read_fd;   // fd[0] lectura
+    fd[1] = newPipe->write_fd;  // fd[1] escritura
 }
 
-int writeToPipe(PipeManagerADT pipeManager, int write_fd, uint64_t * data) {
+int writeToPipe(PipeManagerADT pipeManager, int write_fd, const char * data, int size) {
     Pipe* pipe = getPipeFromListToWrite(pipeManager->pipeList, write_fd);
-    if (pipe) {
-        int i;
-        for (i = 0; i < BUFFER_SIZE; i++) {
-            if (pipe->buffer[i] == 0) {
-                pipe->buffer[i] = data[i];
-            }
-        }
-        return i;
+    if (!pipe) {
+        return 0;
     }
-    return 0;
+    int written = 0;
+    for (int i = 0; i < BUFFER_SIZE && written < size; i++) {
+        if (pipe->buffer[i] == 0) { // espacio libre
+            pipe->buffer[i] = data[written++];
+        }
+    }
+    return written;
 }
 
-
-int readFromPipe(PipeManagerADT pipeManager, int read_fd, uint64_t * buffer, int size){
+int readFromPipe(PipeManagerADT pipeManager, int read_fd, char * outBuffer, int size){
     Pipe* pipe = getPipeFromListToRead(pipeManager->pipeList, read_fd);
-    if (pipe) {
-        for (int i = 0; i < size && i < BUFFER_SIZE; i++) {
-            buffer[i] = pipe->buffer[i];
-            pipe->buffer[i] = 0; 
+    if (!pipe) {
+        return 0;
+    }
+    int read = 0;
+    for (int i = 0; i < BUFFER_SIZE && read < size; i++) {
+        char c = pipe->buffer[i];
+        if (c == 0) {
+            continue; // hueco no compactado aún
         }
-        int j = 0;
-        for (int i = 0; i < BUFFER_SIZE; i++) {
-            if (pipe->buffer[i] != 0) {
-                pipe->buffer[j++] = pipe->buffer[i];
-            }
-        }
-        for (int i = j; i < BUFFER_SIZE; i++) {
-            pipe->buffer[i] = 0;
+        outBuffer[read++] = c;
+        pipe->buffer[i] = 0; // liberar posición
+    }
+    // Compactar: mover todos los caracteres no cero hacia el inicio
+    int j = 0;
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        if (pipe->buffer[i] != 0) {
+            pipe->buffer[j++] = pipe->buffer[i];
         }
     }
-    return size <= BUFFER_SIZE ? size : BUFFER_SIZE;
+    for (int i = j; i < BUFFER_SIZE; i++) {
+        pipe->buffer[i] = 0;
+    }
+    return read;
 }
 
 void closePipe(PipeManagerADT pipeManager, int fd[2]) {
