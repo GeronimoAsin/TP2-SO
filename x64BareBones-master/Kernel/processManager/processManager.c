@@ -275,17 +275,23 @@ void modifyPriority(ProcessManagerADT processManager, pid_t processId, int newPr
 
 void block(ProcessManagerADT processManager, pid_t processId) {
     PCB *process = findInList(processManager->allProcesses, processId);  
-    if (process && process->state != 0) {
-        int oldState = process->state;  // Guardar estado anterior
-        process->state = 0;  // BLOCKED
-        
-        if (oldState == 1) {  // Usar estado anterior
-            removeFromQueue(processManager->readyQueue, process); 
-        }
-        
-        addToList(processManager->blockedProcesses, process);
-        schedules();
+    if (process == NULL) {
+        return;
     }
+
+    if (process->state == 0 || process->state == 3) { // Already blocked or terminated
+        return;
+    }
+
+    int oldState = process->state;  // Guardar estado anterior
+    process->state = 0;  // BLOCKED
+
+    if (oldState == 1) {  // Si estaba READY, remover de la ready queue
+        removeFromQueue(processManager->readyQueue, process); 
+    }
+
+    addToList(processManager->blockedProcesses, process);
+    schedules();
 }
 
 void unblock(ProcessManagerADT processManager, pid_t processId) {

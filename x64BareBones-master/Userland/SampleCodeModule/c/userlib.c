@@ -542,6 +542,7 @@ void waitPid(pid_t pid) {
 
 void my_exit() {
     pid_t currentPid = getPid();
+    printf("Proceso con PID %d finalizando.\n", currentPid);
     syscall(19, (uint64_t)currentPid, 0, 0, 0, 0);
 }
 
