@@ -657,18 +657,241 @@ static int resolvePipelineCommand(char *cmd, void (**entry)(int, char**), int *a
     int code = interpret(cmd);
     *argc = 0; *argv = NULL; *entry = NULL;
     switch (code) {
+        case 0: // help
+            *entry = &help; return 1;
+        case 2: // clear
+            *entry = &clear; return 1;
         case 3: { // echo <texto>
             *entry = &echo;
-
             char *p = cmd;
             // saltar 'echo'
             for (int k = 0; k < 4 && *p; k++) p++;
             // saltar espacios
             while (*p == ' ' || *p == '\t') p++;
-            static char *localArgv[1];
-            localArgv[0] = p; // texto ya dentro de cmd
-            *argv = localArgv;
+            static char *echoArgv[1];
+            echoArgv[0] = p; // texto ya dentro de cmd
+            *argv = echoArgv;
             *argc = 1;
+            return 1;
+        }
+        case 4: // time
+            *entry = &time; return 1;
+        case 5: // registers
+            *entry = &registers; return 1;
+        case 10: { // test_mm con argumentos
+            *entry = (void (*)(int, char**))&test_mm;
+            char *p = cmd;
+            // Avanzar hasta después de "test_mm" (7 caracteres)
+            for (int k = 0; k < 7 && *p; k++) p++;
+            // Saltar espacios
+            while (*p == ' ' || *p == '\t') p++;
+            
+            static char testmmArg[32];
+            static char *testmmArgv[1];
+            int ai = 0;
+            if (*p && *p != '\n' && *p != '\r') {
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && ai < 31) {
+                    testmmArg[ai++] = *p++;
+                }
+                testmmArg[ai] = '\0';
+                testmmArgv[0] = testmmArg;
+                *argv = testmmArgv;
+                *argc = 1;
+                return 1;
+            }
+            return 0; // Sin argumentos no se puede ejecutar
+        }
+        case 11: // mem
+            *entry = &mem; return 1;
+        case 13: // getPid
+            *entry = &getMyPid; return 1;
+        case 14: // ps
+            *entry = &ps; return 1;
+        case 15: // fg
+            *entry = &foreground; return 1;
+        case 16: { // kill <pid>
+            *entry = &kill;
+            char *p = cmd;
+            for (int k = 0; k < 4 && *p; k++) p++;
+            while (*p && (*p == ' ' || *p == '\t')) p++;
+            
+            static char killArg[16];
+            static char *killArgv[1];
+            int idx = 0;
+            if (*p && *p != '\n' && *p != '\r') {
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && idx < 15) {
+                    killArg[idx++] = *p++;
+                }
+                killArg[idx] = '\0';
+                killArgv[0] = killArg;
+                *argv = killArgv;
+                *argc = 1;
+                return 1;
+            }
+            return 0;
+        }
+        case 17: { // nice <pid> <priority>
+            *entry = &nice;
+            char *p = cmd;
+            for (int k = 0; k < 4 && *p; k++) p++;
+            while (*p == ' ' || *p == '\t') p++;
+            
+            static char niceArgs[2][16];
+            static char *niceArgv[2];
+            int argCount = 0;
+            
+            for (int arg = 0; arg < 2 && *p && *p != '\n' && *p != '\r'; arg++) {
+                int idx = 0;
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && idx < 15) {
+                    niceArgs[arg][idx++] = *p++;
+                }
+                niceArgs[arg][idx] = '\0';
+                niceArgv[arg] = niceArgs[arg];
+                argCount++;
+                while (*p == ' ' || *p == '\t') p++;
+            }
+            
+            if (argCount >= 2) {
+                *argv = niceArgv;
+                *argc = argCount;
+                return 1;
+            }
+            return 0;
+        }
+        case 18: { // block <pid>
+            *entry = &block;
+            char *p = cmd;
+            for (int k = 0; k < 5 && *p; k++) p++;
+            while (*p == ' ' || *p == '\t') p++;
+            
+            static char blockArg[16];
+            static char *blockArgv[1];
+            int idx = 0;
+            if (*p && *p != '\n' && *p != '\r') {
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && idx < 15) {
+                    blockArg[idx++] = *p++;
+                }
+                blockArg[idx] = '\0';
+                blockArgv[0] = blockArg;
+                *argv = blockArgv;
+                *argc = 1;
+                return 1;
+            }
+            return 0;
+        }
+        case 19: { // unblock <pid>
+            *entry = &unblock;
+            char *p = cmd;
+            for (int k = 0; k < 7 && *p; k++) p++;
+            while (*p == ' ' || *p == '\t') p++;
+            
+            static char unblockArg[16];
+            static char *unblockArgv[1];
+            int idx = 0;
+            if (*p && *p != '\n' && *p != '\r') {
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && idx < 15) {
+                    unblockArg[idx++] = *p++;
+                }
+                unblockArg[idx] = '\0';
+                unblockArgv[0] = unblockArg;
+                *argv = unblockArgv;
+                *argc = 1;
+                return 1;
+            }
+            return 0;
+        }
+        case 20: { // test_processes <max_processes>
+            *entry = (void (*)(int, char**))&test_processes;
+            char *p = cmd;
+            for (int k = 0; k < 14 && *p; k++) p++;
+            while (*p == ' ' || *p == '\t') p++;
+            
+            static char testprocArg[32];
+            static char *testprocArgv[1];
+            int ai = 0;
+            if (*p && *p != '\n' && *p != '\r') {
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && ai < 31) {
+                    testprocArg[ai++] = *p++;
+                }
+                testprocArg[ai] = '\0';
+                testprocArgv[0] = testprocArg;
+                *argv = testprocArgv;
+                *argc = 1;
+                return 1;
+            }
+            return 0;
+        }
+        case 21: { // test_prio <max_value>
+            *entry = (void (*)(int, char**))&test_prio;
+            char *p = cmd;
+            for (int k = 0; k < 9 && *p; k++) p++;
+            while (*p == ' ' || *p == '\t') p++;
+            
+            static char testprioArg[32];
+            static char *testprioArgv[1];
+            int ai = 0;
+            if (*p && *p != '\n' && *p != '\r') {
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && ai < 31) {
+                    testprioArg[ai++] = *p++;
+                }
+                testprioArg[ai] = '\0';
+                testprioArgv[0] = testprioArg;
+                *argv = testprioArgv;
+                *argc = 1;
+                return 1;
+            }
+            return 0;
+        }
+        case 22: { // test_synchro <n> <use_sem>
+            *entry = (void (*)(int, char**))&test_sync;
+            char *p = cmd;
+            for (int k = 0; k < 12 && *p; k++) p++;
+            while (*p == ' ' || *p == '\t') p++;
+            
+            static char testsyncArgs[2][32];
+            static char *testsyncArgv[2];
+            int argCount = 0;
+            
+            for (int arg = 0; arg < 2 && *p && *p != '\n' && *p != '\r'; arg++) {
+                int idx = 0;
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && idx < 31) {
+                    testsyncArgs[arg][idx++] = *p++;
+                }
+                testsyncArgs[arg][idx] = '\0';
+                testsyncArgv[arg] = testsyncArgs[arg];
+                argCount++;
+                while (*p == ' ' || *p == '\t') p++;
+            }
+            
+            if (argCount >= 2) {
+                *argv = testsyncArgv;
+                *argc = argCount;
+                return 1;
+            }
+            return 0;
+        }
+        case 24: { // loop [seconds]
+            *entry = &loop;
+            char *p = cmd;
+            for (int k = 0; k < 4 && *p; k++) p++;
+            while (*p == ' ' || *p == '\t') p++;
+            
+            static char loopArg[32];
+            static char *loopArgv[1];
+            
+            if (*p && *p != '\n' && *p != '\r') {
+                int idx = 0;
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && idx < 31) {
+                    loopArg[idx++] = *p++;
+                }
+                loopArg[idx] = '\0';
+                loopArgv[0] = loopArg;
+                *argv = loopArgv;
+                *argc = 1;
+            } else {
+                *argc = 0;
+                *argv = NULL;
+            }
             return 1;
         }
         case 25: // cat
@@ -677,6 +900,34 @@ static int resolvePipelineCommand(char *cmd, void (**entry)(int, char**), int *a
             *entry = &wc; return 1;
         case 27: // filter
             *entry = &filter; return 1;
+        case 28: { // mvar <num_escritores> <num_lectores>
+            *entry = &mvar;
+            char *p = cmd;
+            for (int k = 0; k < 4 && *p; k++) p++;
+            while (*p == ' ' || *p == '\t') p++;
+            
+            static char mvarArgs[2][16];
+            static char *mvarArgv[2];
+            int argCount = 0;
+            
+            for (int arg = 0; arg < 2 && *p && *p != '\n' && *p != '\r'; arg++) {
+                int idx = 0;
+                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && idx < 15) {
+                    mvarArgs[arg][idx++] = *p++;
+                }
+                mvarArgs[arg][idx] = '\0';
+                mvarArgv[arg] = mvarArgs[arg];
+                argCount++;
+                while (*p == ' ' || *p == '\t') p++;
+            }
+            
+            if (argCount >= 2) {
+                *argv = mvarArgv;
+                *argc = argCount;
+                return 1;
+            }
+            return 0;
+        }
         default:
             return 0;
     }

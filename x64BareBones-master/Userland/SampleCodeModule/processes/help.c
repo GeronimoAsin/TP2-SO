@@ -20,6 +20,6 @@ static char *help_text =
     "Ejemplo: foo & (ejecuta foo en background)\n";
 
 void help(uint64_t argc, char **argv){
-    printf("%s", help_text);
+    write(getWriteFd(getPid()),help_text, strlen(help_text));
     my_exit();
 }

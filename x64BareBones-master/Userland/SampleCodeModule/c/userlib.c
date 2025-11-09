@@ -118,12 +118,12 @@ int strlen(const char *str) {
 void putChar(char c) {
     char buffer[2];
       buffer[0] = c;
-      write(1, buffer, 1);
+      write(getWriteFd(getPid()), buffer, 1);
 }
 
 char getChar() {
     char c;
-    read(0, &c, 1);
+    read(getReadFd(getPid()), &c, 1);
     return c;
 }
 
@@ -158,7 +158,7 @@ void printf(const char *format, ...) {
                     const char *str = hex_buffer;
                     while (*str) {
                         char buffer[2] = {*str++, '\0'};
-                        write(1, buffer, 1);
+                        write(getWriteFd(getPid()), buffer, 1);
                     }
                 } else if (*(format+2) == 'u') {
                     format += 2;
@@ -175,7 +175,7 @@ void printf(const char *format, ...) {
                     }
                     while (num_len > 0) {
                         char buffer[2] = {num_buffer[--num_len], '\0'};
-                        write(1, buffer, 1);
+                        write(getWriteFd(getPid()), buffer, 1);
                     }
                 } else {
                     format++;
@@ -185,14 +185,14 @@ void printf(const char *format, ...) {
                     case 'c': { // Caracter
                         char c = (char)va_arg(args, int); // Los caracteres se pasan como int en argumentos variables
                         char buffer[2] = {c, '\0'};
-                        write(1, buffer, 1);
+                        write(getWriteFd(getPid()), buffer, 1);
                         break;
                     }
                     case 's': { // Cadena
                         const char *str = va_arg(args, const char *);
                         while (*str) {
                             char buffer[2] = {*str++, '\0'};
-                            write(1, buffer, 1);
+                            write(getWriteFd(getPid()), buffer, 1);
                         }
                         break;
                     }
@@ -202,7 +202,7 @@ void printf(const char *format, ...) {
                         int num_len = 0;
                         if (num < 0) {
                             char buffer[2] = {'-', '\0'};
-                            write(1, buffer, 1);
+                            write(getWriteFd(getPid()), buffer, 1);
                             num = -num;
                         }
                         do {
@@ -211,7 +211,7 @@ void printf(const char *format, ...) {
                         } while (num > 0);
                         while (num_len > 0) {
                             char buffer[2] = {num_buffer[--num_len], '\0'};
-                            write(1, buffer, 1);
+                            write(getWriteFd(getPid()), buffer, 1);
                         }
                         break;
                     }
@@ -222,13 +222,13 @@ void printf(const char *format, ...) {
                         const char *str = hex_buffer;
                         while (*str) {
                             char buffer[2] = {*str++, '\0'};
-                            write(1, buffer, 1);
+                            write(getWriteFd(getPid()), buffer, 1);
                         }
                         break;
                     }
                     case '%': { // Literal '%'
                         char buffer[2] = {'%', '\0'};
-                        write(1, buffer, 1);
+                        write(getWriteFd(getPid()), buffer, 1);
                         break;
                     }
                     default:
@@ -237,7 +237,7 @@ void printf(const char *format, ...) {
             }
         } else {
             char buffer[2] = {*format, '\0'};
-            write(1, buffer, 1);
+            write(getWriteFd(getPid()), buffer, 1);
         }
         format++;
     }
@@ -542,7 +542,6 @@ void waitPid(pid_t pid) {
 
 void my_exit() {
     pid_t currentPid = getPid();
-    printf("Proceso con PID %d finalizando.\n", currentPid);
     syscall(19, (uint64_t)currentPid, 0, 0, 0, 0);
 }
 
