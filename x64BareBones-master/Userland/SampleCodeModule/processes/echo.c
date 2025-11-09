@@ -3,6 +3,6 @@
 
 
 void echo(uint64_t argc, char **argv) {
-    write(satoi(argv[0]), argv[1], strlen(argv[1]));
+    write(getWriteFd(getPid()), argv[0], strlen(argv[0]));
     my_exit();
 }

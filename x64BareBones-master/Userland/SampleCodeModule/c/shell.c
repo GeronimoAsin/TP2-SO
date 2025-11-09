@@ -122,6 +122,66 @@ static int isBackground(char *cmd) {
     return 0;
 }
 
+// Detecta si hay un pipe en el comando y separa los comandos
+// Retorna 1 si hay pipe, 0 si no
+// Si hay pipe, llena cmd1 y cmd2 con los comandos separados
+static int hasPipe(const char *cmd, char *cmd1, char *cmd2, int maxLen) {
+    int i = 0;
+    int pipePos = -1;
+    
+    // Buscar el carácter '|'
+    while (cmd[i] != '\0' && cmd[i] != '\n') {
+        if (cmd[i] == '|') {
+            pipePos = i;
+            break;
+        }
+        i++;
+    }
+    
+    // Si no hay pipe, retornar 0
+    if (pipePos == -1) {
+        return 0;
+    }
+    
+    // Copiar el primer comando (antes del pipe)
+    int j = 0;
+    i = 0;
+    // Saltar espacios iniciales
+    while (cmd[i] == ' ' || cmd[i] == '\t') {
+        i++;
+    }
+    // Copiar hasta el pipe
+    while (i < pipePos && j < maxLen - 2) {
+        cmd1[j++] = cmd[i++];
+    }
+    // Eliminar espacios al final del primer comando
+    while (j > 0 && (cmd1[j-1] == ' ' || cmd1[j-1] == '\t')) {
+        j--;
+    }
+    cmd1[j++] = '\n';
+    cmd1[j] = '\0';
+    
+    // Copiar el segundo comando (después del pipe)
+    i = pipePos + 1;
+    j = 0;
+    // Saltar espacios después del pipe
+    while (cmd[i] == ' ' || cmd[i] == '\t') {
+        i++;
+    }
+    // Copiar hasta el final
+    while (cmd[i] != '\0' && cmd[i] != '\n' && j < maxLen - 2) {
+        cmd2[j++] = cmd[i++];
+    }
+    // Eliminar espacios al final del segundo comando
+    while (j > 0 && (cmd2[j-1] == ' ' || cmd2[j-1] == '\t')) {
+        j--;
+    }
+    cmd2[j++] = '\n';
+    cmd2[j] = '\0';
+    
+    return 1;
+}
+
 static int interpret(const char *cmd) {
     if (strcmp(cmd, "help\n") == 0) return 0;
     if (strcmp(cmd, "clear\n") == 0) return 2;
@@ -195,48 +255,29 @@ static int interpret(const char *cmd) {
 }
 
 // Helper para crear procesos con manejo de foreground/background
-static void createProcessAndWait(void (*entryPoint)(int, char**), char *name, int argc, char **argv, int bg) {
+pid_t  createProcessAndWait(void (*entryPoint)(int, char**), char *name, int argc, char **argv, int bg) {
     pid_t pid = createProcess(entryPoint, name, argc, argv, !bg);
     if (!bg) {
         waitPid(pid);
     }
+    return pid;
 }
 
-void startShell() {
-    beep();
-    printTime();
-    printf("%s", ascii_art);
-    char buffer[CMD_MAX_CHARS];
-    while (1) {
-        clearCursor(); // Limpia cualquier cursor previo
-        printf(PROMPT);
-        drawCursor(); // drawCursor DESPUÉS de imprimir el prompt
-        readLine(buffer, CMD_MAX_CHARS);
-        printf("\n");
-        
-        // Verificar si es comando en background
-        int bg = isBackground(buffer);
-        
-        int cmd = interpret(buffer);
-        switch (cmd) {
+pid_t my_switch(int cmd, char *buffer, int bg) {
+    switch (cmd) {
             case 0: // help
-                createProcessAndWait(&help, "help_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&help, "help_process", 0, NULL, bg);
             case 2: // clear
-                createProcessAndWait(&clear, "clear_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&clear, "clear_process", 0, NULL, bg);
             case 3: { // echo
                 const char *toPrint = buffer + 4;
-                char * argv[2] = { "1", toPrint };
-                createProcessAndWait(&echo, "echo_process", 2, argv, bg);
-                break;
+                char * argv[1] = { toPrint };
+                return createProcessAndWait(&echo, "echo_process", 1, argv, bg);
             }
             case 4: // time
-                createProcessAndWait(&time, "time_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&time, "time_process", 0, NULL, bg);
             case 5: // registers
-                createProcessAndWait(&registers, "registers_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&registers, "registers_process", 0, NULL, bg);
             case 7: // memchunks
                 user_memchunks();
                 break;
@@ -261,7 +302,7 @@ void startShell() {
                     
                     // Crear array de argumentos
                     char *argv_local[1] = { argbuf };
-                    createProcessAndWait((void (*)(int, char**))&test_mm, "memtest_process", 1, argv_local, bg);
+                    return createProcessAndWait((void (*)(int, char**))&test_mm, "memtest_process", 1, argv_local, bg);
                 } else {
                     // Sin argumentos - mostrar mensaje de ayuda
                     printf("Error: test_mm requiere un argumento\n");
@@ -271,21 +312,16 @@ void startShell() {
                 break;
             }
             case 11: //meminfo
-                createProcessAndWait(&mem, "mem_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&mem, "mem_process", 0, NULL, bg);
             case 12: // foo
-                createProcessAndWait(&foo, "foo_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&foo, "foo_process", 0, NULL, bg);
             case 13: { // getPid
-                createProcessAndWait(&getMyPid, "getPid_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&getMyPid, "getPid_process", 0, NULL, bg);
             }
             case 14: // ps
-                createProcessAndWait(&ps, "ps_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&ps, "ps_process", 0, NULL, bg);
             case 15: { // fg
-                createProcessAndWait(&foreground, "fg_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&foreground, "fg_process", 0, NULL, bg);
             }
             case 16: { // kill
                 char *p = buffer;
@@ -340,8 +376,7 @@ void startShell() {
                 killArg[len] = '\0';
 
                 char *argv_local[1] = { killArg };
-                createProcessAndWait(&kill, "kill_process", 1, argv_local, bg);
-                break;
+                return createProcessAndWait(&kill, "kill_process", 1, argv_local, bg);
             }
             case 17: { // nice <pid> <priority>
                 char *p = buffer;
@@ -379,8 +414,7 @@ void startShell() {
                     break;
                 }
 
-                createProcessAndWait(&nice, "nice_process", argc_local, argv_local, bg);
-                break;
+                return createProcessAndWait(&nice, "nice_process", argc_local, argv_local, bg);
             }
             case 18: { // block <pid>
                 char *p = buffer;
@@ -404,8 +438,7 @@ void startShell() {
                 blockArg[idx] = '\0';
 
                 char *argv_local[1] = { blockArg };
-                createProcessAndWait(&block, "block_process", 1, argv_local, bg);
-                break;
+                return createProcessAndWait(&block, "block_process", 1, argv_local, bg);
             }
             case 19: { // unblock <pid>
                 char *p = buffer;
@@ -429,8 +462,7 @@ void startShell() {
                 unblockArg[idx] = '\0';
 
                 char *argv_local[1] = { unblockArg };
-                createProcessAndWait(&unblock, "unblock_process", 1, argv_local, bg);
-                break;
+                return createProcessAndWait(&unblock, "unblock_process", 1, argv_local, bg);
             }
             case 20: { // test_processes <max_processes>
                 // Parsear el argumento (max_processes)
@@ -453,7 +485,7 @@ void startShell() {
                     
                     // Crear array de argumentos
                     char *argv_local[1] = { argbuf };
-                    createProcessAndWait((void (*)(int, char**))&test_processes, "test_processes", 1, argv_local, bg);
+                    return createProcessAndWait((void (*)(int, char**))&test_processes, "test_processes", 1, argv_local, bg);
                 } else {
                     // Sin argumentos - mostrar mensaje de ayuda
                     printf("Error: test_processes requiere un argumento\n");
@@ -483,7 +515,7 @@ void startShell() {
                     
                     // Crear array de argumentos
                     char *argv_local[1] = { argbuf };
-                    createProcessAndWait((void (*)(int, char**))&test_prio, "test_prio", 1, argv_local, bg);
+                    return createProcessAndWait((void (*)(int, char**))&test_prio, "test_prio", 1, argv_local, bg);
                 } else {
                     // Sin argumentos - mostrar mensaje de ayuda
                     printf("Error: test_prio requiere un argumento\n");
@@ -524,7 +556,7 @@ void startShell() {
                         
                         // Crear array de argumentos
                         char *argv_local[2] = { argbuf1, argbuf2 };
-                        createProcessAndWait((void (*)(int, char**))&test_sync, "test_synchro", 2, argv_local, bg);
+                        return createProcessAndWait((void (*)(int, char**))&test_sync, "test_synchro", 2, argv_local, bg);
                     } else {
                         printf("Error: test_synchro requiere dos argumentos\n");
                         printf("Uso: test_synchro <n> <use_sem>\n");
@@ -565,20 +597,16 @@ void startShell() {
                     argc_local = 1;
                 }
 
-                createProcessAndWait(&loop, "loop_process", argc_local, argv_local, bg);
-                break;
+                return createProcessAndWait(&loop, "loop_process", argc_local, argv_local, bg);
             }
             case 25: { // cat
-                createProcessAndWait(&cat, "cat_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&cat, "cat_process", 0, NULL, bg);
             }
             case 26: { // wc
-                createProcessAndWait(&wc, "wc_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&wc, "wc_process", 0, NULL, bg);
             }
             case 27: { // filter
-                createProcessAndWait(&filter, "filter_process", 0, NULL, bg);
-                break;
+                return createProcessAndWait(&filter, "filter_process", 0, NULL, bg);
             }
             case 28: { // mvar <num_escritores> <num_lectores>
                 char *p = buffer;
@@ -617,12 +645,46 @@ void startShell() {
                     break;
                 }
 
-                createProcessAndWait(&mvar, "mvar_process", argc_local, argv_local, bg);
-                break;
+                return createProcessAndWait(&mvar, "mvar_process", argc_local, argv_local, bg);
             }
             default:
                 printf("Comando no encontrado. Escriba 'help' para ver los comandos disponibles.\n");
         }
+        return -1;
+}
+
+void startShell() {
+    beep();
+    printTime();
+    printf("%s", ascii_art);
+    char buffer[CMD_MAX_CHARS];
+    while (1) {
+        clearCursor(); // Limpia cualquier cursor previo
+        printf(PROMPT);
+        drawCursor(); // drawCursor DESPUÉS de imprimir el prompt
+        readLine(buffer, CMD_MAX_CHARS);
+        printf("\n");
+        
+        // Verificar si es comando en background
+        int bg = isBackground(buffer);
+
+        // Verificar si hay pipe en el comando
+        char cmd1[CMD_MAX_CHARS];
+        char cmd2[CMD_MAX_CHARS];
+        if (hasPipe(buffer, cmd1, cmd2, CMD_MAX_CHARS)) {
+            int fd[2];
+            pipe(fd);
+            pid_t pid1 = my_switch(interpret(cmd1), cmd1, bg); // Primer comando en background
+            setWriteFd(pid1, fd[0]);
+
+            pid_t pid2 = my_switch(interpret(cmd2), cmd2, bg); // Segundo comando en foreground
+            setReadFd(pid2, fd[1]);
+            printf("\n");
+            continue;
+        }
+               
+        int cmd = interpret(buffer);
+        my_switch(cmd, buffer, bg);
         printf("\n");
     }
 }
