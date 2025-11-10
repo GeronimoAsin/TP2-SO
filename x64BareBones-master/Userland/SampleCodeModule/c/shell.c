@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <stdint.h>
 #include "../include/userlib.h"
 #include "../include/syscall.h"
@@ -777,10 +779,7 @@ static int resolvePipelineCommand(char *cmd, ProcessEntry *entry, int *argc, cha
                 loopArgv[0] = loopArg;
                 *argv = loopArgv;
                 *argc = 1;
-            } else {
-                *argc = 0;
-                *argv = NULL;
-            }
+            } 
             return 1;
         }
         case 25: // cat

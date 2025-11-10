@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "list.h"
 #include "../memoryManager/memoryManager.h"
 
@@ -151,10 +153,6 @@ PCB* removeFirstFromList(ListADT list) {
     if (list->head == NULL) list->tail = NULL;
     freeMemory(list->memoryManager, first);
     return proc;
-}
-
-int isListEmpty(ListADT list) {
-    return (list == NULL || list->head == NULL);
 }
 
 void destroyList(ListADT list) {

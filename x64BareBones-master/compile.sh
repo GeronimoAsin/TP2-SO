@@ -10,8 +10,8 @@ else
 fi
 
 docker start TP2-SO
-docker exec -it TP2-SO make clean -C /root/Toolchain
-docker exec -it TP2-SO make clean -C /root/
-docker exec -it TP2-SO make -C /root/Toolchain
-docker exec -it TP2-SO make $MAKE_TARGET -C /root/
+docker exec  -it TP2-SO make clean -C /root/Toolchain 
+docker exec -it TP2-SO make clean -C /root/ --privileged
+docker exec -it TP2-SO make -C /root/Toolchain --privileged
+docker exec -it TP2-SO make $MAKE_TARGET -C /root/ --privileged
 docker stop TP2-SO
