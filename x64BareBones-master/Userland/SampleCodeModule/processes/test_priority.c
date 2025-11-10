@@ -76,4 +76,5 @@ uint64_t test_prio(uint64_t argc, char *argv[]) {
 
   printf("TEST COMPLETE!\n");
   my_exit();
+  return 1;
 }

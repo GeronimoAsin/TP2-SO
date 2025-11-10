@@ -206,7 +206,7 @@ pid_t my_switch(int cmd, char *buffer, int bg) {
             case 2: // clear
                 return createProcessAndWait(&clear, "clear_process", 0, NULL, bg);
             case 3: { // echo
-                const char *toPrint = buffer + 4;
+                char *toPrint = buffer + 4;
                 char * argv[1] = { toPrint };
                 return createProcessAndWait(&echo, "echo_process", 1, argv, bg);
             }

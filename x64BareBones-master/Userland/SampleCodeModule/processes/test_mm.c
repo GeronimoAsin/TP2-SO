@@ -1,7 +1,7 @@
 #include "syscall.h"
 #include "test_util.h"
 #include "userlib.h"
-
+void *memset(void *s, int c, size_t n);
 #define MAX_BLOCKS 5
 
 typedef struct MM_rq {
@@ -63,17 +63,20 @@ uint64_t test_mm(uint64_t argc, char *argv[]) {
 	printf("entrando a check\n");
     // Check
     for (i = 0; i < rq; i++)
-      if (mm_rqs[i].address)
+      if (mm_rqs[i].address){
         if (!memcheck(mm_rqs[i].address, i, mm_rqs[i].size)) {
           printf("test_mm ERROR\n");
           my_exit();
         }
+      }
 
 	printf("entrando a free\n");
     // Free
     for (i = 0; i < rq; i++)
-      if (mm_rqs[i].address)
+      if (mm_rqs[i].address){
         free(mm_rqs[i].address);
+      }
+        
 
 	printf("Exito parcial\n");
   }
