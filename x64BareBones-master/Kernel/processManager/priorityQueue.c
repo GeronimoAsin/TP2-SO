@@ -1,6 +1,5 @@
 #include "priorityQueue.h"
 #include "../memoryManager/memoryManager.h"
-#define NULL ((void*)0)
 
 typedef struct Node {
     PCB *process;

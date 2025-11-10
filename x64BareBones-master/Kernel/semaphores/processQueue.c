@@ -44,7 +44,7 @@ void enqueueProcess(ProcessQueueADT queue, pid_t processId) {
 
 pid_t dequeueProcess(ProcessQueueADT queue) {
     if (queue->head == NULL) {
-        return -1;  // Queue is empty
+        return -1;  
     }
     ProcessNode* temp = queue->head;
     pid_t processId = temp->processId;

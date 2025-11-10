@@ -6,7 +6,7 @@
 #include <string.h>
 
 extern void schedules();
-extern uint64_t fill_stack(uint64_t stack_top, uint64_t entry_point, uint64_t argc, uint64_t argv);
+extern uint64_t fill_stack(uint64_t stack_top, uint64_t entry_point, uint64_t argc, uint64_t * argv);
 extern void idle();
 
 // Stack size para procesos: debe ser <= 4096 bytes (tamaño de chunk del memory manager)

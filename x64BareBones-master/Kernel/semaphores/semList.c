@@ -2,7 +2,6 @@
 #include "../memoryManager/memoryManager.h"
 #include "../include/lib.h"
 
-#define NULL ((void*)0)
 
 typedef struct SemNode {
     Semaphore *semaphore;

@@ -32,7 +32,7 @@ void semaphores_destroy(SemaphoresADT semaphores) {
 
 void sem_open(SemaphoresADT semaphores, sem_id sem, sem_t initialValue) {
     if(isInSemList(semaphores->openedSemaphores, sem)) {
-        return; // Semaphore already exists
+        return; 
     }
     Semaphore *newSemaphore = (Semaphore *)allocateMemory(semaphores->memoryManager, sizeof(Semaphore));
     newSemaphore->id = sem;
@@ -43,19 +43,17 @@ void sem_open(SemaphoresADT semaphores, sem_id sem, sem_t initialValue) {
 
 void sem_close(SemaphoresADT semaphores, sem_id sem) {
     if (!isInSemList(semaphores->openedSemaphores, sem)) {
-        return; // Semaphore does not exist
+        return;
     }
     Semaphore *semToRemove = removeFromSemList(semaphores->openedSemaphores, sem);
-    // Liberar la cola de espera
     destroyProcessQueue(semToRemove->waitingQueue);
-    // Liberar el semáforo
     freeMemory(semaphores->memoryManager, semToRemove);
 }
 
 void sem_post(SemaphoresADT semaphores, sem_id sem) {
     Semaphore *semaphore = findInSemList(semaphores->openedSemaphores, sem);
     if (semaphore == NULL) {
-        return; // Semaphore does not exist
+        return; 
     }
     acquire();
     if(semaphore->value == 0) {
@@ -75,7 +73,7 @@ void sem_post(SemaphoresADT semaphores, sem_id sem) {
 void sem_wait(SemaphoresADT semaphores, sem_id sem) {
     Semaphore *semaphore = findInSemList(semaphores->openedSemaphores, sem);
     if (semaphore == NULL) {
-        return; // Semaphore does not exist
+        return; 
     }
     acquire();
     if(semaphore->value > 0) {

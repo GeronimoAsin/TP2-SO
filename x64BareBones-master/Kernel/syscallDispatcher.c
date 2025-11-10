@@ -1,9 +1,11 @@
 #include "syscallDispatcher.h"
 #include "videoDriver.h"
+#include "keyboardDriver.h"
 #include <stdarg.h>
 #include <string.h>
 #include "memoryManager/memoryManager.h"
 #include "processManager/processManager.h"
+#include "semaphores/semaphores.h"
 #include "pipes/pipeManager.h"
 #define REGISTERS 18
 
@@ -17,6 +19,11 @@ typedef struct {
     uint8_t minutes;
     uint8_t seconds;
 } Time;
+
+void sys_getTime(Time *t);
+uint8_t getHours();
+uint8_t getMinutes();
+uint8_t getSeconds();
 
 extern uint64_t savedRegisters[]; // Declaración del buffer ASM
 
@@ -44,7 +51,6 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 0:
             return sys_read(rbx, (char*) rdx, rcx);
         case 1:
-            //printChar('1'); // debug int80h.  La syscall de sys_read llega al caso 1
             return sys_write(rbx, (const char *)rdx, rcx);
         case 2:
             clearScreen(0x00000000); 
@@ -57,9 +63,6 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 5:
             deleteLastChar();
             return 1;
-		case 6:
-			beep();
-			return 1;
         case 7:
           	drawCursor();
             return 1;
@@ -69,19 +72,18 @@ uint64_t syscallDispatcher(uint64_t id, ...)
         case 9: 
             setCursor((int)rbx, (int)rdx);
             return 1;
-        case 10: // malloc: tamaño en rbx, puntero de retorno rax
+        case 10: // malloc
             {
                 void *p = sys_malloc(rbx);
                 return (uint64_t)p;
 }
-        case 11: // free: puntero a liberar en rbx
+        case 11: // free
             sys_free((void *) rbx);
             return 1;
         case 12:
             return (uint64_t) sys_meminfo();
         case 13:
             // rbx=entryPoint, rdx=foreground, rcx=name, r8=argc, r9=argv
-            // priority se establece por defecto en el Process Manager
             return createProcess(getGlobalProcessManager(), (void (*) (int, char**)) rbx, 1, (char *) rcx, (int) r8, (char **) r9, (int) rdx);
         case 14:
             return getPid(getGlobalProcessManager());
@@ -193,7 +195,7 @@ uint64_t sys_write(uint64_t fd, const char *buffer, uint64_t count)
         i = writeToPipe(pipeManager, fd, buffer, count);
     }
 
-    return i; // Retorna la cantidad de caracteres escritos
+    return i; 
 
 }
 
@@ -210,7 +212,6 @@ uint64_t sys_getRegisters(uint64_t *dest) {
         return -1;
     }
 
-    //save registers desde interrupts.asm
     memcpy(dest, savedRegisters, REGISTERS * sizeof(uint64_t));
     return 1;
 }
@@ -230,7 +231,7 @@ void * sys_malloc(size_t size)
 void sys_free(void *ptr)
 {
     if (ptr == NULL) return;
-    if (kernelMemoryManager == NULL) return; // todavia no se aloco memoria
+    if (kernelMemoryManager == NULL) return; 
     freeMemory(kernelMemoryManager, ptr);
 }
 
