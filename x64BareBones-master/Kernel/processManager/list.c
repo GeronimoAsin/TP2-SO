@@ -168,13 +168,3 @@ void destroyList(ListADT list) {
     }
     freeMemory(list->memoryManager, list);
 }
-
-PCB * findFirstWaitingToRead(ListADT list) {
-    if (list == NULL) return NULL;
-    
-    Node *current = list->head;
-    while (current != NULL) {
-        current = current->next;
-    }
-    return NULL; 
-}

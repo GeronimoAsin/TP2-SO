@@ -5,6 +5,16 @@
 #include "../memoryManager/memoryManager.h"
 #include "priorityQueue.h"
 
+typedef struct ProcessInfo {
+    pid_t pid;
+    char *name;
+    size_t state;
+    size_t priority;
+    uint64_t *stackPointer;
+    pid_t parentPid;
+    size_t foreground;
+} ProcessInfo;
+
 typedef struct ProcessManagerCDT * ProcessManagerADT;
 
 ProcessManagerADT createProcessManager(MemoryManagerADT memoryManager);
@@ -15,9 +25,25 @@ pid_t createProcess(ProcessManagerADT pm, void (*entryPoint)(int, char**), int p
 
 pid_t createProcessWithFds(ProcessManagerADT pm, void (*entryPoint)(int, char**), int priority, char *name, int argc, char **argv, int foreground, int initial_read_fd, int initial_write_fd);
 
+void setWriteFd(ProcessManagerADT processManager, pid_t processId, int write_fd);
+
+void setReadFd(ProcessManagerADT processManager, pid_t processId, int read_fd);
+
+int getWriteFd(ProcessManagerADT processManager, pid_t processId);
+
+int getReadFd(ProcessManagerADT processManager, pid_t processId);
+
 pid_t getPid(ProcessManagerADT processManager);
 
-void printProcesses(ProcessManagerADT processManager);
+pid_t getMaxPid(ProcessManagerADT processManager) ;
+
+PriorityQueueADT getReadyQueue(ProcessManagerADT processManager) ;
+
+PCB* getCurrentProcess(ProcessManagerADT processManager);
+
+void clearAllProcesses(ProcessManagerADT processManager) ;
+
+ProcessInfo * getProcesses(ProcessManagerADT processManager, size_t *outCount);
 
 void kill(ProcessManagerADT processManager, pid_t processId);
 
@@ -26,11 +52,6 @@ void modifyPriority(ProcessManagerADT processManager, pid_t processId, int newPr
 void block(ProcessManagerADT processManager, pid_t processId);
 
 void unblock(ProcessManagerADT processManager, pid_t processId);
-
-void setWriteFd(ProcessManagerADT processManager, pid_t processId, int write_fd);
-void setReadFd(ProcessManagerADT processManager, pid_t processId, int read_fd);
-int getWriteFd(ProcessManagerADT processManager, pid_t processId);
-int getReadFd(ProcessManagerADT processManager, pid_t processId);
 
 void leaveCPU(ProcessManagerADT processManager);
 
@@ -42,12 +63,8 @@ void destroyProcessManager(ProcessManagerADT processManager);
 
 void context_switch(PCB *prev, PCB *next);
 
-pid_t getMaxPid(ProcessManagerADT processManager);
-PriorityQueueADT getReadyQueue(ProcessManagerADT processManager);
-PCB* getCurrentProcess(ProcessManagerADT processManager);
-void clearAllProcesses(ProcessManagerADT processManager);
-
-// Context switch functions
 uint64_t schedule(uint64_t current_rsp);
+
+void exitProcess(ProcessManagerADT pm, pid_t processId) ;
 
 #endif // PROCESS_MANAGER_H

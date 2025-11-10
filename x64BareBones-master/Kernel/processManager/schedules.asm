@@ -52,7 +52,6 @@ fill_stack:
     push rbp
     mov rbp, rsp
 
-    ; Guardar los argumentos en registros que no se usan
     mov r10, rdi        ; r10 = stack_top
     mov r11, rsi        ; r11 = entry_point
     mov r12, rdx        ; r12 = argc
@@ -61,20 +60,16 @@ fill_stack:
     ; El stack crece hacia abajo, así que empezamos desde el tope
     and r10, 0xFFFFFFFFFFFFFFF0
 
-    ; Cambiar al stack del proceso
     mov rsp, r10
 
-    ; Preparar el stack frame para iretq
-    ; IRETQ espera (desde el tope hacia abajo): RIP, CS, RFLAGS, RSP, SS
-    ; Cuando se ejecute IRETQ, popea en este orden: RIP, CS, RFLAGS, RSP, SS
+    ; Armado del Stack para IRETQ
     push 0x0            ; SS
     push r10            ; RSP (será actualizado después)
     push 0x202          ; RFLAGS (interrupciones habilitadas, IF=1)
     push 0x8            ; CS (segmento de código kernel)
     push r11            ; RIP (entry point del proceso)
 
-    ; Ahora guardar el contexto de registros como lo hace pushState
-    ; pushState guarda (en este orden): rax, rbx, rcx, rdx, rbp, rdi, rsi, r8-r15
+    ; Guardado de los registros para popState
     push 0              ; rax
     push 0              ; rbx
     push 0              ; rcx
@@ -91,15 +86,11 @@ fill_stack:
     push 0              ; r14
     push 0              ; r15
 
-    ; rsp apunta al inicio del contexto guardado
-    ; hay que actualizar el RSP en el frame de IRETQ
-    ; El RSP debe apuntar al tope del stack (donde empezamos)
+
     mov qword [rsp + 15*8 + 3*8], r10  ; Actualizar RSP en frame de iretq
 
-    ; Retornar el nuevo RSP (apunta al inicio del contexto guardado)
     mov rax, rsp
 
-    ; Restaurar el stack original del kernel
     mov rsp, rbp
     pop rbp
     ret
