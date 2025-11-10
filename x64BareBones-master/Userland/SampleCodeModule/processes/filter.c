@@ -22,8 +22,6 @@ void filter(uint64_t argc, char **argv) {
 		writeFd = 1;
 	}
 
-	int isKeyboard = (readFd == 0);
-
 	while (1) {
 		char ch;
 		int bytes = read(readFd, &ch, 1);
@@ -35,9 +33,6 @@ void filter(uint64_t argc, char **argv) {
 			write(writeFd, &ch, 1);
 		}
 
-		if (ch == '\n' && isKeyboard) {
-			break;
-		}
 	}
 
 	my_exit();

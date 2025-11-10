@@ -7,7 +7,6 @@
 #define SEM_FULL "mvar_full"
 #define SEM_MUTEX "mvar_mutex"  // mutex de la variable compartida
 
-//  parsear enteros
 static int parse_int(const char *str) {
     int result = 0;
     int i = 0;
@@ -18,13 +17,11 @@ static int parse_int(const char *str) {
     return result;
 }
 
-// espera aleatoria
 static void random_wait() {
     uint32_t wait_time = GetUniform(500000) + 100000;
     bussy_wait(wait_time);
 }
 
-// Variable global compartida
 static volatile char shared_value = 0;
 
 // WRITER
@@ -37,22 +34,19 @@ void writer_process(int argc, char **argv) {
     int writer_id = parse_int(argv[0]);
     char write_char = 'A' + writer_id;
 
-    //espera inicial para sincronización
     random_wait();
 
     while (1) {
-        // Simular trabajo previo a escritura
         random_wait();
 
-        // Esperar a que la MVar esté vacía (disponible para escribir)
         my_sem_wait(SEM_EMPTY);
 
-        // Escribir el valor en la variable compartida
+ 
         my_sem_wait(SEM_MUTEX);
         shared_value = write_char;
         my_sem_post(SEM_MUTEX);
 
-        // Señalar que hay un valor disponible para leer
+
         my_sem_post(SEM_FULL);
     }
 }
@@ -80,25 +74,19 @@ void reader_process(int argc, char **argv) {
 
     uint32_t my_color = reader_colors[reader_id % 8];
 
-    // espera inicial para la sincronización
     random_wait();
 
     while (1) {
-        // Simular trabajo
         random_wait();
 
-        // Esperar a que haya un valor disponible para leer
         my_sem_wait(SEM_FULL);
 
-        // Leer la variable compartida
         my_sem_wait(SEM_MUTEX);
         char value_read = shared_value;
         my_sem_post(SEM_MUTEX);
 
-        // Imprimirvalor con el color del lector
         printCharWithColor(value_read, my_color);
 
-        // Señalar que la MVar está vacía (disponible para escribir)
         my_sem_post(SEM_EMPTY);
     }
 }
@@ -153,15 +141,13 @@ void mvar(uint64_t argc, char **argv) {
     my_sem_open(SEM_FULL, 0);
     my_sem_open(SEM_MUTEX, 1);
 
-    // Buffer para argumentos de procesos
+
     static char writer_ids[26][16];
     static char reader_ids[10][16];
 
-    // Crear procesos escritores
     for (int i = 0; i < num_writers; i++) {
         int_to_str(i, writer_ids[i]);
 
-        // Generar nombre: "writer_A", "writer_B",
         static char writer_names[26][32];
         int name_idx = 0;
         writer_names[i][name_idx++] = 'w';
@@ -178,11 +164,9 @@ void mvar(uint64_t argc, char **argv) {
         createProcess((void (*)(int, char**))&writer_process, writer_names[i], 1, writer_argv, 0);
     }
 
-    // Crear procesos lectores
     for (int i = 0; i < num_readers; i++) {
         int_to_str(i, reader_ids[i]);
 
-       //nombre: "reader_0", "reader_1"
         static char reader_names[10][32];
         int name_idx = 0;
         reader_names[i][name_idx++] = 'r';
@@ -193,7 +177,6 @@ void mvar(uint64_t argc, char **argv) {
         reader_names[i][name_idx++] = 'r';
         reader_names[i][name_idx++] = '_';
 
-        // Agregar el número del lector
         if (i >= 10) {
             reader_names[i][name_idx++] = '0' + (i / 10);
         }

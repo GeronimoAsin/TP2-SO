@@ -11,6 +11,10 @@
         "pipes.h": "c",
         "memory_resource": "c",
         "lib.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "compare": "c",
+        "cstdint": "c",
+        "stddef.h": "c",
+        "userlib.h": "c"
     }
 }

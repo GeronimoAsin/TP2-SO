@@ -8,14 +8,13 @@ void kill(uint64_t argc, char **argv) {
 	}
 
 	int64_t parsed = satoi(argv[0]);
-	if (parsed <= 0) {
+	if (parsed <= 1) {
 		printf("PID invalido: %s\n", argv[0]);
 		my_exit();
 	}
 
 	pid_t target = (pid_t)parsed;
 
-	printf("Matando proceso con PID %d...\n", (int)target);
 	my_kill(target);
 	printf("Proceso %d terminado\n", (int)target);
 

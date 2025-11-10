@@ -33,9 +33,9 @@ void loop(uint64_t argc, char **argv) {
 
 		// Bloqueo activo simple usando time syscalls
 		Time current;
-		do {
+		while (seconds_since(&start, &current) < wait_seconds) {
 			getTime(&current);
-		} while (seconds_since(&start, &current) < wait_seconds);
+		}
 
 		start = current;
 	}

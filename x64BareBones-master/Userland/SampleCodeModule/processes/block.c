@@ -18,9 +18,8 @@ static int parse_pid(uint64_t argc, char **argv, pid_t *target, const char *usag
 }
 
 static int protect_shell(pid_t target) {
-	pid_t current = getPid();
-	if (target == current) {
-		printf("Error: no puedes operar sobre la shell\n");
+	if (target == 1 || target == 0) {
+		printf("Error: no se puede matar a la shell ni al idle\n");
 		return 0;
 	}
 	return 1;
@@ -31,8 +30,6 @@ void block(uint64_t argc, char **argv) {
 	if (!parse_pid(argc, argv, &target, "Uso: block <pid>") || !protect_shell(target)) {
 		my_exit();
 	}
-
-	printf("Intentando bloquear proceso %d...\n", (int)target);
 	int64_t result = my_block(target);
 	if (result > 0) {
 		printf("Proceso %d bloqueado\n", (int)target);
@@ -49,7 +46,6 @@ void unblock(uint64_t argc, char **argv) {
 		my_exit();
 	}
 
-	printf("Intentando desbloquear proceso %d...\n", (int)target);
 	int64_t result = my_unblock(target);
 	if (result > 0) {
 		printf("Proceso %d desbloqueado\n", (int)target);
