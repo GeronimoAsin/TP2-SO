@@ -1,6 +1,9 @@
 #include "../include/userlib.h"
 #include "../include/test_util.h"
 
+extern void my_exit(void);
+extern int64_t my_kill(pid_t pid);
+
 void kill(uint64_t argc, char **argv) {
 	if (argc == 0 || argv == NULL || argv[0] == NULL) {
 		printf("Uso: kill <pid>\n");

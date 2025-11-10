@@ -2,6 +2,8 @@
 #include "../include/getTime.h"
 #include "../include/test_util.h"
 
+extern uint64_t getPid(void);
+
 static uint64_t bcd_to_dec(uint8_t bcd) {
 	return ((bcd >> 4) * 10ULL) + (bcd & 0x0FULL);
 }

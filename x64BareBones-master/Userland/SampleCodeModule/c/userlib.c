@@ -247,7 +247,7 @@ void printf(const char *format, ...) {
 }
 
 
-static void printHex64(uint64_t value) {
+void printHex64(uint64_t value) {
     char buf[19]; // "0x" + 16 hex + '\0'
     buf[0] = '0';
     buf[1] = 'x';

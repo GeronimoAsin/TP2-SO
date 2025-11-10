@@ -8,6 +8,8 @@ extern void invalidOp();
 #define CMD_MAX_CHARS 100
 #define PROMPT "Shell $> "
 
+typedef void (*ProcessEntry)(uint64_t, char **);
+
 static const char *ascii_art =
 "+====================================================+\n"
 "   ____  _          _ _                             \n"
@@ -19,11 +21,6 @@ static const char *ascii_art =
 "  >>> Listo para ejecutar sus comandos! <<<         \n"
 "+====================================================+\n";
 
-static void print(const char *str) {
-    while (*str) {
-        putChar(*str++);
-    }
-}
 
 
 static int readLine(char *buffer, int max) {
@@ -194,8 +191,8 @@ static int interpret(const char *cmd) {
 }
 
 // Helper para crear procesos con manejo de foreground/background
-pid_t  createProcessAndWait(void (*entryPoint)(int, char**), char *name, int argc, char **argv, int bg) {
-    pid_t pid = createProcess(entryPoint, name, argc, argv, !bg);
+pid_t  createProcessAndWait(ProcessEntry entryPoint, char *name, int argc, char **argv, int bg) {
+    pid_t pid = createProcess((void (*)(int, char**))entryPoint, name, argc, argv, !bg);
     if (!bg) {
         waitPid(pid);
     }
@@ -231,7 +228,7 @@ pid_t my_switch(int cmd, char *buffer, int bg) {
                     }
                     argbuf[ai] = '\0';
                     char *argv_local[1] = { argbuf };
-                    return createProcessAndWait((void (*)(int, char**))&test_mm, "memtest_process", 1, argv_local, bg);
+                    return createProcessAndWait((ProcessEntry)&test_mm, "memtest_process", 1, argv_local, bg);
                 } else {
                     printf("Error: test_mm requiere un argumento\n");
                     printf("Uso: test_mm <max_memory>\n");
@@ -405,7 +402,7 @@ pid_t my_switch(int cmd, char *buffer, int bg) {
                     argbuf[ai] = '\0';
                     
                     char *argv_local[1] = { argbuf };
-                    return createProcessAndWait((void (*)(int, char**))&test_processes, "test_processes", 1, argv_local, bg);
+                    return createProcessAndWait((ProcessEntry)&test_processes, "test_processes", 1, argv_local, bg);
                 } else {
                     printf("Error: test_processes requiere un argumento\n");
                     printf("Uso: test_processes <max_processes>\n");
@@ -429,7 +426,7 @@ pid_t my_switch(int cmd, char *buffer, int bg) {
                     argbuf[ai] = '\0';
                     
                     char *argv_local[1] = { argbuf };
-                    return createProcessAndWait((void (*)(int, char**))&test_prio, "test_prio", 1, argv_local, bg);
+                    return createProcessAndWait((ProcessEntry)&test_prio, "test_prio", 1, argv_local, bg);
                 } else {
                     printf("Error: test_prio requiere un argumento\n");
                     printf("Uso: test_prio <max_value>\n");
@@ -461,7 +458,7 @@ pid_t my_switch(int cmd, char *buffer, int bg) {
                         }
                         argbuf2[ai2] = '\0';
                         char *argv_local[2] = { argbuf1, argbuf2 };
-                        return createProcessAndWait((void (*)(int, char**))&test_sync, "test_synchro", 2, argv_local, bg);
+                        return createProcessAndWait((ProcessEntry)&test_sync, "test_synchro", 2, argv_local, bg);
                     } else {
                         printf("Error: test_synchro requiere dos argumentos\n");
                         printf("Uso: test_synchro <n> <use_sem>\n");
@@ -549,7 +546,7 @@ pid_t my_switch(int cmd, char *buffer, int bg) {
         return -1;
 }
 
-static int resolvePipelineCommand(char *cmd, void (**entry)(int, char**), int *argc, char ***argv) {
+static int resolvePipelineCommand(char *cmd, ProcessEntry *entry, int *argc, char ***argv) {
     int code = interpret(cmd);
     *argc = 0; *argv = NULL; *entry = NULL;
     switch (code) {
@@ -573,7 +570,7 @@ static int resolvePipelineCommand(char *cmd, void (**entry)(int, char**), int *a
         case 5: // registers
             *entry = &registers; return 1;
         case 10: { // test_mm con argumentos
-            *entry = (void (*)(int, char**))&test_mm;
+            *entry = (ProcessEntry)&test_mm;
             char *p = cmd;
             for (int k = 0; k < 7 && *p; k++) p++;
             while (*p == ' ' || *p == '\t') p++;
@@ -693,7 +690,7 @@ static int resolvePipelineCommand(char *cmd, void (**entry)(int, char**), int *a
             return 0;
         }
         case 20: { // test_processes <max_processes>
-            *entry = (void (*)(int, char**))&test_processes;
+            *entry = (ProcessEntry)&test_processes;
             char *p = cmd;
             for (int k = 0; k < 14 && *p; k++) p++;
             while (*p == ' ' || *p == '\t') p++;
@@ -714,7 +711,7 @@ static int resolvePipelineCommand(char *cmd, void (**entry)(int, char**), int *a
             return 0;
         }
         case 21: { // test_prio <max_value>
-            *entry = (void (*)(int, char**))&test_prio;
+            *entry = (ProcessEntry)&test_prio;
             char *p = cmd;
             for (int k = 0; k < 9 && *p; k++) p++;
             while (*p == ' ' || *p == '\t') p++;
@@ -735,7 +732,7 @@ static int resolvePipelineCommand(char *cmd, void (**entry)(int, char**), int *a
             return 0;
         }
         case 22: { // test_synchro <n> <use_sem>
-            *entry = (void (*)(int, char**))&test_sync;
+            *entry = (ProcessEntry)&test_sync;
             char *p = cmd;
             for (int k = 0; k < 12 && *p; k++) p++;
             while (*p == ' ' || *p == '\t') p++;
@@ -843,8 +840,8 @@ void startShell() {
             int fd[2];
             pipe(fd); 
 
-            void (*entry1)(int,char**) = NULL; int argc1=0; char **argv1=NULL;
-            void (*entry2)(int,char**) = NULL; int argc2=0; char **argv2=NULL;
+            ProcessEntry entry1 = NULL; int argc1=0; char **argv1=NULL;
+            ProcessEntry entry2 = NULL; int argc2=0; char **argv2=NULL;
             if (!resolvePipelineCommand(cmd1, &entry1, &argc1, &argv1)) {
                 printf("Error: comando izquierdo del pipe no soportado en pipeline.\n");
                 continue;
@@ -854,8 +851,8 @@ void startShell() {
                 continue;
             }
             int foregroundFlag = 0;
-            pid_t pid1 = createProcessWithFdsSys(entry1, "pipe_left", argc1, argv1, foregroundFlag, -1, fd[1]);
-            pid_t pid2 = createProcessWithFdsSys(entry2, "pipe_right", argc2, argv2, foregroundFlag, fd[0], -1);
+            pid_t pid1 = createProcessWithFdsSys((void (*)(int, char**))entry1, "pipe_left", argc1, argv1, foregroundFlag, -1, fd[1]);
+            pid_t pid2 = createProcessWithFdsSys((void (*)(int, char**))entry2, "pipe_right", argc2, argv2, foregroundFlag, fd[0], -1);
 
             if (!bg) {
                 waitPid(pid1);

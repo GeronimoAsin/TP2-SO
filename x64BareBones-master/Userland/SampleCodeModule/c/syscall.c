@@ -68,7 +68,7 @@ pid_t createProcess(void (*start_routine)(int, char**),char * name, int argc, ch
 
 void printProcesses() {
     size_t count;
-    ProcessInfo *processes = syscall(15, &count, 0, 0, 0, 0);
+    ProcessInfo *processes = (ProcessInfo *)syscall(15, (uint64_t)&count, 0, 0, 0, 0);
     for (size_t i = 0; i < count; i++) {
         char *stateStr;
         if(processes[i].state == 0) {

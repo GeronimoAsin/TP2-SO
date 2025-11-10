@@ -14,6 +14,6 @@ void putChar(char c);
 char getChar();
 int strncmp(const char *s1, const char *s2, unsigned int n);
 void printf(const char *format, ...);
-static void printHex64(uint64_t value);
+void printHex64(uint64_t value);
 void unsigned_numtohex64(uint64_t num, char *str);
 void user_memchunks(void);

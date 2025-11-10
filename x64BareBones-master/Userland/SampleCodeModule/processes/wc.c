@@ -1,5 +1,12 @@
 #include "../include/userlib.h"
 
+extern uint64_t getPid(void);
+extern int getReadFd(pid_t pid);
+extern int getWriteFd(pid_t pid);
+extern int read(int fd, char *buffer, int count);
+extern int write(int fd, const char *buffer, int count);
+extern void my_exit(void);
+
 void wc(uint64_t argc, char **argv) {
 	(void)argc;
 	(void)argv;

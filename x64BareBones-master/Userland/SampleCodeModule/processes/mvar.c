@@ -7,6 +7,13 @@
 #define SEM_FULL "mvar_full"
 #define SEM_MUTEX "mvar_mutex"  // mutex de la variable compartida
 
+extern void my_exit(void);
+extern uint64_t my_sem_wait(char *sem_id);
+extern uint64_t my_sem_post(char *sem_id);
+extern uint64_t my_sem_open(char *sem_id, uint64_t initialValue);
+extern pid_t createProcess(void (*start_routine)(int, char**), char *name, int argc, char **argv, int foreground);
+extern void printCharWithColor(char c, uint32_t color);
+
 static int parse_int(const char *str) {
     int result = 0;
     int i = 0;
