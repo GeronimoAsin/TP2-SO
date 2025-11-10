@@ -4,17 +4,15 @@
 #include <stdint.h>
 #include "../../Userland/SampleCodeModule/include/memoryInfo.h"
 
-#define MEM_START 0x100000ULL                // dir base de memoria Pure64
+#define MEM_START 0x100000ULL                // dir base de memoria
 #define STACK_SIZE 0x8000ULL                 // 32 KiB de stackBase fijos
 #define HEAP_START (ALIGN_POINTER((MEM_START + STACK_SIZE +1), 0x40000ULL))
-//#define HEAP_START (MEM_START + STACK_SIZE + 1)
 #define HEAP_SIZE 0x400000ULL                // 4 MB de heap
 
 #define CHUNK_SIZE 4096
 #define WORD_ALIGN 8
 #define CHUNK_COUNT ((unsigned int)(HEAP_SIZE / CHUNK_SIZE))
 
-//Alineamiento
 #define ALIGN_POINTER(ptr, alignment) \
     (((uintptr_t)(ptr) + (alignment) - 1) & ~((alignment) - 1))
 

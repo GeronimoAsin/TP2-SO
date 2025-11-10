@@ -43,7 +43,7 @@ void * allocateMemory(MemoryManagerADT memoryManager, size_t size) {
         return NULL;
     }
 
-    // Si piden más que un chunk, retornar NULL (no podemos satisfacer la solicitud)
+    // Al pedir más que un chunk, retorna NULL (no se puede satisfacer con el standard mem manager)
     if (size > memoryManager->chunkSize) {
         failedAllocations++;
         return NULL;
@@ -93,7 +93,7 @@ void destroyMemoryManager(MemoryManagerADT memoryManager) {
     if (memoryManager == NULL) {
         return;
     }
-    // Reiniciar el stack al estado inicial
+    // Reinicio del stack al estado inicial
     memoryManager->nextFreeIndex = memoryManager->chunkCount;
 }
 
