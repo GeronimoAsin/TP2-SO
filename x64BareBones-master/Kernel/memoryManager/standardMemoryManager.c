@@ -1,4 +1,3 @@
-
 #include "memoryManager.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -19,7 +18,7 @@ MemoryManagerADT createMemoryManager()
     }
 
     uintptr_t alignedStart = ALIGN_POINTER(HEAP_START, WORD_ALIGN);
-    newMem->heapStart = (uint8_t *)alignedStart;
+    newMem->heapStart = (uint8_t *)(uintptr_t)alignedStart; 
 
     newMem->heapSize = HEAP_SIZE - (unsigned int)(alignedStart - HEAP_START);
     newMem->chunkSize = CHUNK_SIZE;
