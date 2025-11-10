@@ -184,7 +184,7 @@ MemoryManagerADT createMemoryManager() {
 	}
 
     uintptr_t alignedStart = ALIGN_POINTER(HEAP_START, WORD_ALIGN);
-    mm->heapStart = (uint8_t*)(uintptr_t)alignedStart;
+    mm->heapStart = (uint8_t*)alignedStart;
     mm->heapSize = HEAP_SIZE - (unsigned int)(alignedStart - HEAP_START);
     mm->chunkSize = CHUNK_SIZE;
     mm->chunkCount = mm->heapSize / CHUNK_SIZE;
