@@ -23,9 +23,9 @@ static char *help_text =
     "- filter: Filtra las vocales de la entrada estandar\n"
     "- mvar <escritores> <lectores>: Implementa un problema de lectores y escritores\n"
     "- test_mm <max_memory>: Test de manejo de memoria\n"
-    "- test_processes <num_processes>: Test de creación de procesos\n"
+    "- test_processes <num_processes>: Test de creacion de procesos\n"
     "- test_prio <final_value>: Test de prioridades\n"
-    "- test_synchro <num_processes> <synchro>: Test de sincronización con semáforos (synchro = 1) o no (synchro = 0)\n"
+    "- test_synchro <num_processes> <synchro>: Test de sincronizacion con semaforos (synchro = 1) o no (synchro = 0)\n"
     "\nNota: Agregar '&' al final de un comando para ejecutarlo en background\n"
     "Ejemplo: loop & (ejecuta loop en background)\n";
 

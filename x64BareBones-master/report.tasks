@@ -13,7 +13,7 @@ pvs-studio.com/en/docs/warnings/	1	err	Help: The documentation for all analyzer 
 /root/Bootloader/BMFS/bmfs.c	501	note	V1004 The 'mbr' pointer was used unsafely after it was verified against nullptr. Check lines: 392, 501.
 /root/Kernel/kernel.c	23	note	V566 The integer constant is converted to pointer. Possibly an error or a bad coding style: (void *) 0x400000
 /root/Kernel/kernel.c	24	note	V566 The integer constant is converted to pointer. Possibly an error or a bad coding style: (void *) 0x500000
-/root/Kernel/memoryManager/buddyMemoryManager.c	187	note	V566 The integer constant is converted to pointer. Possibly an error or a bad coding style: (uint8_t *) alignedStart
+/root/Kernel/memoryManager/buddyMemoryManager.c	187	note	V566 The integer constant is converted to pointer. Possibly an error or a bad coding style: (uint8_t *)(uintptr_t) alignedStart
 /root/Toolchain/ModulePacker/main.c	108	err	V591 Non-void function should return a value.
 /root/Toolchain/ModulePacker/main.c	70	note	V575 The potential null pointer is passed into 'fclose' function. Inspect the first argument.
 /root/Toolchain/ModulePacker/main.c	82	note	V575 The potential null pointer is passed into 'fclose' function. Inspect the first argument.
