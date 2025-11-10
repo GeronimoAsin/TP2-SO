@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "userlib.h"
 #include <stdint.h>
 #include <stdarg.h>
@@ -256,7 +258,7 @@ void printHex64(uint64_t value) {
         buf[2 + i] = (nibble < 10) ? ('0' + nibble) : ('A' + (nibble - 10));
     }
     buf[18] = '\0';
-    printf(buf);
+    printf("%s", buf);
 }
 
 void unsigned_numtohex64(uint64_t num, char *str) {

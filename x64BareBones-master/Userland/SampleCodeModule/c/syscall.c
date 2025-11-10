@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "../include/syscall.h"
 #include <stdint.h>
 #include <stdarg.h>
@@ -70,7 +72,7 @@ void printProcesses() {
     size_t count;
     ProcessInfo *processes = (ProcessInfo *)syscall(15, (uint64_t)&count, 0, 0, 0, 0);
     for (size_t i = 0; i < count; i++) {
-        char *stateStr;
+        char *stateStr = "";
         if(processes[i].state == 0) {
             stateStr = "BLOCKED";
         } else if(processes[i].state == 1) {
@@ -84,9 +86,9 @@ void printProcesses() {
                processes[i].pid,
                processes[i].name,
                stateStr,
-               processes[i].priority,
+               (int)processes[i].priority,
                processes[i].parentPid,
-               processes[i].foreground);
+               (int)processes[i].foreground);
     }
     free(processes);
 }

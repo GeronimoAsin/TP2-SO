@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "processManager.h"
 #include "list.h"
 #include "priorityQueue.h"
@@ -174,7 +176,7 @@ PCB* getCurrentProcess(ProcessManagerADT processManager) {
 }
 
 void clearAllProcesses(ProcessManagerADT processManager) {
-    while (!isListEmpty(processManager->allProcesses)) {
+    while (!isEmptyList(processManager->allProcesses)) {
         PCB *proc = removeFirstFromList(processManager->allProcesses);
         if (proc) {
             freeMemory(processManager->memoryManager, proc->stackBase);
@@ -184,7 +186,7 @@ void clearAllProcesses(ProcessManagerADT processManager) {
     while (!isEmpty(processManager->readyQueue)) {
         dequeue(processManager->readyQueue);
     }
-    while (!isListEmpty(processManager->blockedProcesses)) {
+    while (!isEmptyList(processManager->blockedProcesses)) {
         removeFirstFromList(processManager->blockedProcesses);
     }
     processManager->maxPid = 0;
